@@ -916,7 +916,6 @@
         btnElement.classList.add('active');
         currentPage = 1; 
         renderTable();
-        window.scrollTo(0, 0);
     }
 
     function applySearch() {
@@ -1117,7 +1116,6 @@
         if (currentPage > 1) {
             currentPage--;
             renderTable();
-            window.scrollTo(0, 0);
         }
     }
 
@@ -1778,12 +1776,14 @@
                 diffColor = '#00aee0';
             }
 
+            // ---- SYSTEM QTY BREAKDOWN LOGIC ----
             let sysQtyHtml = '';
             let parts = [];
             let q1000 = item.sysQty1000 || 0;
             let q4000 = item.sysQty4000 || 0;
             let qOther = item.sysQtyOther || 0;
             
+            // Fallback for old save files that didn't record the 1000/4000 split
             if (q1000 === 0 && q4000 === 0 && qOther === 0 && item.systemQty > 0) {
                 if (item.sloc === '1000') q1000 = item.systemQty;
                 else if (item.sloc === '4000') q4000 = item.systemQty;
@@ -1862,7 +1862,7 @@
         });
 
         document.getElementById('btnNextPage').onclick = function() {
-            if (currentPage < totalPages) { currentPage++; renderTable(); window.scrollTo(0, 0); }
+            if (currentPage < totalPages) { currentPage++; renderTable(); }
         };
         
         setTimeout(updateStickyHeaders, 10);
@@ -1916,6 +1916,7 @@
         if (hasDescriptions) headers.push("Description");
         if (hasSlocs) headers.push("SLOC");
         
+        // Export split numbers so they are retained for next load
         if (hasSlocs) {
             headers.push("System QTY (Total)", "Sys QTY 1000", "Sys QTY 4000", "Scanned QTY", "Difference", "Status");
         } else {
