@@ -1783,7 +1783,6 @@
             let q4000 = item.sysQty4000 || 0;
             let qOther = item.sysQtyOther || 0;
             
-            // Fallback for old save files that didn't record the 1000/4000 split
             if (q1000 === 0 && q4000 === 0 && qOther === 0 && item.systemQty > 0) {
                 if (item.sloc === '1000') q1000 = item.systemQty;
                 else if (item.sloc === '4000') q4000 = item.systemQty;
@@ -1862,7 +1861,10 @@
         });
 
         document.getElementById('btnNextPage').onclick = function() {
-            if (currentPage < totalPages) { currentPage++; renderTable(); }
+            if (currentPage < totalPages) { 
+                currentPage++; 
+                renderTable(); 
+            }
         };
         
         setTimeout(updateStickyHeaders, 10);
