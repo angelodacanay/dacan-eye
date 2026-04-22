@@ -871,7 +871,7 @@
         isLensesFilterActive = !isLensesFilterActive;
         const btn = document.getElementById('btnToggleLenses');
         if (isLensesFilterActive) {
-            btn.innerText = "Restore CL & OL";
+            btn.innerText = "Unhide CL & OL";
             btn.style.backgroundColor = "#fff";
             btn.style.color = "#e6007e";
         } else {
@@ -1494,7 +1494,7 @@
         
         let msg = `Successfully uploaded and parsed ${uploadedRawData.length} items from ${currentFileType} data.`;
         if (excludedCount > 0) {
-            msg += `<br><br><span style="color:#e6007e; font-weight:bold;">Automatically hid ${excludedCount} Ophthalmic, Contact Lens, and Spare Part items!</span><br>(Use the 'Restore CL & OL' button if you need them back).`;
+            msg += `<br><br><span style="color:#e6007e; font-weight:bold;">Automatically hid ${excludedCount} Ophthalmic, Contact Lens, and Spare Part items!</span><br>(Use the 'Unhide CL & OL' button if you need them back).`;
         }
         
         await customAlert(msg, "Upload Success");
@@ -2519,7 +2519,7 @@
                 
                 let loadMsg = `Successfully loaded ${loadedCount} valid items from the saved session.`;
                 if (purgedCount > 0) {
-                    loadMsg += `<br><br><span style="color:#e6007e; font-weight:bold;">We automatically hid ${purgedCount} contact lens/spare part items from this old save file!</span><br>(Use the 'Restore CL & OL' button if you need them back).`;
+                    loadMsg += `<br><br><span style="color:#e6007e; font-weight:bold;">We automatically hid ${purgedCount} contact lens/spare part items from this old save file!</span><br>(Use the 'Unhide CL & OL' button if you need them back).`;
                 }
                 await customAlert(loadMsg, "Load Complete");
             } else {
