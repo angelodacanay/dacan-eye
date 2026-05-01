@@ -976,6 +976,26 @@
     }
 
     // --- EXCLUSION LOGIC FOR LENSES/CONTACTS & SPARE PARTS ---
+    function extractBrandAndCategory(desc) {
+        let category = "OTHERS";
+        let brand = "UNKNOWN";
+        if (!desc) return { category, brand };
+
+        let parts = desc.split(';');
+        if (parts.length >= 2) {
+            let prefix = parts[0].trim().toUpperCase();
+            if (prefix === 'S') category = 'SUN';
+            else if (prefix === 'O') category = 'SPX';
+            else if (prefix === 'OA') category = 'OTHERS';
+            else category = 'OTHERS';
+
+            if (category === 'SUN' || category === 'SPX' || prefix === 'OA') {
+                brand = parts[1].trim().toUpperCase();
+            }
+        }
+        return { category, brand };
+    }
+
     function isExcludedItem(fullRowText, descRaw, merchRaw) {
         let cleanDesc = (descRaw || "").replace(/['"]/g, '').trim();
         let lowerDesc = cleanDesc.toLowerCase();
@@ -983,6 +1003,7 @@
         let upperMerch = (merchRaw || "").replace(/['"]/g, '').toUpperCase().trim();
         let lowerRow = fullRowText.toLowerCase();
 
+        // --- SAFETY NET ---
         if (upperDesc.startsWith('S;') || upperDesc.startsWith('O;') || upperDesc.startsWith('OA;')) {
             return false;
         }
@@ -1837,6 +1858,7 @@
             else if (rSloc === '4000') inventory[row.sku].sysQty4000 += row.qty;
             else inventory[row.sku].sysQtyOther += row.qty;
 
+            // Only count towards 'encoded' if we are not hiding them, OR they are standard items
             if (!(isLensesFilterActive && row.isLens)) {
                 filteredCount++;
             }
