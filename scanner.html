@@ -781,13 +781,13 @@
     <div class="action-group">
         <button class="btn btn-reset" onclick="resetSession()" title="Delete all current data and start a brand new session">Reset Session</button>
         <button class="btn btn-history" id="btnUndo" onclick="undoAction()" disabled title="Undo your last scan or edit">
-            <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+            <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round">
                 <polyline points="9 14 4 9 9 4"></polyline>
                 <path d="M20 20v-7a4 4 0 0 0-4-4H4"></path>
             </svg> Undo
         </button>
         <button class="btn btn-history" id="btnRedo" onclick="redoAction()" disabled title="Redo your last undone action">
-            <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+            <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round">
                 <polyline points="15 14 20 9 15 4"></polyline>
                 <path d="M4 20v-7a4 4 0 0 1 4-4h12"></path>
             </svg> Redo
@@ -864,7 +864,7 @@
         const isChecked = document.getElementById('tutorialToggle').checked;
         if (isChecked) {
             document.body.classList.add('tutorial-active');
-            updateStickyHeaders(); // Readjust heights for the new tutorial boxes
+            updateStickyHeaders(); 
         } else {
             document.body.classList.remove('tutorial-active');
             updateStickyHeaders(); 
@@ -883,25 +883,19 @@
         const origRect = filtersOrig.getBoundingClientRect();
         const stickyRect = stickyGroup.getBoundingClientRect();
 
-        // Check if the placeholder is sliding underneath the sticky panel
         const isScrolledPast = origRect.bottom < (stickyRect.top + 5);
 
         if (isScrolledPast) {
             if (dynamicFilters.parentNode !== filtersTarget) {
-                // Lock the height to prevent layout jump!
                 filtersOrig.style.height = filtersOrig.offsetHeight + 'px';
-                
                 filtersTarget.appendChild(dynamicFilters);
                 dynamicFilters.classList.add('compact-mode');
                 updateStickyHeaders(); 
             }
         } else {
-            // Restore it back to panel 1
             if (dynamicFilters.parentNode !== filtersOrig) {
                 filtersOrig.appendChild(dynamicFilters);
                 dynamicFilters.classList.remove('compact-mode');
-                
-                // Release the locked height so it behaves naturally
                 filtersOrig.style.height = 'auto';
                 updateStickyHeaders(); 
             }
@@ -1003,7 +997,6 @@
         let upperMerch = (merchRaw || "").replace(/['"]/g, '').toUpperCase().trim();
         let lowerRow = fullRowText.toLowerCase();
 
-        // --- SAFETY NET ---
         if (upperDesc.startsWith('S;') || upperDesc.startsWith('O;') || upperDesc.startsWith('OA;')) {
             return false;
         }
@@ -1354,7 +1347,7 @@
     }
 
     function saveState() {
-        undoStack.push(JSON.stringify({ inventory, systemDataEncoded, hasWarnedNoSystemData, auditLog }));
+        undoStack.push(JSON.stringify({ inventory, systemDataEncoded, hasWarnedNoSystemData, auditLog, uploadedRawData, currentFileType, isLensesFilterActive }));
         if (undoStack.length > MAX_HISTORY) {
             undoStack.shift(); 
         }
@@ -1364,31 +1357,66 @@
 
     function undoAction() {
         if (undoStack.length > 0) {
-            redoStack.push(JSON.stringify({ inventory, systemDataEncoded, hasWarnedNoSystemData, auditLog }));
+            redoStack.push(JSON.stringify({ inventory, systemDataEncoded, hasWarnedNoSystemData, auditLog, uploadedRawData, currentFileType, isLensesFilterActive }));
             let previousState = JSON.parse(undoStack.pop());
+            
             inventory = previousState.inventory;
             systemDataEncoded = previousState.systemDataEncoded;
             hasWarnedNoSystemData = previousState.hasWarnedNoSystemData;
             auditLog = previousState.auditLog;
+            uploadedRawData = previousState.uploadedRawData || [];
+            currentFileType = previousState.currentFileType || null;
+            isLensesFilterActive = previousState.isLensesFilterActive !== undefined ? previousState.isLensesFilterActive : true;
+            
             saveData(); 
             renderAuditTrail();
             renderTable(); 
             updateUndoRedoButtons();
+            
+            // Restore UI Buttons
+            const btn = document.getElementById('btnToggleLenses');
+            if (isLensesFilterActive) {
+                btn.innerText = "Restore CL & OL";
+                btn.style.backgroundColor = "var(--surface-color)";
+                btn.style.color = "var(--text-primary)";
+            } else {
+                btn.innerText = "Hide CL & OL";
+                btn.style.backgroundColor = "#fef2f2";
+                btn.style.color = "var(--accent-red)";
+                btn.style.borderColor = "#fecaca";
+            }
         }
     }
 
     function redoAction() {
         if (redoStack.length > 0) {
-            undoStack.push(JSON.stringify({ inventory, systemDataEncoded, hasWarnedNoSystemData, auditLog }));
+            undoStack.push(JSON.stringify({ inventory, systemDataEncoded, hasWarnedNoSystemData, auditLog, uploadedRawData, currentFileType, isLensesFilterActive }));
             let nextState = JSON.parse(redoStack.pop());
+            
             inventory = nextState.inventory;
             systemDataEncoded = nextState.systemDataEncoded;
             hasWarnedNoSystemData = nextState.hasWarnedNoSystemData;
             auditLog = nextState.auditLog;
+            uploadedRawData = nextState.uploadedRawData || [];
+            currentFileType = nextState.currentFileType || null;
+            isLensesFilterActive = nextState.isLensesFilterActive !== undefined ? nextState.isLensesFilterActive : true;
+            
             saveData();
             renderAuditTrail();
             renderTable();
             updateUndoRedoButtons();
+            
+            const btn = document.getElementById('btnToggleLenses');
+            if (isLensesFilterActive) {
+                btn.innerText = "Restore CL & OL";
+                btn.style.backgroundColor = "var(--surface-color)";
+                btn.style.color = "var(--text-primary)";
+            } else {
+                btn.innerText = "Hide CL & OL";
+                btn.style.backgroundColor = "#fef2f2";
+                btn.style.color = "var(--accent-red)";
+                btn.style.borderColor = "#fecaca";
+            }
         }
     }
 
@@ -1463,7 +1491,6 @@
         });
     }
 
-    // Live-monitor the sticky panel for any height changes
     const resizeObserver = new ResizeObserver(() => {
         updateStickyHeaders();
     });
@@ -1491,7 +1518,7 @@
     }
 
     function nextPage() {
-        // Will be dynamically reassigned in renderTable
+        // Handled in renderTable
     }
 
     /* ========================================================
@@ -1503,7 +1530,6 @@
             let headerRowIndex = -1;
             let skuCol = -1, qtyCol = -1, descCol = -1, slocCol = -1, stoCol = -1, merchCol = -1;
 
-            // Find headers dynamically
             for (let i = 0; i < Math.min(aoa.length, 25); i++) {
                 let cols = aoa[i];
                 if (!cols || !cols.length) continue;
@@ -1549,7 +1575,6 @@
                 combineBrands = await customConfirm("Do you want to combine similar brand names and fix misspellings (e.g., Rayban and Rayban Junior)?", "Combine Similar Brands");
             }
             
-            // Allow the UI to visually hide the modal before we freeze the thread with heavy data loops
             await new Promise(r => setTimeout(r, 50));
 
             let uniqueSTOs = new Set();
@@ -1570,7 +1595,6 @@
                     stoRaw = stoCol !== -1 && cols[stoCol] != null ? String(cols[stoCol]).trim() : "";
                     merchRaw = merchCol !== -1 && cols[merchCol] != null ? String(cols[merchCol]).trim() : "";
                 } else {
-                    // FALLBACK LOGIC
                     let possibleSkus = [];
                     let possibleSlocs = [];
                     let descParts = [];
@@ -1585,7 +1609,6 @@
                         }
                         
                         let valNoCommas = val.replace(/,/g, '');
-                        // Strictly demand SKU is purely numerical
                         if (/^\d+$/.test(valNoCommas) && valNoCommas.length >= 4) {
                             possibleSkus.push({val: valNoCommas, index: j});
                         }
@@ -1601,7 +1624,6 @@
                     let slocIndex = possibleSlocs.length > 0 ? possibleSlocs[0].index : -1;
                     let searchStartIndex = Math.max(skuIndex, slocIndex);
                     
-                    // 1. Try Left-to-Right after Sloc/Sku to find Unrestricted QTY
                     if (searchStartIndex !== -1) {
                         for(let j = searchStartIndex + 1; j < cols.length; j++) {
                             if(cols[j] == null) continue;
@@ -1615,7 +1637,6 @@
                         }
                     }
 
-                    // 2. If LTR fails, try Right-to-Left
                     if (foundQtyIndex === -1) {
                         for (let j = cols.length - 1; j >= 0; j--) {
                             if (cols[j] == null) continue;
@@ -1633,7 +1654,6 @@
                         }
                     }
 
-                    // Grab Description
                     if (skuIndex !== -1) {
                         for (let j = skuIndex + 1; j < cols.length; j++) {
                             if (cols[j] == null) continue;
@@ -1729,7 +1749,6 @@
 
         const fileName = file.name.toLowerCase();
 
-        // 1. Text-based manual parser (Guaranteed not to corrupt CSVs)
         if (fileName.endsWith('.csv') || fileName.endsWith('.txt') || fileName.endsWith('.tsv')) {
             const reader = new FileReader();
             reader.onload = async function(e) {
@@ -1755,7 +1774,6 @@
             return;
         }
 
-        // 2. SheetJS parser for XLS / XLSX
         if (typeof XLSX === 'undefined') {
             await customAlert("The Excel parser library couldn't load (your network might be blocking it). Please open your file, save it as a .CSV, and upload the CSV instead.", "Library Blocked");
             if(event.target) event.target.value = '';
@@ -1774,7 +1792,6 @@
             } catch (err) {
                 console.error("SheetJS error:", err);
                 
-                // Fallback: SAP exports HTML or TSV disguised as XLS
                 try {
                     let text = new TextDecoder("utf-8").decode(new Uint8Array(e.target.result));
                     if(text.includes('<table') || text.includes('\t') || text.includes(',')) {
@@ -1819,7 +1836,6 @@
     }
 
     function applyDynamicFilters() {
-        // Zero-out current system quantities cleanly (Preserves Scanned data!)
         for (let sku in inventory) {
             inventory[sku].systemQty = 0;
             inventory[sku].sysQty1000 = 0;
@@ -1859,13 +1875,11 @@
             else if (rSloc === '4000') inventory[row.sku].sysQty4000 += row.qty;
             else inventory[row.sku].sysQtyOther += row.qty;
 
-            // Only count towards 'encoded' if we are not hiding them, OR they are standard items
             if (!(isLensesFilterActive && row.isLens)) {
                 filteredCount++;
             }
         });
 
-        // Cleanup any rows that now have 0 System AND 0 Scanned
         for (let sku in inventory) {
             if (inventory[sku].systemQty === 0 && inventory[sku].scannedQty === 0) {
                 delete inventory[sku];
@@ -1878,6 +1892,7 @@
         saveData();
         renderTable();
     }
+
 
     // --- STANDARD PASTE LOGIC ---
     async function loadPastedData() {
@@ -1922,7 +1937,7 @@
         
         let hasSlocData = false;
         for (let sku in inventory) {
-            if (isLensesFilterActive && inventory[sku].isLens) continue; // Global Mask check
+            if (isLensesFilterActive && inventory[sku].isLens) continue;
 
             if (inventory[sku].sloc && inventory[sku].sloc !== "" && inventory[sku].sloc !== "Scanned") {
                 hasSlocData = true;
@@ -1935,7 +1950,6 @@
         for (let sku in inventory) {
             let item = inventory[sku];
             
-            // --- CRITICAL MASK CHECK ---
             if (isLensesFilterActive && item.isLens) continue;
 
             let diff = item.scannedQty - item.systemQty;
@@ -2126,7 +2140,6 @@
             }
         };
         
-        // Ensure header offset updates after rendering new rows
         setTimeout(updateStickyHeaders, 10);
     }
 </script>
