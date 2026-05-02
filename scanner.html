@@ -103,6 +103,7 @@
         .custom-modal-body { padding: 24px; color: var(--text-primary); font-size: 14px; line-height: 1.6; }
         .custom-modal-input { margin-top: 16px; }
         .custom-modal-footer { padding: 16px 24px; display: flex; justify-content: flex-end; gap: 12px; background-color: var(--bg-color); border-top: 1px solid var(--border-color); }
+        
         #slocModalBox .custom-modal-footer { flex-direction: column; gap: 8px; }
         .sloc-btn-filter { background-color: var(--surface-color); color: var(--text-primary); border: 1px solid var(--border-color); }
         .sloc-btn-filter:hover { background-color: var(--bg-color); }
@@ -162,7 +163,7 @@
         #error-toast { visibility: hidden; min-width: 250px; background-color: var(--text-primary); color: #fff; text-align: center; border-radius: var(--radius-md); padding: 16px; position: fixed; z-index: 5000; left: 50%; top: 20px; transform: translateX(-50%); font-size: 14px; font-weight: 500; box-shadow: var(--shadow-lg); opacity: 0; transition: opacity 0.3s, top 0.3s; }
         #error-toast.show { visibility: visible; opacity: 1; top: 40px; }
 
-        /* --- DYNAMIC SMART FILTERS --- */
+        /* --- DYNAMIC SMART FILTERS (NORMAL VS COMPACT) --- */
         #dynamicFilters { background: var(--bg-color); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 20px; margin-top: 20px; transition: all 0.3s ease; }
         .df-header { color: var(--text-primary); font-size: 14px; font-weight: 600; margin-bottom: 12px; }
         .df-layout { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
@@ -359,7 +360,7 @@
                 <div class="df-subtext"><i>Changing these filters will instantly update the target system quantities without deleting your current scanned counts.</i></div>
             </div>
         </div>
-        </div>
+    </div>
 
     <div id="stickyGroup" class="sticky-group">
         <div class="sticky-padding">
@@ -592,6 +593,20 @@
                 handleFileUpload({ target: { files: [file] } });
             }
         });
+
+        document.getElementById('scanInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                let val = this.value;
+                this.value = '';
+                e.preventDefault();
+                
+                if (isFastScanMode) {
+                    queueFastScan(val);
+                } else {
+                    processScanLogic(val);
+                }
+            }
+        });
     };
 
     // --- TUTORIAL TOGGLE LOGIC ---
@@ -735,6 +750,7 @@
         let upperMerch = (merchRaw || "").replace(/['"]/g, '').toUpperCase().trim();
         let lowerRow = fullRowText.toLowerCase();
 
+        // --- SAFETY NET ---
         if (upperDesc.startsWith('S;') || upperDesc.startsWith('O;') || upperDesc.startsWith('OA;')) {
             return false;
         }
@@ -1058,7 +1074,6 @@
         currentFileType = state.currentFileType || null;
         isLensesFilterActive = state.isLensesFilterActive !== undefined ? state.isLensesFilterActive : true;
 
-        // Restore UI Filters Block
         if (uploadedRawData.length > 0 && currentFileType) {
             document.getElementById('dynamicFilters').style.display = 'block';
             
@@ -1088,7 +1103,6 @@
             document.getElementById('dynamicFilters').style.display = 'none';
         }
 
-        // Restore Lenses Toggle Button state
         const btn = document.getElementById('btnToggleLenses');
         if (isLensesFilterActive) {
             btn.innerText = "Restore CL & OL";
@@ -1234,7 +1248,6 @@
             let headerRowIndex = -1;
             let skuCol = -1, qtyCol = -1, descCol = -1, slocCol = -1, stoCol = -1, merchCol = -1;
 
-            // Find headers dynamically
             for (let i = 0; i < Math.min(aoa.length, 25); i++) {
                 let cols = aoa[i];
                 if (!cols || !cols.length) continue;
@@ -1258,7 +1271,7 @@
             let isFallbackMode = (headerRowIndex === -1);
             let startIndex = isFallbackMode ? 0 : headerRowIndex + 1;
 
-            saveState(); // Takes snapshot BEFORE new data loads
+            saveState();
             uploadedRawData = [];
             currentFileType = (stoCol !== -1) ? 'INTRANSIT' : 'MB52';
 
@@ -1280,7 +1293,6 @@
                 combineBrands = await customConfirm("Do you want to combine similar brand names and fix misspellings (e.g., Rayban and Rayban Junior)?", "Combine Similar Brands");
             }
             
-            // Allow the UI to visually hide the modal before we freeze the thread with heavy data loops
             await new Promise(r => setTimeout(r, 50));
 
             let uniqueSTOs = new Set();
@@ -1316,7 +1328,7 @@
                         }
                         
                         let valNoCommas = val.replace(/,/g, '');
-                        // BUG FIX: Strictly demand SKU is purely numerical
+                        // Strictly demand SKU is purely numerical
                         if (/^\d+$/.test(valNoCommas) && valNoCommas.length >= 4) {
                             possibleSkus.push({val: valNoCommas, index: j});
                         }
@@ -1332,7 +1344,6 @@
                     let slocIndex = possibleSlocs.length > 0 ? possibleSlocs[0].index : -1;
                     let searchStartIndex = Math.max(skuIndex, slocIndex);
                     
-                    // 1. Try Left-to-Right after Sloc/Sku to find Unrestricted QTY
                     if (searchStartIndex !== -1) {
                         for(let j = searchStartIndex + 1; j < cols.length; j++) {
                             if(cols[j] == null) continue;
@@ -1346,7 +1357,6 @@
                         }
                     }
 
-                    // 2. If LTR fails, try Right-to-Left
                     if (foundQtyIndex === -1) {
                         for (let j = cols.length - 1; j >= 0; j--) {
                             if (cols[j] == null) continue;
@@ -1364,7 +1374,6 @@
                         }
                     }
 
-                    // Grab Description
                     if (skuIndex !== -1) {
                         for (let j = skuIndex + 1; j < cols.length; j++) {
                             if (cols[j] == null) continue;
@@ -1417,7 +1426,7 @@
 
             if (uploadedRawData.length === 0) {
                 await customAlert(`No valid rows found to encode.`, "Upload Result");
-                undoStack.pop(); // Revert saveState since upload failed completely
+                undoStack.pop(); 
                 updateUndoRedoButtons();
                 if(event && event.target) event.target.value = '';
                 return;
@@ -1464,7 +1473,6 @@
 
         const fileName = file.name.toLowerCase();
 
-        // 1. Text-based manual parser (Guaranteed not to corrupt CSVs)
         if (fileName.endsWith('.csv') || fileName.endsWith('.txt') || fileName.endsWith('.tsv')) {
             const reader = new FileReader();
             reader.onload = async function(e) {
@@ -1490,7 +1498,6 @@
             return;
         }
 
-        // 2. SheetJS parser for XLS / XLSX
         if (typeof XLSX === 'undefined') {
             await customAlert("The Excel parser library couldn't load (your network might be blocking it). Please open your file, save it as a .CSV, and upload the CSV instead.", "Library Blocked");
             if(event.target) event.target.value = '';
@@ -1509,7 +1516,6 @@
             } catch (err) {
                 console.error("SheetJS error:", err);
                 
-                // Fallback: SAP exports HTML or TSV disguised as XLS
                 try {
                     let text = new TextDecoder("utf-8").decode(new Uint8Array(e.target.result));
                     if(text.includes('<table') || text.includes('\t') || text.includes(',')) {
@@ -1554,7 +1560,6 @@
     }
 
     function applyDynamicFilters() {
-        // Zero-out current system quantities cleanly (Preserves Scanned data!)
         for (let sku in inventory) {
             inventory[sku].systemQty = 0;
             inventory[sku].sysQty1000 = 0;
@@ -1594,13 +1599,11 @@
             else if (rSloc === '4000') inventory[row.sku].sysQty4000 += row.qty;
             else inventory[row.sku].sysQtyOther += row.qty;
 
-            // Only count towards 'encoded' if we are not hiding them, OR they are standard items
             if (!(isLensesFilterActive && row.isLens)) {
                 filteredCount++;
             }
         });
 
-        // Cleanup any rows that now have 0 System AND 0 Scanned
         for (let sku in inventory) {
             if (inventory[sku].systemQty === 0 && inventory[sku].scannedQty === 0) {
                 delete inventory[sku];
@@ -1614,8 +1617,6 @@
         renderTable();
     }
 
-
-    // --- STANDARD PASTE LOGIC ---
     async function loadPastedData() {
         try {
             const text = document.getElementById('pasteArea').value;
@@ -1640,6 +1641,322 @@
         }
     }
 
+    async function queueFastScan(skuRawInput) {
+        if (!systemDataEncoded && !hasWarnedNoSystemData) {
+            const proceed = await customConfirm("There is no encoded system quantity. Make sure to copy it from the excel files of MB52 or Intransit and paste it in the upper box.<br><br>Do you want to proceed to scan barcodes and add them anyway?", "Warning: No System Data Encoded");
+            if (!proceed) return;
+            hasWarnedNoSystemData = true;
+        }
+        
+        let skuRaw = skuRawInput.trim();
+        let sku = skuRaw.replace(/^0+/, '') || '0';
+        
+        if (sku !== "" && sku !== "0") {
+            fastScanQueue.push(sku);
+            document.getElementById('queueCount').innerText = fastScanQueue.length;
+            renderFastScanTrail();
+            playSound('success'); 
+        }
+    }
+
+    async function processFastScanQueue() {
+        if (fastScanQueue.length === 0) {
+            await customAlert("No items in the fast scan queue.", "Empty Queue");
+            return;
+        }
+
+        saveState(); 
+        let errorCount = 0;
+        let successCount = 0;
+
+        resetFilterUI();
+        document.getElementById('slocFilterUI').value = 'ALL';
+
+        fastScanQueue.forEach(sku => {
+            let isError = false;
+            if (!inventory[sku]) {
+                inventory[sku] = { 
+                    description: "Manually Scanned", 
+                    systemQty: 0, sysQty1000: 0, sysQty4000: 0, sysQtyOther: 0, 
+                    scannedQty: 0, sloc: 'Scanned', isLens: false
+                };
+                isError = true;
+                errorCount++;
+            } else {
+                successCount++;
+            }
+            
+            inventory[sku].scannedQty += 1; 
+            appendAuditLog(sku, isError);
+        });
+
+        let totalProcessed = fastScanQueue.length;
+        fastScanQueue = [];
+        document.getElementById('queueCount').innerText = "0";
+        
+        document.getElementById('fastScanTrailBox').style.display = 'none';
+        renderFastScanTrail();
+        
+        isFastScanMode = false;
+        const btnToggle = document.getElementById('btnFastScanToggle');
+        const compareBtn = document.getElementById('btnCompare');
+        const iconSvg = `<svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: text-bottom; margin-right: 4px;"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>`;
+        btnToggle.innerHTML = `${iconSvg} Fast Scan: OFF`;
+        btnToggle.classList.remove('active');
+        compareBtn.style.display = 'none';
+        
+        await saveData();
+        renderTable();
+
+        if (errorCount > 0) {
+            playSound('error');
+            await customAlert(`Fast Scan complete.<br><br>Processed: ${totalProcessed} items.<br><br><span style="color:var(--accent-red);font-weight:bold;">${errorCount} items were NOT in the system list.</span><br><br>Check the audit trail or filter by "Not in System".`, "Scan Results");
+        } else {
+            playSound('success');
+            await customAlert(`Fast Scan complete.<br><br>Successfully processed ${totalProcessed} items.`, "Scan Results");
+        }
+        
+        setTimeout(updateStickyHeaders, 10);
+        document.getElementById('scanInput').focus();
+    }
+
+    async function processScanLogic(skuRawInput) {
+        if (!systemDataEncoded && !hasWarnedNoSystemData) {
+            const proceed = await customConfirm("There is no encoded system quantity. Make sure to copy it from the excel files of MB52 or Intransit and paste it in the upper box.<br><br>Do you want to proceed to scan barcodes and add them anyway?", "Warning: No System Data Encoded");
+            if (!proceed) {
+                return;
+            }
+            hasWarnedNoSystemData = true;
+        }
+
+        let skuRaw = skuRawInput.trim();
+        let sku = skuRaw.replace(/^0+/, '') || '0';
+        
+        if (sku !== "" && sku !== "0") {
+            let isVisible = true;
+            let slocDropdownVal = document.getElementById('slocFilterUI').value;
+
+            if (currentFilter !== 'ALL' || currentSearchQuery !== '' || slocDropdownVal !== 'ALL') {
+                let item = inventory[sku];
+                if (isLensesFilterActive && item && item.isLens) {
+                    isVisible = false;
+                } else {
+                    let currentScannedQty = item ? item.scannedQty : 0;
+                    let sysQty = item ? item.systemQty : 0;
+                    let currentDiff = currentScannedQty - sysQty;
+                    let sloc = item ? item.sloc || "" : "Scanned";
+                    let desc = item ? (item.description || "").toLowerCase() : "manually scanned";
+                    
+                    if (slocDropdownVal !== 'ALL') {
+                        if (sloc !== "Scanned" && !sloc.includes(slocDropdownVal)) isVisible = false;
+                    }
+                    if (currentFilter === 'DISCREPANCIES' && currentDiff === 0) isVisible = false;
+                    if (currentFilter === 'MISSING' && currentDiff >= 0) isVisible = false;
+                    if (currentFilter === 'EXTRA' && currentDiff <= 0) isVisible = false;
+                    if (currentFilter === 'NOT_IN_SYSTEM' && sysQty > 0) isVisible = false;
+                    
+                    if (currentSearchQuery !== '') {
+                        let skuStr = sku.toLowerCase();
+                        if (!skuStr.includes(currentSearchQuery) && !desc.includes(currentSearchQuery)) {
+                            isVisible = false;
+                        }
+                    }
+                }
+            }
+
+            if (!isVisible) {
+                const proceed = await customConfirm(`Since the scanned item (<b>${sku}</b>) is not in the filtered list (or is hidden), should we proceed with searching the whole system data encoded?`, "Search Whole System?");
+                if (proceed) {
+                    resetFilterUI();
+                    document.getElementById('slocFilterUI').value = 'ALL';
+                } else {
+                    return; 
+                }
+            }
+
+            saveState();
+            let isError = false;
+
+            if (!inventory[sku]) {
+                playSound('error');
+                showErrorToast(`⚠️ Alert: SKU ${sku} is NOT in the encoded list!`);
+                inventory[sku] = { 
+                    description: "Manually Scanned", 
+                    systemQty: 0, sysQty1000: 0, sysQty4000: 0, sysQtyOther: 0, 
+                    scannedQty: 0, sloc: 'Scanned', isLens: false
+                };
+                isError = true;
+            } else {
+                playSound('success');
+            }
+            
+            inventory[sku].scannedQty += 1; 
+            appendAuditLog(sku, isError);
+            await saveData(); 
+
+            let tempFiltered = [];
+            let sVal = document.getElementById('slocFilterUI').value;
+            for (let k in inventory) {
+                let itm = inventory[k];
+                if (isLensesFilterActive && itm.isLens) continue;
+
+                let df = itm.scannedQty - itm.systemQty;
+                if (sVal !== 'ALL') {
+                    let itemSloc = itm.sloc || "";
+                    if (itemSloc !== "Scanned" && !itemSloc.includes(sVal)) continue;
+                }
+                if (currentFilter === 'DISCREPANCIES' && df === 0) continue;
+                if (currentFilter === 'MISSING' && df >= 0) continue;
+                if (currentFilter === 'EXTRA' && df <= 0) continue;
+                if (currentFilter === 'NOT_IN_SYSTEM' && itm.systemQty > 0) continue;
+                if (currentSearchQuery !== '') {
+                    let skuStr = k.toLowerCase();
+                    let descStr = (itm.description || '').toLowerCase();
+                    if (!skuStr.includes(currentSearchQuery) && !descStr.includes(currentSearchQuery)) continue;
+                }
+                tempFiltered.push(k);
+            }
+            
+            let itemIndex = tempFiltered.indexOf(sku);
+            if (itemIndex !== -1 && itemsPerPage !== 'All') {
+                let limit = parseInt(itemsPerPage);
+                currentPage = Math.floor(itemIndex / limit) + 1;
+            }
+            
+            renderTable();
+
+            setTimeout(() => {
+                let row = document.getElementById('row-' + sku);
+                if (row) {
+                    const stickyGroup = document.getElementById('stickyGroup');
+                    const offset = stickyGroup ? stickyGroup.getBoundingClientRect().height + 50 : 200;
+                    const bodyRect = document.body.getBoundingClientRect().top;
+                    const rowRect = row.getBoundingClientRect().top;
+                    const rowPosition = rowRect - bodyRect;
+                    const offsetPosition = rowPosition - offset;
+
+                    window.scrollTo({ top: offsetPosition, behavior: "smooth" });
+                    row.classList.add('highlight-flash');
+                    setTimeout(() => { row.classList.remove('highlight-flash'); }, 2000);
+                }
+            }, 50); 
+        }
+    }
+
+    async function editQuantity(sku, type) {
+        let typeName = type === 'systemQty' ? 'System QTY' : 'Scanned QTY';
+        
+        if (type === 'systemQty') {
+            let item = inventory[sku];
+            if (item.sloc && item.sloc.includes('1000') && item.sloc.includes('4000')) {
+                const confirmed = await customConfirm(`This item is split between 1000 and 4000. Do you want to edit these quantities to keep the breakdown accurate?`);
+                if (!confirmed) return;
+                
+                let new1000 = await customPrompt(`Enter the new SLOC 1000 QTY for SKU ${sku}:`, item.sysQty1000, "Edit 1000 QTY");
+                if (new1000 === null) return;
+                
+                let new4000 = await customPrompt(`Enter the new SLOC 4000 QTY for SKU ${sku}:`, item.sysQty4000, "Edit 4000 QTY");
+                if (new4000 === null) return;
+
+                let q1 = Math.round(parseFloat(new1000.replace(/,/g, ''))) || 0;
+                let q4 = Math.round(parseFloat(new4000.replace(/,/g, ''))) || 0;
+
+                if (q1 >= 0 && q4 >= 0) {
+                    saveState();
+                    inventory[sku].sysQty1000 = q1;
+                    inventory[sku].sysQty4000 = q4;
+                    inventory[sku].systemQty = q1 + q4;
+                    await saveData();
+                    renderTable();
+                } else {
+                    await customAlert("Invalid quantity entered.", "Error");
+                }
+                return;
+            }
+        }
+        
+        let currentQty = inventory[sku][type];
+        const confirmed = await customConfirm(`Are you sure you want to manually edit the ${typeName} for SKU ${sku}?`);
+        
+        if (confirmed) {
+            let newQtyRaw = await customPrompt(`Enter the new ${typeName} for SKU ${sku}:`, currentQty, "Edit Quantity");
+            
+            if (newQtyRaw !== null && newQtyRaw.trim() !== "") {
+                let qtyClean = newQtyRaw.replace(/,/g, '');
+                let newQty = Math.round(parseFloat(qtyClean));
+                
+                if (!isNaN(newQty) && newQty >= 0) {
+                    saveState(); 
+                    
+                    if (type === 'systemQty') {
+                        if (inventory[sku].sysQty4000 === 0 && (inventory[sku].sysQtyOther === 0 || !inventory[sku].sysQtyOther)) {
+                            inventory[sku].sysQty1000 = newQty;
+                        } else if (inventory[sku].sysQty1000 === 0 && (inventory[sku].sysQtyOther === 0 || !inventory[sku].sysQtyOther)) {
+                            inventory[sku].sysQty4000 = newQty;
+                        } else {
+                            inventory[sku].sysQtyOther = newQty;
+                            inventory[sku].sysQty1000 = 0;
+                            inventory[sku].sysQty4000 = 0;
+                        }
+                    }
+                    
+                    inventory[sku][type] = newQty;
+                    await saveData();
+                    renderTable();
+                } else {
+                    await customAlert("Invalid quantity. Please enter a valid positive number.", "Invalid Input");
+                }
+            }
+        }
+    }
+
+    async function deleteRow(sku) {
+        const confirmed = await customConfirm(`Are you sure you want to completely remove SKU ${sku} from the list?`);
+        if (confirmed) {
+            saveState();
+            delete inventory[sku];
+            await saveData();
+            renderTable();
+        }
+    }
+
+    async function resetSession() {
+        const confirmed = await customConfirm("Are you sure you want to completely reset the session? ALL scanned data and encoded lists will be permanently deleted.");
+        if (confirmed) {
+            saveState(); 
+            
+            inventory = {};
+            systemDataEncoded = false;
+            hasWarnedNoSystemData = false;
+            auditLog = [];
+            fastScanQueue = [];
+            uploadedRawData = [];
+            currentFileType = null;
+            isLensesFilterActive = true;
+
+            document.getElementById('queueCount').innerText = "0";
+            document.getElementById('fastScanTrailBox').style.display = 'none';
+            document.getElementById('dynamicFilters').style.display = 'none';
+            
+            resetFilterUI();
+            document.getElementById('slocFilterUI').value = 'ALL';
+
+            const btn = document.getElementById('btnToggleLenses');
+            btn.innerText = "Restore CL & OL";
+            btn.style.backgroundColor = "var(--surface-color)";
+            btn.style.color = "var(--text-primary)";
+            btn.style.borderColor = "var(--border-color)";
+
+            await clearData();
+            
+            renderAuditTrail();
+            renderFastScanTrail();
+            renderTable();
+            
+            document.getElementById('scanInput').focus();
+        }
+    }
+
     function renderTable() {
         const thead = document.querySelector('#resultsTable thead');
         const tbody = document.querySelector('#resultsTable tbody');
@@ -1658,7 +1975,7 @@
         
         let hasSlocData = false;
         for (let sku in inventory) {
-            if (isLensesFilterActive && inventory[sku].isLens) continue; // Global Mask check
+            if (isLensesFilterActive && inventory[sku].isLens) continue;
 
             if (inventory[sku].sloc && inventory[sku].sloc !== "" && inventory[sku].sloc !== "Scanned") {
                 hasSlocData = true;
@@ -1671,7 +1988,6 @@
         for (let sku in inventory) {
             let item = inventory[sku];
             
-            // --- CRITICAL MASK CHECK ---
             if (isLensesFilterActive && item.isLens) continue;
 
             let diff = item.scannedQty - item.systemQty;
@@ -1862,263 +2178,7 @@
             }
         };
         
-        // Ensure header offset updates after rendering new rows
         setTimeout(updateStickyHeaders, 10);
-    }
-
-    async function resetSession() {
-        const confirmed = await customConfirm("Are you sure you want to completely reset the session? ALL scanned data and encoded lists will be permanently deleted.");
-        if (confirmed) {
-            saveState(); // Takes snapshot BEFORE obliterating everything
-            
-            inventory = {};
-            systemDataEncoded = false;
-            hasWarnedNoSystemData = false;
-            auditLog = [];
-            fastScanQueue = [];
-            uploadedRawData = [];
-            currentFileType = null;
-            isLensesFilterActive = true;
-
-            document.getElementById('queueCount').innerText = "0";
-            document.getElementById('fastScanTrailBox').style.display = 'none';
-            document.getElementById('dynamicFilters').style.display = 'none';
-            
-            resetFilterUI();
-            document.getElementById('slocFilterUI').value = 'ALL';
-
-            const btn = document.getElementById('btnToggleLenses');
-            btn.innerText = "Restore CL & OL";
-            btn.style.backgroundColor = "var(--surface-color)";
-            btn.style.color = "var(--text-primary)";
-            btn.style.borderColor = "var(--border-color)";
-
-            await clearData();
-            
-            renderAuditTrail();
-            renderFastScanTrail();
-            renderTable();
-            
-            document.getElementById('scanInput').focus();
-        }
-    }
-
-    // --- PDF EXPORT LOGIC ---
-    function exportPDF() {
-        if (Object.keys(inventory).length === 0) {
-            customAlert("There is no data to print yet.", "Print Error");
-            return;
-        }
-
-        let oldSize = itemsPerPage;
-        itemsPerPage = 'All'; 
-        renderTable(); 
-        
-        document.getElementById('printDate').innerText = new Date().toLocaleDateString();
-        document.getElementById('printTime').innerText = new Date().toLocaleTimeString();
-        
-        setTimeout(() => {
-            window.print();
-            itemsPerPage = oldSize;
-            renderTable();
-        }, 300);
-    }
-
-    async function exportToCSV() {
-        if (Object.keys(inventory).length === 0) {
-            await customAlert("No data to save!", "Export Error");
-            return;
-        }
-
-        let defaultName = `SavedSession_${new Date().toISOString().split('T')[0]}`;
-        let fileName = await customPrompt("Enter a name for your save file:", defaultName, "Save File");
-        
-        if (!fileName) return; 
-
-        if (!fileName.toLowerCase().endsWith('.csv')) {
-            fileName += '.csv';
-        }
-
-        let hasDescriptions = false;
-        let hasSlocs = false;
-        for (let sku in inventory) {
-            if (isLensesFilterActive && inventory[sku].isLens) continue; // Mask from CSV Export
-
-            if (inventory[sku].description && inventory[sku].description.trim() !== "") hasDescriptions = true;
-            if (inventory[sku].sloc && inventory[sku].sloc.trim() !== "" && inventory[sku].sloc !== "Scanned") hasSlocs = true;
-        }
-
-        let csvContent = "data:text/csv;charset=utf-8,";
-        let headers = ["Item # (SKU)"];
-        if (hasDescriptions) headers.push("Description");
-        if (hasSlocs) headers.push("SLOC");
-        
-        // Export split numbers so they are retained for next load
-        if (hasSlocs) {
-            headers.push("System QTY (Total)", "Sys QTY 1000", "Sys QTY 4000", "Scanned QTY", "Difference", "Status");
-        } else {
-            headers.push("System QTY", "Scanned QTY", "Difference", "Status");
-        }
-        
-        csvContent += headers.join(",") + "\n";
-
-        for (let sku in inventory) {
-            let item = inventory[sku];
-            if (isLensesFilterActive && item.isLens) continue; // Mask from CSV Export
-
-            let diff = item.scannedQty - item.systemQty;
-            let statusText = '';
-            if (diff === 0) statusText = 'Matched';
-            else if (diff < 0) statusText = 'Missing Stock';
-            else statusText = item.systemQty === 0 ? 'Not in system' : 'Extra Stock';
-            
-            let row = [sku];
-            if (hasDescriptions) {
-                let safeDesc = item.description ? item.description.replace(/"/g, '""') : '';
-                row.push(`"${safeDesc}"`);
-            }
-            if (hasSlocs) {
-                row.push(item.sloc || "");
-            }
-            
-            if (hasSlocs) {
-                row.push(item.systemQty, (item.sysQty1000 || 0), (item.sysQty4000 || 0), item.scannedQty, diff, statusText);
-            } else {
-                row.push(item.systemQty, item.scannedQty, diff, statusText);
-            }
-            
-            csvContent += row.join(",") + "\n";
-        }
-
-        const encodedUri = encodeURI(csvContent);
-        const link = document.createElement("a");
-        link.setAttribute("href", encodedUri);
-        link.setAttribute("download", fileName);
-        
-        document.body.appendChild(link); 
-        link.click();
-        document.body.removeChild(link);
-    }
-
-    async function loadFromFile(event) {
-        const file = event.target.files ? event.target.files[0] : null;
-        if (!file) return;
-
-        const reader = new FileReader();
-        
-        reader.onload = async function(e) {
-            const text = e.target.result;
-            const lines = text.split(/\r?\n/);
-
-            if (lines.length < 2) {
-                await customAlert("Invalid or empty file.", "File Error");
-                if(event.target) event.target.value = ''; 
-                return;
-            }
-
-            if (Object.keys(inventory).length > 0) {
-                const confirmed = await customConfirm("Loading this file will overwrite your current progress. Do you want to continue?");
-                if (!confirmed) {
-                    if(event.target) event.target.value = ''; 
-                    return;
-                }
-            }
-
-            saveState();
-
-            let headLine = lines[0];
-            let delim = headLine.indexOf('\t') !== -1 ? '\t' : ',';
-            let rawHeaders = parseCSVLine(headLine, delim).map(h => h.toLowerCase().replace(/['"]/g, ''));
-
-            let skuIdx = -1, descIdx = -1, slocIdx = -1, sysIdx = -1, sys1000Idx = -1, sys4000Idx = -1, scanIdx = -1;
-            rawHeaders.forEach((h, idx) => {
-                if (h.includes('sku')) skuIdx = idx;
-                else if (h.includes('desc')) descIdx = idx;
-                else if (h.includes('sloc')) slocIdx = idx;
-                else if (h.includes('1000')) sys1000Idx = idx;
-                else if (h.includes('4000')) sys4000Idx = idx;
-                else if (h.includes('system') || h.includes('total')) sysIdx = idx;
-                else if (h.includes('scan')) scanIdx = idx;
-            });
-
-            if (sysIdx === -1) sysIdx = descIdx !== -1 ? 2 : 1;
-            if (scanIdx === -1) scanIdx = descIdx !== -1 ? 3 : 2;
-            if (skuIdx === -1) skuIdx = 0;
-
-            let newInventory = {};
-            let loadedCount = 0;
-            let purgedCount = 0;
-
-            for (let i = 1; i < lines.length; i++) {
-                let line = lines[i].trim();
-                if (!line) continue;
-
-                let cols = parseCSVLine(line, delim);
-
-                if (cols.length > Math.max(skuIdx, sysIdx, scanIdx)) {
-                    let sku = cols[skuIdx].trim();
-                    let desc = descIdx !== -1 && cols.length > descIdx ? cols[descIdx].trim() : "";
-                    let sloc = slocIdx !== -1 && cols.length > slocIdx ? cols[slocIdx].trim() : "";
-                    let sysQty = parseInt(cols[sysIdx], 10);
-                    let scanQty = parseInt(cols[scanIdx], 10);
-                    
-                    let q1000 = sys1000Idx !== -1 ? parseInt(cols[sys1000Idx], 10) : (sloc === '1000' ? sysQty : 0);
-                    let q4000 = sys4000Idx !== -1 ? parseInt(cols[sys4000Idx], 10) : (sloc === '4000' ? sysQty : 0);
-
-                    // Re-calculate the lens flag even when loading from save so we can hide them!
-                    let isLens = isExcludedItem(line, desc, "");
-                    if (isLens) {
-                        purgedCount++;
-                    }
-
-                    if (sku && !isNaN(sysQty) && !isNaN(scanQty)) {
-                        newInventory[sku] = {
-                            description: desc,
-                            sloc: sloc,
-                            systemQty: sysQty,
-                            sysQty1000: q1000,
-                            sysQty4000: q4000,
-                            sysQtyOther: (q1000 === 0 && q4000 === 0 && sysQty > 0) ? sysQty : 0,
-                            scannedQty: scanQty,
-                            isLens: isLens
-                        };
-                        loadedCount++;
-                    }
-                }
-            }
-
-            if (loadedCount > 0) {
-                inventory = newInventory;
-                systemDataEncoded = true;
-                hasWarnedNoSystemData = true;
-                auditLog = [];
-                fastScanQueue = [];
-                document.getElementById('queueCount').innerText = "0";
-                
-                uploadedRawData = [];
-                currentFileType = null;
-                document.getElementById('dynamicFilters').style.display = 'none';
-
-                resetFilterUI();
-                document.getElementById('slocFilterUI').value = 'ALL';
-                renderAuditTrail();
-                await saveData(); 
-                renderTable();
-                
-                let loadMsg = `Successfully loaded ${loadedCount} valid items from the saved session.`;
-                if (purgedCount > 0) {
-                    loadMsg += `<br><br><span style="color:var(--accent-pink); font-weight:bold;">We automatically hid ${purgedCount} contact lens/spare part items from this old save file!</span><br>(Use the 'Restore CL & OL' button if you need them back).`;
-                }
-                await customAlert(loadMsg, "Load Complete");
-            } else {
-                await customAlert("Could not read valid data from the file. Please ensure it is a previously saved CSV from this tool.", "Load Failed");
-                undoStack.pop(); 
-                updateUndoRedoButtons();
-            }
-
-            if(event.target) event.target.value = ''; 
-        };
-        reader.readAsText(file);
     }
 </script>
 
