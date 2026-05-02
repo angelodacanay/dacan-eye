@@ -359,7 +359,7 @@
                 <div class="df-subtext"><i>Changing these filters will instantly update the target system quantities without deleting your current scanned counts.</i></div>
             </div>
         </div>
-    </div>
+        </div>
 
     <div id="stickyGroup" class="sticky-group">
         <div class="sticky-padding">
@@ -645,12 +645,15 @@
             btn.innerText = "Restore CL & OL";
             btn.style.backgroundColor = "var(--surface-color)";
             btn.style.color = "var(--text-primary)";
+            btn.style.borderColor = "var(--border-color)";
         } else {
             btn.innerText = "Hide CL & OL";
             btn.style.backgroundColor = "#fef2f2";
             btn.style.color = "var(--accent-red)";
             btn.style.borderColor = "#fecaca";
         }
+        
+        saveState();
         applyDynamicFilters();
     }
 
@@ -732,7 +735,6 @@
         let upperMerch = (merchRaw || "").replace(/['"]/g, '').toUpperCase().trim();
         let lowerRow = fullRowText.toLowerCase();
 
-        // --- SAFETY NET ---
         if (upperDesc.startsWith('S;') || upperDesc.startsWith('O;') || upperDesc.startsWith('OA;')) {
             return false;
         }
@@ -964,33 +966,32 @@
     function resetFilterUI() {
         currentFilter = 'ALL';
         document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
-        document.querySelector('.filter-btn').classList.add('active');
+        document.querySelector('.filter-btn[onclick*="ALL"]').classList.add('active');
         
         currentSearchQuery = '';
         document.getElementById('tableSearchInput').value = '';
     }
 
-    // --- CHROME EXTENSION STORAGE WRAPPER ---
-    async function saveData() {
-        let stoVal = document.getElementById('stoDropdown') ? document.getElementById('stoDropdown').value : 'ALL';
-        let catVal = document.getElementById('categoryDropdown') ? document.getElementById('categoryDropdown').value : 'ALL';
-        let brandVal = document.getElementById('brandDropdown') ? document.getElementById('brandDropdown').value : 'ALL';
-        
-        let payload = {
-            inventory: inventory,
-            systemDataEncoded: systemDataEncoded,
-            hasWarnedNoSystemData: hasWarnedNoSystemData,
-            auditLog: auditLog,
-            uploadedRawData: uploadedRawData,
-            currentFileType: currentFileType,
-            isLensesFilterActive: isLensesFilterActive,
+    // --- ENHANCED MEMORY STATE WRAPPER ---
+    function getCurrentState() {
+        return {
+            inventory: JSON.parse(JSON.stringify(inventory)), 
+            systemDataEncoded,
+            hasWarnedNoSystemData,
+            auditLog: JSON.parse(JSON.stringify(auditLog)),
+            uploadedRawData: JSON.parse(JSON.stringify(uploadedRawData)),
+            currentFileType,
+            isLensesFilterActive,
             smartFilters: {
-                sto: stoVal,
-                cat: catVal,
-                brand: brandVal
+                sto: document.getElementById('stoDropdown') ? document.getElementById('stoDropdown').value : 'ALL',
+                cat: document.getElementById('categoryDropdown') ? document.getElementById('categoryDropdown').value : 'ALL',
+                brand: document.getElementById('brandDropdown') ? document.getElementById('brandDropdown').value : 'ALL'
             }
         };
-        
+    }
+
+    async function saveData() {
+        let payload = getCurrentState();
         if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
             await chrome.storage.local.set({ 'posInventoryState': payload });
         } else {
@@ -1024,64 +1025,7 @@
         }
 
         if (dataObj) {
-            inventory = dataObj.inventory || {};
-            systemDataEncoded = dataObj.systemDataEncoded || false;
-            hasWarnedNoSystemData = dataObj.hasWarnedNoSystemData || false;
-            auditLog = dataObj.auditLog || [];
-            
-            uploadedRawData = dataObj.uploadedRawData || [];
-            currentFileType = dataObj.currentFileType || null;
-            isLensesFilterActive = dataObj.isLensesFilterActive !== undefined ? dataObj.isLensesFilterActive : true;
-
-            const btn = document.getElementById('btnToggleLenses');
-            if (isLensesFilterActive) {
-                btn.innerText = "Restore CL & OL";
-                btn.style.backgroundColor = "var(--surface-color)";
-                btn.style.color = "var(--text-primary)";
-            } else {
-                btn.innerText = "Hide CL & OL";
-                btn.style.backgroundColor = "#fef2f2";
-                btn.style.color = "var(--accent-red)";
-                btn.style.borderColor = "#fecaca";
-            }
-            
-            if (uploadedRawData.length > 0 && currentFileType) {
-                document.getElementById('dynamicFilters').style.display = 'block';
-                
-                if (currentFileType === 'INTRANSIT') {
-                    document.getElementById('intransitFilters').style.display = 'flex';
-                    document.getElementById('mb52Filters').style.display = 'none';
-                    
-                    let uniqueSTOs = new Set();
-                    uploadedRawData.forEach(row => { if(row.sto) uniqueSTOs.add(row.sto); });
-                    
-                    let stoSelect = document.getElementById('stoDropdown');
-                    stoSelect.innerHTML = '<option value="ALL">ALL S.T.O.</option>';
-                    Array.from(uniqueSTOs).sort().forEach(sto => {
-                        stoSelect.innerHTML += `<option value="${sto}">${sto}</option>`;
-                    });
-                    
-                    if (dataObj.smartFilters && dataObj.smartFilters.sto) {
-                        stoSelect.value = dataObj.smartFilters.sto;
-                    }
-                } else {
-                    document.getElementById('intransitFilters').style.display = 'none';
-                    document.getElementById('mb52Filters').style.display = 'flex';
-                    
-                    if (dataObj.smartFilters && dataObj.smartFilters.cat) {
-                        document.getElementById('categoryDropdown').value = dataObj.smartFilters.cat;
-                    }
-                    updateBrandDropdown(); 
-                    if (dataObj.smartFilters && dataObj.smartFilters.brand) {
-                        document.getElementById('brandDropdown').value = dataObj.smartFilters.brand;
-                    }
-                }
-            }
-
-            renderAuditTrail();
-            renderTable();
-            
-            setTimeout(() => { window.dispatchEvent(new Event('scroll')); }, 50);
+            applyState(dataObj, true); 
         }
         updateUndoRedoButtons();
     }
@@ -1097,7 +1041,7 @@
     }
 
     function saveState() {
-        undoStack.push(JSON.stringify({ inventory, systemDataEncoded, hasWarnedNoSystemData, auditLog, uploadedRawData, currentFileType, isLensesFilterActive }));
+        undoStack.push(JSON.stringify(getCurrentState()));
         if (undoStack.length > MAX_HISTORY) {
             undoStack.shift(); 
         }
@@ -1105,77 +1049,78 @@
         updateUndoRedoButtons();
     }
 
+    function applyState(state, isInitialLoad = false) {
+        inventory = state.inventory || {};
+        systemDataEncoded = state.systemDataEncoded || false;
+        hasWarnedNoSystemData = state.hasWarnedNoSystemData || false;
+        auditLog = state.auditLog || [];
+        uploadedRawData = state.uploadedRawData || [];
+        currentFileType = state.currentFileType || null;
+        isLensesFilterActive = state.isLensesFilterActive !== undefined ? state.isLensesFilterActive : true;
+
+        // Restore UI Filters Block
+        if (uploadedRawData.length > 0 && currentFileType) {
+            document.getElementById('dynamicFilters').style.display = 'block';
+            
+            if (currentFileType === 'INTRANSIT') {
+                document.getElementById('intransitFilters').style.display = 'flex';
+                document.getElementById('mb52Filters').style.display = 'none';
+                
+                let uniqueSTOs = new Set();
+                uploadedRawData.forEach(row => { if(row.sto) uniqueSTOs.add(row.sto); });
+                
+                let stoSelect = document.getElementById('stoDropdown');
+                stoSelect.innerHTML = '<option value="ALL">ALL S.T.O.</option>';
+                Array.from(uniqueSTOs).sort().forEach(sto => {
+                    stoSelect.innerHTML += `<option value="${sto}">${sto}</option>`;
+                });
+                if (state.smartFilters && state.smartFilters.sto) stoSelect.value = state.smartFilters.sto;
+
+            } else {
+                document.getElementById('intransitFilters').style.display = 'none';
+                document.getElementById('mb52Filters').style.display = 'flex';
+                
+                if (state.smartFilters && state.smartFilters.cat) document.getElementById('categoryDropdown').value = state.smartFilters.cat;
+                updateBrandDropdown(); 
+                if (state.smartFilters && state.smartFilters.brand) document.getElementById('brandDropdown').value = state.smartFilters.brand;
+            }
+        } else {
+            document.getElementById('dynamicFilters').style.display = 'none';
+        }
+
+        // Restore Lenses Toggle Button state
+        const btn = document.getElementById('btnToggleLenses');
+        if (isLensesFilterActive) {
+            btn.innerText = "Restore CL & OL";
+            btn.style.backgroundColor = "var(--surface-color)";
+            btn.style.color = "var(--text-primary)";
+            btn.style.borderColor = "var(--border-color)";
+        } else {
+            btn.innerText = "Hide CL & OL";
+            btn.style.backgroundColor = "#fef2f2";
+            btn.style.color = "var(--accent-red)";
+            btn.style.borderColor = "#fecaca";
+        }
+
+        if (!isInitialLoad) saveData();
+        renderAuditTrail();
+        renderTable();
+        updateUndoRedoButtons();
+    }
+
     function undoAction() {
         if (undoStack.length > 0) {
-            redoStack.push(JSON.stringify({ inventory, systemDataEncoded, hasWarnedNoSystemData, auditLog, uploadedRawData, currentFileType, isLensesFilterActive }));
+            redoStack.push(JSON.stringify(getCurrentState()));
             let previousState = JSON.parse(undoStack.pop());
-            
-            inventory = previousState.inventory;
-            systemDataEncoded = previousState.systemDataEncoded;
-            hasWarnedNoSystemData = previousState.hasWarnedNoSystemData;
-            auditLog = previousState.auditLog;
-            uploadedRawData = previousState.uploadedRawData || [];
-            currentFileType = previousState.currentFileType || null;
-            isLensesFilterActive = previousState.isLensesFilterActive !== undefined ? previousState.isLensesFilterActive : true;
-            
-            saveData(); 
-            renderAuditTrail();
-            renderTable(); 
-            updateUndoRedoButtons();
-            
-            const btn = document.getElementById('btnToggleLenses');
-            if (isLensesFilterActive) {
-                btn.innerText = "Restore CL & OL";
-                btn.style.backgroundColor = "var(--surface-color)";
-                btn.style.color = "var(--text-primary)";
-            } else {
-                btn.innerText = "Hide CL & OL";
-                btn.style.backgroundColor = "#fef2f2";
-                btn.style.color = "var(--accent-red)";
-                btn.style.borderColor = "#fecaca";
-            }
-            if (uploadedRawData.length > 0 && currentFileType) {
-                document.getElementById('dynamicFilters').style.display = 'block';
-            } else {
-                document.getElementById('dynamicFilters').style.display = 'none';
-            }
+            applyState(previousState);
         }
     }
 
     function redoAction() {
         if (redoStack.length > 0) {
-            undoStack.push(JSON.stringify({ inventory, systemDataEncoded, hasWarnedNoSystemData, auditLog, uploadedRawData, currentFileType, isLensesFilterActive }));
+            undoStack.push(JSON.stringify(getCurrentState()));
             let nextState = JSON.parse(redoStack.pop());
-            
-            inventory = nextState.inventory;
-            systemDataEncoded = nextState.systemDataEncoded;
-            hasWarnedNoSystemData = nextState.hasWarnedNoSystemData;
-            auditLog = nextState.auditLog;
-            uploadedRawData = nextState.uploadedRawData || [];
-            currentFileType = nextState.currentFileType || null;
-            isLensesFilterActive = nextState.isLensesFilterActive !== undefined ? nextState.isLensesFilterActive : true;
-            
-            saveData();
-            renderAuditTrail();
-            renderTable();
-            updateUndoRedoButtons();
-            
-            const btn = document.getElementById('btnToggleLenses');
-            if (isLensesFilterActive) {
-                btn.innerText = "Restore CL & OL";
-                btn.style.backgroundColor = "var(--surface-color)";
-                btn.style.color = "var(--text-primary)";
-            } else {
-                btn.innerText = "Hide CL & OL";
-                btn.style.backgroundColor = "#fef2f2";
-                btn.style.color = "var(--accent-red)";
-                btn.style.borderColor = "#fecaca";
-            }
-            if (uploadedRawData.length > 0 && currentFileType) {
-                document.getElementById('dynamicFilters').style.display = 'block';
-            } else {
-                document.getElementById('dynamicFilters').style.display = 'none';
-            }
+            applyState(nextState);
         }
     }
 
@@ -1313,7 +1258,7 @@
             let isFallbackMode = (headerRowIndex === -1);
             let startIndex = isFallbackMode ? 0 : headerRowIndex + 1;
 
-            saveState();
+            saveState(); // Takes snapshot BEFORE new data loads
             uploadedRawData = [];
             currentFileType = (stoCol !== -1) ? 'INTRANSIT' : 'MB52';
 
@@ -1472,6 +1417,8 @@
 
             if (uploadedRawData.length === 0) {
                 await customAlert(`No valid rows found to encode.`, "Upload Result");
+                undoStack.pop(); // Revert saveState since upload failed completely
+                updateUndoRedoButtons();
                 if(event && event.target) event.target.value = '';
                 return;
             }
@@ -1504,6 +1451,8 @@
             
         } catch (error) {
             console.error(error);
+            undoStack.pop(); 
+            updateUndoRedoButtons();
             await customAlert("A critical error occurred while parsing the data: " + error.message, "Parsing Error");
             if(event && event.target) event.target.value = '';
         }
@@ -1664,6 +1613,7 @@
         saveData();
         renderTable();
     }
+
 
     // --- STANDARD PASTE LOGIC ---
     async function loadPastedData() {
@@ -1916,6 +1866,43 @@
         setTimeout(updateStickyHeaders, 10);
     }
 
+    async function resetSession() {
+        const confirmed = await customConfirm("Are you sure you want to completely reset the session? ALL scanned data and encoded lists will be permanently deleted.");
+        if (confirmed) {
+            saveState(); // Takes snapshot BEFORE obliterating everything
+            
+            inventory = {};
+            systemDataEncoded = false;
+            hasWarnedNoSystemData = false;
+            auditLog = [];
+            fastScanQueue = [];
+            uploadedRawData = [];
+            currentFileType = null;
+            isLensesFilterActive = true;
+
+            document.getElementById('queueCount').innerText = "0";
+            document.getElementById('fastScanTrailBox').style.display = 'none';
+            document.getElementById('dynamicFilters').style.display = 'none';
+            
+            resetFilterUI();
+            document.getElementById('slocFilterUI').value = 'ALL';
+
+            const btn = document.getElementById('btnToggleLenses');
+            btn.innerText = "Restore CL & OL";
+            btn.style.backgroundColor = "var(--surface-color)";
+            btn.style.color = "var(--text-primary)";
+            btn.style.borderColor = "var(--border-color)";
+
+            await clearData();
+            
+            renderAuditTrail();
+            renderFastScanTrail();
+            renderTable();
+            
+            document.getElementById('scanInput').focus();
+        }
+    }
+
     // --- PDF EXPORT LOGIC ---
     function exportPDF() {
         if (Object.keys(inventory).length === 0) {
@@ -1983,7 +1970,7 @@
             let statusText = '';
             if (diff === 0) statusText = 'Matched';
             else if (diff < 0) statusText = 'Missing Stock';
-            else statusText = item.systemQty === 0 ? 'Not in system SKUs added' : 'Extra Stock';
+            else statusText = item.systemQty === 0 ? 'Not in system' : 'Extra Stock';
             
             let row = [sku];
             if (hasDescriptions) {
@@ -2107,6 +2094,11 @@
                 auditLog = [];
                 fastScanQueue = [];
                 document.getElementById('queueCount').innerText = "0";
+                
+                uploadedRawData = [];
+                currentFileType = null;
+                document.getElementById('dynamicFilters').style.display = 'none';
+
                 resetFilterUI();
                 document.getElementById('slocFilterUI').value = 'ALL';
                 renderAuditTrail();
@@ -2115,12 +2107,13 @@
                 
                 let loadMsg = `Successfully loaded ${loadedCount} valid items from the saved session.`;
                 if (purgedCount > 0) {
-                    loadMsg += `<br><br><span style="color:#e6007e; font-weight:bold;">We automatically hid ${purgedCount} contact lens/spare part items from this old save file!</span><br>(Use the 'Restore CL & OL' button if you need them back).`;
+                    loadMsg += `<br><br><span style="color:var(--accent-pink); font-weight:bold;">We automatically hid ${purgedCount} contact lens/spare part items from this old save file!</span><br>(Use the 'Restore CL & OL' button if you need them back).`;
                 }
                 await customAlert(loadMsg, "Load Complete");
             } else {
                 await customAlert("Could not read valid data from the file. Please ensure it is a previously saved CSV from this tool.", "Load Failed");
-                undoAction(); 
+                undoStack.pop(); 
+                updateUndoRedoButtons();
             }
 
             if(event.target) event.target.value = ''; 
