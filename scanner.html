@@ -1585,7 +1585,7 @@
                         }
                         
                         let valNoCommas = val.replace(/,/g, '');
-                        // BUG FIX: Strictly demand SKU is purely numerical
+                        // Strictly demand SKU is purely numerical
                         if (/^\d+$/.test(valNoCommas) && valNoCommas.length >= 4) {
                             possibleSkus.push({val: valNoCommas, index: j});
                         }
@@ -1859,6 +1859,7 @@
             else if (rSloc === '4000') inventory[row.sku].sysQty4000 += row.qty;
             else inventory[row.sku].sysQtyOther += row.qty;
 
+            // Only count towards 'encoded' if we are not hiding them, OR they are standard items
             if (!(isLensesFilterActive && row.isLens)) {
                 filteredCount++;
             }
@@ -1877,7 +1878,6 @@
         saveData();
         renderTable();
     }
-
 
     // --- STANDARD PASTE LOGIC ---
     async function loadPastedData() {
@@ -1904,6 +1904,231 @@
         }
     }
 
+    function renderTable() {
+        const thead = document.querySelector('#resultsTable thead');
+        const tbody = document.querySelector('#resultsTable tbody');
+        tbody.innerHTML = ''; 
+        thead.innerHTML = ''; 
+        
+        let totalSys = 0;
+        let totalScan = 0;
+        let totalMiss = 0;
+        let totalExt = 0;
+        let showDescriptionColumn = false;
+        let showSlocColumn = false;
+
+        const filteredArray = [];
+        let slocDropdownVal = document.getElementById('slocFilterUI').value;
+        
+        let hasSlocData = false;
+        for (let sku in inventory) {
+            if (isLensesFilterActive && inventory[sku].isLens) continue; // Global Mask check
+
+            if (inventory[sku].sloc && inventory[sku].sloc !== "" && inventory[sku].sloc !== "Scanned") {
+                hasSlocData = true;
+                showSlocColumn = true;
+                break;
+            }
+        }
+        document.getElementById('slocFilterUI').style.display = hasSlocData ? 'inline-block' : 'none';
+
+        for (let sku in inventory) {
+            let item = inventory[sku];
+            
+            // --- CRITICAL MASK CHECK ---
+            if (isLensesFilterActive && item.isLens) continue;
+
+            let diff = item.scannedQty - item.systemQty;
+
+            totalSys += item.systemQty;
+            totalScan += item.scannedQty;
+            if (diff < 0) totalMiss += Math.abs(diff);
+            if (diff > 0) totalExt += diff;
+
+            if (slocDropdownVal !== 'ALL') {
+                let itemSloc = item.sloc || "";
+                if (itemSloc !== "Scanned" && !itemSloc.includes(slocDropdownVal)) continue;
+            }
+
+            if (currentFilter === 'DISCREPANCIES' && diff === 0) continue;
+            if (currentFilter === 'MISSING' && diff >= 0) continue;
+            if (currentFilter === 'EXTRA' && diff <= 0) continue;
+            if (currentFilter === 'NOT_IN_SYSTEM' && item.systemQty > 0) continue;
+
+            if (currentSearchQuery !== '') {
+                let skuStr = sku.toLowerCase();
+                let descStr = (item.description || '').toLowerCase();
+                if (!skuStr.includes(currentSearchQuery) && !descStr.includes(currentSearchQuery)) {
+                    continue; 
+                }
+            }
+
+            filteredArray.push({ sku: sku, diff: diff, ...item });
+
+            if (item.description && item.description.trim() !== "") {
+                showDescriptionColumn = true;
+            }
+        }
+
+        if (systemDataEncoded) {
+            document.getElementById('dashSystem').innerText = totalSys;
+        } else {
+            document.getElementById('dashSystem').innerHTML = '<span style="font-size: 14px; color: var(--accent-red); font-weight: 600; line-height: 32px; display: inline-block;">No system data</span>';
+        }
+        
+        document.getElementById('dashScanned').innerText = totalScan;
+        document.getElementById('dashMissing').innerText = totalMiss;
+        document.getElementById('dashExtra').innerText = totalExt;
+
+        let headerRow = document.createElement('tr');
+        headerRow.innerHTML = `
+            <th style="border-radius: var(--radius-lg) 0 0 0;">NO.</th>
+            <th>Item # (SKU)</th>
+            ${showDescriptionColumn ? '<th>Description</th>' : ''}
+            ${showSlocColumn ? '<th>SLOC</th>' : ''}
+            <th>System QTY</th>
+            <th>Scanned QTY</th>
+            <th>Difference</th>
+            <th>Status</th>
+            <th style="text-align: center; border-radius: 0 var(--radius-lg) 0 0;">Action</th>
+        `;
+        thead.appendChild(headerRow);
+
+        let totalItems = filteredArray.length;
+        let totalPages = Math.ceil(totalItems / (itemsPerPage === 'All' ? totalItems || 1 : parseInt(itemsPerPage))) || 1;
+        
+        let paginatedItems = filteredArray;
+
+        if (itemsPerPage !== 'All') {
+            let limit = parseInt(itemsPerPage);
+            if (currentPage > totalPages) currentPage = totalPages; 
+            if (currentPage < 1) currentPage = 1;
+            
+            let startIndex = (currentPage - 1) * limit;
+            paginatedItems = filteredArray.slice(startIndex, startIndex + limit);
+        }
+
+        document.getElementById('pageInfoText').innerText = `Page ${currentPage} of ${totalPages} (${totalItems} items)`;
+        document.getElementById('btnPrevPage').disabled = currentPage === 1;
+        document.getElementById('btnNextPage').disabled = currentPage === totalPages || totalPages === 0;
+
+        let counter = itemsPerPage === 'All' ? 1 : ((currentPage - 1) * parseInt(itemsPerPage)) + 1;
+
+        paginatedItems.forEach(item => {
+            let rowClass = '';
+            let statusText = '';
+            let statusColor = 'var(--text-primary)';
+            let diffColor = 'var(--text-primary)';
+            
+            if (item.diff === 0) {
+                rowClass = 'match';
+                statusText = 'Matched';
+                statusColor = 'var(--accent-green)';
+            } else if (item.diff < 0) {
+                rowClass = 'short';
+                statusText = 'Missing Stock';
+                statusColor = 'var(--accent-red)';
+                diffColor = 'var(--accent-red)';
+            } else if (item.diff > 0) {
+                rowClass = 'over';
+                statusText = item.systemQty === 0 ? 'Not in system' : 'Extra Stock';
+                statusColor = 'var(--accent-blue)';
+                diffColor = 'var(--accent-blue)';
+            }
+
+            let sysQtyHtml = '';
+            let parts = [];
+            let q1000 = item.sysQty1000 || 0;
+            let q4000 = item.sysQty4000 || 0;
+            let qOther = item.sysQtyOther || 0;
+            
+            if (q1000 === 0 && q4000 === 0 && qOther === 0 && item.systemQty > 0) {
+                if (item.sloc === '1000') q1000 = item.systemQty;
+                else if (item.sloc === '4000') q4000 = item.systemQty;
+                else if (item.sloc && item.sloc.includes('1000') && item.sloc.includes('4000')) {
+                    qOther = item.systemQty; 
+                } else {
+                    qOther = item.systemQty;
+                }
+            }
+
+            if (q1000 > 0) parts.push(`<span style="color: var(--accent-green); font-weight: 600;">${q1000}</span>`);
+            if (q4000 > 0) parts.push(`<span style="color: var(--accent-red); font-weight: 600;">${q4000}</span>`);
+            if (qOther > 0) parts.push(`<span style="color: var(--text-primary); font-weight: 600;">${qOther}</span>`);
+            
+            if (parts.length === 0) {
+                sysQtyHtml = `<span style="color: var(--text-primary); font-weight: 600;">0</span>`;
+            } else {
+                sysQtyHtml = parts.join(' <span style="color:var(--text-secondary); font-size:12px; font-weight:600;">+</span> ');
+            }
+
+            let displaySloc = (item.sloc || '').split(', ').map(s => {
+                if (s === '1000') return '<span style="color: var(--accent-green); font-weight: 600;">1000</span>';
+                if (s === '4000') return '<span style="color: var(--accent-red); font-weight: 600;">4000</span>';
+                return s;
+            }).join('<span style="color: var(--text-secondary);">, </span>');
+
+            let tr = document.createElement('tr');
+            tr.className = rowClass;
+            tr.id = `row-${item.sku}`; 
+            
+            tr.innerHTML = `
+                <td style="color: var(--text-secondary);">${counter}</td>
+                <td style="font-weight: 500;">${item.sku}</td>
+                ${showDescriptionColumn ? `<td style="color: var(--text-secondary);">${item.description || ''}</td>` : ''}
+                ${showSlocColumn ? `<td>${displaySloc}</td>` : ''}
+                
+                <td>
+                    <div class="qty-container">
+                        <span>${sysQtyHtml}</span>
+                        <button class="btn-edit" onclick="editQuantity('${item.sku}', 'systemQty')" title="Edit System QTY">
+                            <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                            </svg>
+                        </button>
+                    </div>
+                </td>
+
+                <td>
+                    <div class="qty-container">
+                        <span style="font-weight:600;">${item.scannedQty}</span>
+                        <button class="btn-edit" onclick="editQuantity('${item.sku}', 'scannedQty')" title="Edit Scanned QTY">
+                            <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                            </svg>
+                        </button>
+                    </div>
+                </td>
+
+                <td><strong style="color: ${diffColor};">${item.diff}</strong></td>
+                <td><strong style="color: ${statusColor}; font-weight: 600;">${statusText}</strong></td>
+                <td style="text-align: center;">
+                    <button class="btn-delete" onclick="deleteRow('${item.sku}')" title="Delete Row">
+                        <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="3 6 5 6 21 6"></polyline>
+                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                            <line x1="10" y1="11" x2="10" y2="17"></line>
+                            <line x1="14" y1="11" x2="14" y2="17"></line>
+                        </svg>
+                    </button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+            counter++;
+        });
+
+        document.getElementById('btnNextPage').onclick = function() {
+            if (currentPage < totalPages) { 
+                currentPage++; 
+                renderTable(); 
+            }
+        };
+        
+        // Ensure header offset updates after rendering new rows
+        setTimeout(updateStickyHeaders, 10);
+    }
 </script>
 
 </body>
