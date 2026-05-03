@@ -1326,75 +1326,103 @@
                     // FALLBACK LOGIC
                     let possibleSkus = [];
                     let possibleSlocs = [];
-                    let descParts = [];
+                    let uomIndex = -1;
+                    let uomKeywords = ['PAK', 'EA', 'PC', 'ST', 'PR'];
 
                     for (let j = 0; j < cols.length; j++) {
                         if (cols[j] == null) continue;
                         let val = String(cols[j]).trim();
                         if (!val) continue;
 
-                        if (val === "1000" || val === "2000" || val === "3000" || val === "4000") {
-                            possibleSlocs.push({val: val, index: j});
+                        let valUpper = val.toUpperCase();
+                        if (uomKeywords.includes(valUpper)) {
+                            uomIndex = j;
                         }
-                        
+
                         let valNoCommas = val.replace(/,/g, '');
-                        // BUG FIX: Strictly demand SKU is purely numerical
-                        if (/^\d+$/.test(valNoCommas) && valNoCommas.length >= 4) {
-                            possibleSkus.push({val: valNoCommas, index: j});
+                        // Check if it's purely digits for classification
+                        if (/^\d+$/.test(valNoCommas)) {
+                            if (valNoCommas === "1000" || valNoCommas === "2000" || valNoCommas === "3000" || valNoCommas === "4000" || valNoCommas === "5000") {
+                                possibleSlocs.push({val: valNoCommas, index: j});
+                            } else if (valNoCommas.length >= 5) {
+                                // Likely SKU
+                                possibleSkus.push({val: valNoCommas, index: j});
+                            }
                         }
                     }
 
                     if (possibleSlocs.length > 0) slocRaw = possibleSlocs[0].val;
                     
-                    possibleSkus = possibleSkus.filter(s => s.val !== slocRaw);
+                    // The best SKU candidate is the longest numeric string.
+                    // Filter out exactly 4 digits to avoid store codes mapping as SKU if no real SKU exists
+                    possibleSkus = possibleSkus.filter(s => s.val.length !== 4 && s.val !== slocRaw);
+                    possibleSkus.sort((a, b) => b.val.length - a.val.length);
                     if (possibleSkus.length > 0) skuRaw = possibleSkus[0].val;
 
                     let foundQtyIndex = -1;
                     let skuIndex = possibleSkus.length > 0 ? possibleSkus[0].index : -1;
                     let slocIndex = possibleSlocs.length > 0 ? possibleSlocs[0].index : -1;
-                    let searchStartIndex = Math.max(skuIndex, slocIndex);
-                    
-                    // 1. Try Left-to-Right after Sloc/Sku to find Unrestricted QTY
-                    if (searchStartIndex !== -1) {
-                        for(let j = searchStartIndex + 1; j < cols.length; j++) {
+
+                    // 1. ZSTK_IT Strategy: Try right after the UOM indicator
+                    if (uomIndex !== -1) {
+                        for (let j = uomIndex + 1; j < cols.length; j++) {
+                            if (cols[j] == null) continue;
+                            let val = String(cols[j]).trim();
+                            let valNoCommas = val.replace(/,/g, '');
+                            if (val !== "" && !isNaN(valNoCommas)) {
+                                qtyRaw = valNoCommas;
+                                foundQtyIndex = j;
+                                break;
+                            }
+                        }
+                    }
+
+                    // 2. MB52 Strategy: Scan for the first valid quantity AFTER the SKU
+                    if (foundQtyIndex === -1 && skuIndex !== -1) {
+                        let potentialQtys = [];
+                        for(let j = skuIndex + 1; j < cols.length; j++) {
                             if(cols[j] == null) continue;
                             let val = String(cols[j]).trim();
                             let valNoCommas = val.replace(/,/g, '');
-                            if(val !== "" && !isNaN(valNoCommas)) {
-                                qtyRaw = valNoCommas;
-                                foundQtyIndex = j;
-                                break;
+                            
+                            // Check for trailing negatives just in case (e.g. 3.000-)
+                            let numCheck = valNoCommas.endsWith('-') ? '-' + valNoCommas.slice(0, -1) : valNoCommas;
+                            
+                            if (numCheck !== "" && !isNaN(numCheck)) {
+                                let isVendorShape = /^\d+$/.test(numCheck) && numCheck.length >= 7 && numCheck.length <= 10 && val.startsWith("000");
+                                let isStoreShape = /^\d+$/.test(numCheck) && numCheck.length === 4;
+                                let isSlocShape = (numCheck === "1000" || numCheck === "2000" || numCheck === "3000" || numCheck === "4000" || numCheck === "5000");
+
+                                if (!isVendorShape && !isStoreShape && !isSlocShape && j !== slocIndex) {
+                                    potentialQtys.push({ val: numCheck, index: j, isFloat: numCheck.includes('.') });
+                                }
+                            }
+                        }
+
+                        if (potentialQtys.length > 0) {
+                            // Prioritize floats (like 3.000) to avoid catching stray integers in descriptions like "1 DAY"
+                            let floatMatch = potentialQtys.find(q => q.isFloat);
+                            if (floatMatch) {
+                                qtyRaw = floatMatch.val;
+                                foundQtyIndex = floatMatch.index;
+                            } else {
+                                qtyRaw = potentialQtys[0].val;
+                                foundQtyIndex = potentialQtys[0].index;
                             }
                         }
                     }
 
-                    // 2. If LTR fails, try Right-to-Left
-                    if (foundQtyIndex === -1) {
-                        for (let j = cols.length - 1; j >= 0; j--) {
+                    // Extract Description safely
+                    let descParts = [];
+                    if (skuIndex !== -1) {
+                        let endIndex = uomIndex !== -1 ? uomIndex : (foundQtyIndex !== -1 ? foundQtyIndex : cols.length);
+                        for (let j = skuIndex + 1; j < endIndex; j++) {
                             if (cols[j] == null) continue;
+                            if (j === foundQtyIndex || j === slocIndex) continue;
+                            
                             let val = String(cols[j]).trim();
                             let valNoCommas = val.replace(/,/g, '');
-                            
-                            if (val !== "" && !isNaN(valNoCommas)) {
-                                if (val === slocRaw && possibleSlocs.some(s => s.index === j)) continue; 
-                                if (valNoCommas === skuRaw && possibleSkus.some(s => s.index === j)) continue; 
-                                
-                                qtyRaw = valNoCommas;
-                                foundQtyIndex = j;
-                                break;
-                            }
-                        }
-                    }
-
-                    // Grab Description
-                    if (skuIndex !== -1) {
-                        for (let j = skuIndex + 1; j < cols.length; j++) {
-                            if (cols[j] == null) continue;
-                            if (j === foundQtyIndex) continue;
-                            if (j === slocIndex) continue;
-                            
-                            let val = String(cols[j]).trim();
-                            if(val === "" || !isNaN(val.replace(/,/g, ''))) continue; 
+                            if(val === "" || (!isNaN(valNoCommas) && !val.includes(';'))) continue; 
                             descParts.push(val);
                         }
                         descRaw = descParts.join(' ');
