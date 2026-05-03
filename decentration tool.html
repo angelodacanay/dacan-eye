@@ -10,11 +10,93 @@
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #eef2f5; margin: 0; padding: 10px; height: 100vh; display: flex; flex-direction: column; overflow: hidden; box-sizing: border-box; }
         .container { flex: 1; display: flex; flex-direction: column; background: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); overflow: hidden; padding: 10px; gap: 8px; }
         
-        /* CANVAS AREA - Increased height for non-Surface laptops */
-        .canvas-wrapper { display: flex; justify-content: center; overflow: hidden; background: #fff; border: 1px solid #ccc; border-radius: 6px; position: relative; min-height: 420px; }
-        canvas { width: 100%; max-height: 420px; object-fit: contain; cursor: grab; }
-        canvas:active { cursor: grabbing; }
+        /* CANVAS AREA - Increased height for non-Surface laptops & Custom High-Contrast Cursor */
+        .canvas-wrapper { display: flex; justify-content: center; overflow: hidden; background: #fff; border: 1px solid #ccc; border-radius: 6px; position: relative; min-height: 480px; }
         
+        canvas { 
+            width: 100%; 
+            max-height: 480px; 
+            object-fit: contain; 
+            cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32"><circle cx="16" cy="16" r="8" fill="rgba(255,255,255,0.9)" stroke="%231e3a8a" stroke-width="2"/><line x1="16" y1="4" x2="16" y2="28" stroke="%231e3a8a" stroke-width="2"/><line x1="4" y1="16" x2="28" y2="16" stroke="%231e3a8a" stroke-width="2"/></svg>') 16 16, crosshair; 
+        }
+        canvas:active { 
+            cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32"><circle cx="16" cy="16" r="8" fill="rgba(30,58,138,0.9)" stroke="white" stroke-width="2"/><line x1="16" y1="4" x2="16" y2="28" stroke="white" stroke-width="2"/><line x1="4" y1="16" x2="28" y2="16" stroke="white" stroke-width="2"/></svg>') 16 16, crosshair; 
+        }
+        
+        /* ANIMATED DRAG DEMONSTRATION */
+        .drag-demo-bubble {
+            position: absolute;
+            top: 20%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(239, 246, 255, 0.95);
+            border: 1px solid #93c5fd;
+            color: #1e3a8a;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            pointer-events: none;
+            z-index: 10;
+            animation: float-and-fade 4s ease-in-out infinite;
+        }
+
+        .animated-hand {
+            animation: swipe-left-right 2s ease-in-out infinite;
+        }
+
+        @keyframes float-and-fade {
+            0%, 100% { opacity: 0.9; transform: translate(-50%, 0); }
+            50% { opacity: 1; transform: translate(-50%, -5px); }
+        }
+
+        @keyframes swipe-left-right {
+            0%, 100% { transform: translateX(0) rotate(0deg); }
+            50% { transform: translateX(-15px) rotate(-10deg); }
+        }
+
+        /* CUSTOM SLIDER TOOLTIP CONTAINER */
+        .slider-container {
+            position: relative;
+            padding-top: 15px; /* Room for tooltip */
+        }
+        
+        .slider-tooltip {
+            position: absolute;
+            top: -5px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #1e3a8a;
+            color: white;
+            font-size: 9px;
+            font-weight: bold;
+            padding: 2px 6px;
+            border-radius: 4px;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.2s;
+            white-space: nowrap;
+        }
+
+        .slider-tooltip::after {
+            content: '';
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            margin-left: -3px;
+            border-width: 3px;
+            border-style: solid;
+            border-color: #1e3a8a transparent transparent transparent;
+        }
+
+        .slider-container:hover .slider-tooltip {
+            opacity: 1;
+        }
+
         /* CUSTOM VISUAL SHAPE DROPDOWN */
         .custom-select { position: relative; width: 100%; height: 32px; user-select: none; }
         .select-selected { background: #fff; border: 1px solid #d1d5db; border-radius: 0.25rem; height: 100%; display: flex; align-items: center; justify-content: space-between; padding: 0 10px; cursor: pointer; transition: 0.2s; font-size: 0.75rem; }
@@ -35,10 +117,26 @@
         .toggle-label::after { content: ''; position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; background-color: white; border-radius: 50%; transition: transform 0.3s; box-shadow: 0 1px 2px rgba(0,0,0,0.2); }
         .toggle-checkbox:checked + .toggle-label { background-color: #10b981; }
         .toggle-checkbox:checked + .toggle-label::after { transform: translateX(20px); }
+
+        /* LENS TYPE TOGGLE CSS */
+        .type-label {
+            box-shadow: inset 0 0 0 1px transparent;
+        }
+        input[type="radio"]:checked + .type-label {
+            background-color: #2563eb;
+            color: #ffffff;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        }
+
+        /* Remove Number Input Spinners for cleaner look */
+        input[type="number"]::-webkit-inner-spin-button, 
+        input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+        input[type="number"] { -moz-appearance: textfield; }
     </style>
 </head>
 <body class="bg-gray-100 p-4 md:p-8 font-sans min-h-screen flex flex-col">
 
+<!-- DEVICE DETECT MODAL -->
 <div id="deviceModal" class="fixed inset-0 bg-gray-900 bg-opacity-60 z-50 hidden flex items-center justify-center backdrop-filter backdrop-blur-sm transition-opacity">
     <div class="bg-white rounded-lg shadow-2xl p-6 max-w-md w-full border border-blue-300 border-2">
         <h3 class="text-lg font-bold text-blue-800 mb-2 flex items-center gap-2">🖥️ Device Mismatch</h3>
@@ -77,6 +175,7 @@
 <div class="max-w-6xl mx-auto bg-white rounded-lg shadow-xl overflow-hidden flex-1 flex flex-col w-full">
     
     <div class="bg-blue-900 text-white px-6 py-4 flex-shrink-0 flex justify-between items-center">
+        <!-- Updated Back Button and Link Name -->
         <div class="flex items-center gap-4">
             <button onclick="window.history.back()" class="bg-blue-800 hover:bg-blue-700 text-white p-2 rounded-full transition-colors focus:outline-none" title="Go Back">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -85,7 +184,10 @@
             </button>
             <div>
                 <h1 class="text-2xl font-bold tracking-tight">Decentration and Diameter Recommendation Tool</h1>
-                <p class="text-sm text-blue-200">Designed by <a href="https://www.linkedin.com/in/angelo-dacanay/" target="_blank" class="underline hover:text-white transition-colors">Angelo Dacanay</a></p>
+                <p class="text-sm text-blue-200">
+                    For any comments and suggestions <a href="mailto:3393@magrabi.com" class="underline hover:text-white transition-colors">email me</a>. 
+                    <a href="https://www.linkedin.com/in/angelodacan-eye/" target="_blank" class="font-bold text-green-300 hover:text-green-100 transition-colors">-gelotools</a>
+                </p>
             </div>
         </div>
         
@@ -101,19 +203,30 @@
 
     <div class="p-6 flex-1 flex flex-col overflow-y-auto">
         
-        <div class="canvas-wrapper p-2 mb-2 w-full">
+        <div class="canvas-wrapper p-2 mb-1 w-full">
             
-            <div id="dragHint" class="absolute top-4 left-1/2 transform -translate-x-1/2 bg-blue-100 border border-blue-300 text-blue-800 text-[10px] font-bold px-4 py-1.5 rounded-full shadow-sm pointer-events-none transition-opacity duration-500 opacity-90 z-10 flex items-center gap-1.5">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 9l4-4 4 4M9 5v14M19 15l-4 4-4-4M15 9v10"/></svg>
-                Hint: Click and drag the dashed lens to manually decenter
+            <div id="dragHint" class="drag-demo-bubble">
+                <svg class="animated-hand" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+                    <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+                </svg>
+                Click & Drag dashed lens to decenter
             </div>
 
             <canvas id="lensCanvas" width="900" height="340"></canvas>
         </div>
-        <p class="text-center text-xs text-gray-500 font-bold mb-6">
-            <span id="physicalLabel">Physical 1:1 Scale. </span><span class="text-red-500">X = Pupil</span>, <span class="text-blue-500">+ = OC</span>
-        </p>
+        
+        <div class="flex justify-between items-center mb-6 px-4">
+            <p class="text-xs text-gray-500 font-bold">
+                <span id="physicalLabel">Physical 1:1 Scale. </span><span class="text-red-500">X = Pupil</span>, <span class="text-blue-500">+ = OC</span>
+            </p>
+            <!-- High Cylinder Warning Label -->
+            <p class="text-[10px] text-gray-500 italic">
+                <strong class="text-orange-500">Note on High Cylinder:</strong> For Rx with cylinder &ge; 2.00 D, actual cut-out may vary due to elliptical blank shapes. Consult lab for borderline sizes.
+            </p>
+        </div>
 
+        <!-- FRAME CONTROLS -->
         <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
             <div class="p-3 border border-gray-200 rounded bg-gray-50">
                 <label class="block font-bold mb-1 text-xs text-gray-700">Shape</label>
@@ -128,28 +241,28 @@
             <div class="p-3 border border-gray-200 rounded bg-gray-50">
                 <div class="flex justify-between items-center mb-1">
                     <label class="font-bold text-xs text-gray-700">A (Width)</label>
-                    <span id="valA" class="text-xs font-bold text-blue-600">54</span>
+                    <input type="number" id="frameA_num" min="40" max="70" value="54" class="w-14 border border-gray-300 rounded px-1 text-xs font-bold text-blue-600 text-center">
                 </div>
                 <input type="range" id="frameA" min="40" max="70" value="54" class="w-full">
             </div>
             <div class="p-3 border border-gray-200 rounded bg-gray-50">
                 <div class="flex justify-between items-center mb-1">
                     <label class="font-bold text-xs text-gray-700">B (Height)</label>
-                    <span id="valB" class="text-xs font-bold text-blue-600">50</span>
+                    <input type="number" id="frameB_num" min="20" max="60" value="50" class="w-14 border border-gray-300 rounded px-1 text-xs font-bold text-blue-600 text-center">
                 </div>
                 <input type="range" id="frameB" min="20" max="60" value="50" class="w-full">
             </div>
             <div class="p-3 border border-gray-200 rounded bg-gray-50">
                 <div class="flex justify-between items-center mb-1">
                     <label class="font-bold text-xs text-gray-700">ED (Diag)</label>
-                    <span id="valDiag" class="text-xs font-bold text-red-600">58</span>
+                    <input type="number" id="diag_num" min="40" max="100" value="58" class="w-14 border border-gray-300 rounded px-1 text-xs font-bold text-red-600 text-center">
                 </div>
                 <input type="range" id="diag" min="40" max="100" value="58" class="w-full">
             </div>
             <div class="p-3 border border-gray-200 rounded bg-gray-50">
                 <div class="flex justify-between items-center mb-1">
                     <label class="font-bold text-xs text-gray-700">DBL</label>
-                    <span id="valDBL" class="text-xs font-bold text-blue-600">16</span>
+                    <input type="number" id="dbl_num" min="10" max="25" value="16" class="w-14 border border-gray-300 rounded px-1 text-xs font-bold text-blue-600 text-center">
                 </div>
                 <input type="range" id="dbl" min="10" max="25" value="16" class="w-full">
             </div>
@@ -157,17 +270,27 @@
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 flex-1">
             
+            <!-- OD (RIGHT EYE) PANEL -->
             <div class="border border-gray-200 rounded shadow-sm p-4 bg-white flex flex-col justify-between">
                 <div>
                     <h3 class="text-center font-bold text-gray-800 border-b border-gray-200 pb-2 mb-3">OD (Right Eye)</h3>
-                    <div class="flex justify-between items-center mb-2">
-                        <label class="text-xs font-bold text-gray-600">Mono PD</label>
-                        <input type="number" id="odPD" value="35" step="0.5" class="border border-gray-300 rounded px-2 py-1 text-xs w-16 text-center">
+                    
+                    <div class="mb-3">
+                        <div class="flex justify-between items-center mb-1">
+                            <label class="text-xs font-bold text-gray-600">Mono PD</label>
+                            <input type="number" id="odPD" value="35" step="0.5" min="20" max="45" class="border border-gray-300 rounded px-2 py-1 text-xs w-16 text-center text-blue-600 font-bold">
+                        </div>
+                        <input type="range" id="odPD_slide" min="20" max="45" step="0.5" value="35" class="w-full">
                     </div>
-                    <div class="flex justify-between items-center mb-4">
-                        <label class="text-xs font-bold text-gray-600">OC Height</label>
-                        <input type="number" id="odOCHt" value="25" step="0.5" class="border border-gray-300 rounded px-2 py-1 text-xs w-16 text-center">
+                    
+                    <div class="mb-4 border-b border-gray-100 pb-4">
+                        <div class="flex justify-between items-center mb-1">
+                            <label class="text-xs font-bold text-gray-600">OC Height</label>
+                            <input type="number" id="odOCHt" value="25" step="0.5" min="10" max="40" class="border border-gray-300 rounded px-2 py-1 text-xs w-16 text-center text-blue-600 font-bold">
+                        </div>
+                        <input type="range" id="odOCHt_slide" min="10" max="40" step="0.5" value="25" class="w-full">
                     </div>
+                    
                     <div class="flex justify-between items-center mt-2 mb-2">
                         <label class="text-xs font-bold text-gray-600 flex justify-between w-20">H. Dec <span id="t_odHDec" class="text-blue-600">0.0</span></label>
                         <input type="range" id="odHDec" min="0" max="20" step="0.5" value="0" class="flex-1 mx-2">
@@ -186,6 +309,7 @@
                     </div>
                 </div>
 
+                <!-- OD RESULTS BOX -->
                 <div class="mt-4 pt-3 border-t border-gray-200">
                     <p class="text-[11px] font-black text-blue-900 uppercase tracking-widest mb-2 text-center">Recommendations for OD</p>
                     <div class="bg-gray-50 rounded border border-gray-200 p-2 text-[11px] font-mono text-gray-800 shadow-inner">
@@ -197,19 +321,36 @@
                         <div class="flex justify-between mb-2 pb-2 border-b border-gray-200"><span>Add Decentration Custom:</span> <span class="font-black text-indigo-700" id="resOD_Vec">-</span></div>
                         
                         <div class="flex justify-between mt-1"><span>Special Diameter:</span> <span class="font-black text-blue-800 text-xs" id="resOD_Dia">-</span></div>
+                        <div id="resOD_Warning" class="text-center text-[10px] text-red-600 font-bold mt-1" style="display:none;"></div>
                     </div>
                 </div>
             </div>
 
+            <!-- CENTER ACTIONS PANEL -->
             <div class="border border-blue-200 bg-blue-50 rounded shadow-sm p-4 flex flex-col gap-3">
                 <button onclick="copyODtoOS()" class="w-full bg-white border border-blue-600 text-blue-600 hover:bg-blue-50 font-bold py-1.5 rounded text-[10px] uppercase transition-colors shadow-sm">⮂ Copy OD to OS ⮂</button>
                 
-                <div>
+                <!-- LENS TYPE TOGGLE -->
+                <div class="flex justify-center mt-2 mb-1 bg-white rounded border border-blue-200 shadow-sm p-1">
+                    <div class="relative flex w-full">
+                        <input type="radio" name="lensType" id="typeSV" value="SV" class="hidden" checked onchange="handleLensTypeChange()">
+                        <label for="typeSV" class="flex-1 text-center py-1.5 text-xs font-bold text-gray-600 cursor-pointer rounded transition-colors type-label">Single Vision</label>
+                        
+                        <input type="radio" name="lensType" id="typePAL" value="PAL" class="hidden" onchange="handleLensTypeChange()">
+                        <label for="typePAL" class="flex-1 text-center py-1.5 text-xs font-bold text-gray-600 cursor-pointer rounded transition-colors type-label">PAL</label>
+                        
+                        <input type="radio" name="lensType" id="typePALTLD" value="PAL_TLD" class="hidden" onchange="handleLensTypeChange()">
+                        <label for="typePALTLD" class="flex-1 text-center py-1.5 text-xs font-bold text-gray-600 cursor-pointer rounded transition-colors type-label">PAL TLD</label>
+                    </div>
+                </div>
+
+                <div class="slider-container">
+                    <div class="slider-tooltip">Slide to resize</div>
                     <div class="flex justify-between items-center mb-1">
                         <label class="font-bold text-xs text-blue-800">Uncut Lens Dia</label>
                         <span id="valLensDia" class="text-sm font-black text-blue-800">65 mm</span>
                     </div>
-                    <input type="range" id="lensDia" min="40" max="100" step="1" value="65" class="w-full mb-2">
+                    <input type="range" id="lensDia" min="40" max="100" step="1" value="65" class="w-full mb-2 cursor-pointer">
                 </div>
                 <div id="mbsDisplay" class="bg-white border border-blue-200 text-blue-800 text-sm font-bold text-center py-2 rounded shadow-sm">MBS (Centered): 60 mm</div>
                 
@@ -241,17 +382,27 @@
                 </div>
             </div>
 
+            <!-- OS (LEFT EYE) PANEL -->
             <div class="border border-gray-200 rounded shadow-sm p-4 bg-white flex flex-col justify-between">
                 <div>
                     <h3 class="text-center font-bold text-gray-800 border-b border-gray-200 pb-2 mb-3">OS (Left Eye)</h3>
-                    <div class="flex justify-between items-center mb-2">
-                        <label class="text-xs font-bold text-gray-600">Mono PD</label>
-                        <input type="number" id="osPD" value="35" step="0.5" class="border border-gray-300 rounded px-2 py-1 text-xs w-16 text-center">
+                    
+                    <div class="mb-3">
+                        <div class="flex justify-between items-center mb-1">
+                            <label class="text-xs font-bold text-gray-600">Mono PD</label>
+                            <input type="number" id="osPD" value="35" step="0.5" min="20" max="45" class="border border-gray-300 rounded px-2 py-1 text-xs w-16 text-center text-blue-600 font-bold">
+                        </div>
+                        <input type="range" id="osPD_slide" min="20" max="45" step="0.5" value="35" class="w-full">
                     </div>
-                    <div class="flex justify-between items-center mb-4">
-                        <label class="text-xs font-bold text-gray-600">OC Height</label>
-                        <input type="number" id="osOCHt" value="25" step="0.5" class="border border-gray-300 rounded px-2 py-1 text-xs w-16 text-center">
+                    
+                    <div class="mb-4 border-b border-gray-100 pb-4">
+                        <div class="flex justify-between items-center mb-1">
+                            <label class="text-xs font-bold text-gray-600">OC Height</label>
+                            <input type="number" id="osOCHt" value="25" step="0.5" min="10" max="40" class="border border-gray-300 rounded px-2 py-1 text-xs w-16 text-center text-blue-600 font-bold">
+                        </div>
+                        <input type="range" id="osOCHt_slide" min="10" max="40" step="0.5" value="25" class="w-full">
                     </div>
+
                     <div class="flex justify-between items-center mt-2 mb-2">
                         <label class="text-xs font-bold text-gray-600 flex justify-between w-20">H. Dec <span id="t_osHDec" class="text-blue-600">0.0</span></label>
                         <input type="range" id="osHDec" min="0" max="20" step="0.5" value="0" class="flex-1 mx-2">
@@ -270,6 +421,7 @@
                     </div>
                 </div>
 
+                <!-- OS RESULTS BOX -->
                 <div class="mt-4 pt-3 border-t border-gray-200">
                     <p class="text-[11px] font-black text-blue-900 uppercase tracking-widest mb-2 text-center">Recommendations for OS</p>
                     <div class="bg-gray-50 rounded border border-gray-200 p-2 text-[11px] font-mono text-gray-800 shadow-inner">
@@ -281,6 +433,7 @@
                         <div class="flex justify-between mb-2 pb-2 border-b border-gray-200"><span>Add Decentration Custom:</span> <span class="font-black text-indigo-700" id="resOS_Vec">-</span></div>
                         
                         <div class="flex justify-between mt-1"><span>Special Diameter:</span> <span class="font-black text-blue-800 text-xs" id="resOS_Dia">-</span></div>
+                        <div id="resOS_Warning" class="text-center text-[10px] text-red-600 font-bold mt-1" style="display:none;"></div>
                     </div>
                 </div>
             </div>
@@ -317,6 +470,7 @@
     let activeLiveMode = 'none'; 
     let isSurfaceMode = true; 
     let scale = 10.5118; 
+    let lensType = 'SV'; // Toggle state
     
     const canvas = document.getElementById('lensCanvas');
     const ctx = canvas.getContext('2d');
@@ -336,6 +490,16 @@
 
     function getVal(id) { return parseFloat(document.getElementById(id).value) || 0; }
     function setVal(id, val) { document.getElementById(id).value = val; }
+
+    function handleLensTypeChange() {
+        lensType = document.querySelector('input[name="lensType"]:checked').value;
+        if (activeLiveMode !== 'none') {
+            if (activeLiveMode === 'plus') executeRecommendPlus();
+            else executeRecommendMinus(false);
+        } else {
+            updateUI();
+        }
+    }
 
     // --- DEVICE DETECTION LOGIC ---
     function checkDeviceCompatibility() {
@@ -404,16 +568,22 @@
         const maxPossibleED = Math.ceil(Math.hypot(A, B));
 
         const diagSlider = document.getElementById('diag');
+        const diagNum = document.getElementById('diag_num');
+        
         diagSlider.min = minPossibleED; 
         diagSlider.max = maxPossibleED;
+        if(diagNum) {
+            diagNum.min = minPossibleED;
+            diagNum.max = maxPossibleED;
+        }
         
         if (parseFloat(diagSlider.value) < minPossibleED) {
             diagSlider.value = minPossibleED;
+            if(diagNum) diagNum.value = minPossibleED;
         } else if (parseFloat(diagSlider.value) > maxPossibleED) {
             diagSlider.value = maxPossibleED;
+            if(diagNum) diagNum.value = maxPossibleED;
         }
-        
-        document.getElementById('valDiag').innerText = diagSlider.value;
     }
 
     // --- DRAWING FUNCTIONS ---
@@ -549,11 +719,6 @@
         const shape = document.getElementById('frameShape').value;
         const lensDia = getVal('lensDia');
         
-        document.getElementById('valA').innerText = A; 
-        document.getElementById('valB').innerText = B; 
-        document.getElementById('valDBL').innerText = DBL; 
-        document.getElementById('valLensDia').innerText = lensDia + " mm";
-        
         const userED = getVal('diag');
         document.getElementById('mbsDisplay').innerText = "MBS (Centered): " + Math.ceil(userED + 2) + " mm";
         
@@ -567,6 +732,11 @@
         const osPupilY = btm - getVal('osOCHt');
 
         document.getElementById('sizeWarning').classList.add('hidden');
+
+        // PAL OFFSET CALCULATION
+        let palOffset = (lensType === 'PAL') ? 2 : (lensType === 'PAL_TLD') ? 4 : 0;
+        const targetBlankY_OD = odPupilY + palOffset;
+        const targetBlankY_OS = osPupilY + palOffset;
 
         // TRUE POINT-CLOUD SCANNER
         const r = A / 2;
@@ -630,7 +800,7 @@
             window.osOCX_val = osPupilX; 
             window.osOCY_val = osPupilY;
             
-            setSlidersFromOffset(odPupilX - gcOD, odPupilY - 0, osPupilX - gcOS, osPupilY - 0);
+            setSlidersFromOffset(odPupilX - gcOD, targetBlankY_OD - 0, osPupilX - gcOS, targetBlankY_OS - 0);
 
         } else if (activeLiveMode === 'minus') {
             window.odOCX_val = odPupilX; 
@@ -640,12 +810,12 @@
             
             const R = lensDia / 2;
             
-            const findMinusBlank = (pupilX, pupilY, gcX, gcY, pointsArray) => {
+            const findMinusBlank = (pupilX, targetY, gcX, gcY, pointsArray) => {
                 const cx = pupilX - gcX;
-                const cy = pupilY - gcY;
+                const cy = targetY - gcY;
                 
                 if (R >= getMaxRadius(pointsArray, cx, cy)) {
-                    return {x: pupilX, y: pupilY, valid: true}; 
+                    return {x: pupilX, y: targetY, valid: true}; 
                 }
                 
                 if (R < getMaxRadius(pointsArray, 0, 0)) {
@@ -655,7 +825,7 @@
                 for (let i = 0; i <= 100; i++) {
                     const t = i / 100;
                     const testX = pupilX + t * (gcX - pupilX);
-                    const testY = pupilY + t * (gcY - pupilY);
+                    const testY = targetY + t * (gcY - targetY);
                     if (R >= getMaxRadius(pointsArray, testX - gcX, testY - gcY)) {
                         return {x: testX, y: testY, valid: true};
                     }
@@ -663,12 +833,12 @@
                 return {x: gcX, y: gcY, valid: false};
             };
 
-            const resOD = findMinusBlank(odPupilX, odPupilY, gcOD, 0, shapePointsOD);
+            const resOD = findMinusBlank(odPupilX, targetBlankY_OD, gcOD, 0, shapePointsOD);
             odBlankX = resOD.x; 
             odBlankY = resOD.y; 
             const validOD = resOD.valid;
 
-            const resOS = findMinusBlank(osPupilX, osPupilY, gcOS, 0, shapePointsOS);
+            const resOS = findMinusBlank(osPupilX, targetBlankY_OS, gcOS, 0, shapePointsOS);
             osBlankX = resOS.x; 
             osBlankY = resOS.y; 
             const validOS = resOS.valid;
@@ -677,13 +847,13 @@
                 document.getElementById('sizeWarning').classList.remove('hidden');
             }
             
-            setSlidersFromOffset(odPupilX - resOD.x, odPupilY - resOD.y, osPupilX - resOS.x, osPupilY - resOS.y);
+            setSlidersFromOffset(odPupilX - resOD.x, targetBlankY_OD - resOD.y, osPupilX - resOS.x, targetBlankY_OS - resOS.y);
 
         } else {
             window.odOCX_val = odBlankX + getHDecSliderVal('OD');
-            window.odOCY_val = odBlankY + getVDecSliderVal('OD');
+            window.odOCY_val = odBlankY + getVDecSliderVal('OD') - palOffset;
             window.osOCX_val = osBlankX + getHDecSliderVal('OS');
-            window.osOCY_val = osBlankY + getVDecSliderVal('OS');
+            window.osOCY_val = osBlankY + getVDecSliderVal('OS') - palOffset;
             
             const R = lensDia / 2;
             const checkManual = (blankX, blankY, gcX, gcY, pointsArray) => {
@@ -728,6 +898,14 @@
         document.getElementById('resOD_V').innerText = `${vValOD.toFixed(1)} mm ${vValOD === 0 ? '' : vDirTextOD}`;
         document.getElementById('resOD_Vec').innerText = `${magOD.toFixed(1)} mm @ ${magOD === 0 ? 0 : Math.round(angOD)}°`;
         document.getElementById('resOD_Dia').innerText = `${lensDia + diaPadding} mm`;
+        
+        const odWarn = document.getElementById('resOD_Warning');
+        if (activeLiveMode !== 'minus' && magOD > 5) {
+            odWarn.innerHTML = "(Warning: Decentration over 5mm. Choose a smaller frame or bigger diameter blank, then move the uncut lens to lessen the needed decentration)";
+            odWarn.style.display = 'block';
+        } else {
+            odWarn.style.display = 'none';
+        }
 
         // OS Added Decentration Vector
         const hValOS = getVal('osHDec');
@@ -747,6 +925,14 @@
         document.getElementById('resOS_V').innerText = `${vValOS.toFixed(1)} mm ${vValOS === 0 ? '' : vDirTextOS}`;
         document.getElementById('resOS_Vec').innerText = `${magOS.toFixed(1)} mm @ ${magOS === 0 ? 0 : Math.round(angOS)}°`;
         document.getElementById('resOS_Dia').innerText = `${lensDia + diaPadding} mm`;
+
+        const osWarn = document.getElementById('resOS_Warning');
+        if (activeLiveMode !== 'minus' && magOS > 5) {
+            osWarn.innerHTML = "(Warning: Decentration over 5mm. Choose a smaller frame or bigger diameter blank, then move the uncut lens to lessen the needed decentration)";
+            osWarn.style.display = 'block';
+        } else {
+            osWarn.style.display = 'none';
+        }
 
 
         ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -805,11 +991,17 @@
         const bM = document.getElementById('btnMinus');
         const ind = document.getElementById('liveIndicatorContainer');
         const warningEl = document.getElementById('sizeWarning');
+        const dragHint = document.getElementById('dragHint');
         
         bP.innerText = activeLiveMode === 'plus' ? "Stop Recommendation" : "Recommend for Plus Lens";
         bM.innerText = activeLiveMode === 'minus' ? "Stop Recommendation" : "Recommend for Minus Lens";
         ind.className = activeLiveMode === 'none' ? "invisible" : "flex justify-center items-center h-4 mt-1";
         
+        // Hide the animated drag hint if live mode is active (since clicking auto-disables it anyway)
+        if (dragHint) {
+            dragHint.style.opacity = activeLiveMode !== 'none' ? '0' : '1';
+        }
+
         if (activeLiveMode !== 'minus') {
             warningEl.classList.add('hidden');
         }
@@ -853,13 +1045,13 @@
     }
     
     function resetState() { 
-        setVal('frameA', 54); 
-        setVal('frameB', 50); 
-        setVal('dbl', 16); 
-        setVal('odPD', 35); 
-        setVal('osPD', 35); 
-        setVal('odOCHt', 25); 
-        setVal('osOCHt', 25); 
+        setVal('frameA', 54); setVal('frameA_num', 54);
+        setVal('frameB', 50); setVal('frameB_num', 50);
+        setVal('dbl', 16); setVal('dbl_num', 16);
+        setVal('odPD', 35); setVal('odPD_slide', 35);
+        setVal('osPD', 35); setVal('osPD_slide', 35);
+        setVal('odOCHt', 25); setVal('odOCHt_slide', 25);
+        setVal('osOCHt', 25); setVal('osOCHt_slide', 25);
         
         document.getElementById('frameShape').value = 'Rectangle'; 
         document.getElementById('currentShapeIcon').innerHTML = `<svg class="shape-svg" viewBox="0 0 60 20">${shapeOptions['Rectangle'].svg}</svg> <span>Rectangle</span>`; 
@@ -904,11 +1096,27 @@
     }
 
     function handleInputEvent(id) {
+        // Bi-directional sync map
+        const syncMap = {
+            'frameA': 'frameA_num', 'frameA_num': 'frameA',
+            'frameB': 'frameB_num', 'frameB_num': 'frameB',
+            'diag': 'diag_num', 'diag_num': 'diag',
+            'dbl': 'dbl_num', 'dbl_num': 'dbl',
+            'odPD': 'odPD_slide', 'odPD_slide': 'odPD',
+            'osPD': 'osPD_slide', 'osPD_slide': 'osPD',
+            'odOCHt': 'odOCHt_slide', 'odOCHt_slide': 'odOCHt',
+            'osOCHt': 'osOCHt_slide', 'osOCHt_slide': 'osOCHt'
+        };
+
+        if (syncMap[id]) {
+            setVal(syncMap[id], getVal(id));
+            if (id.includes('_num') || id.includes('_slide')) {
+                id = syncMap[id]; // Alias back to primary ID for existing logic
+            }
+        }
+        
         if (['frameA', 'frameB'].includes(id)) {
             updateEDBounds();
-        }
-        if (id === 'diag') {
-            document.getElementById('valDiag').innerText = getVal('diag');
         }
         
         // --- SMART SYNC LOGIC ---
@@ -917,6 +1125,7 @@
             if (pdLeader === null || pdLeader === 'OD') {
                 pdLeader = 'OD';
                 setVal('osPD', getVal('odPD'));
+                setVal('osPD_slide', getVal('odPD'));
             } else if (pdLeader === 'OS') {
                 pdLeader = 'broken';
             }
@@ -924,6 +1133,7 @@
             if (pdLeader === null || pdLeader === 'OS') {
                 pdLeader = 'OS';
                 setVal('odPD', getVal('osPD'));
+                setVal('odPD_slide', getVal('osPD'));
             } else if (pdLeader === 'OD') {
                 pdLeader = 'broken';
             }
@@ -934,6 +1144,7 @@
             if (htLeader === null || htLeader === 'OD') {
                 htLeader = 'OD';
                 setVal('osOCHt', getVal('odOCHt'));
+                setVal('osOCHt_slide', getVal('odOCHt'));
             } else if (htLeader === 'OS') {
                 htLeader = 'broken';
             }
@@ -941,6 +1152,7 @@
             if (htLeader === null || htLeader === 'OS') {
                 htLeader = 'OS';
                 setVal('odOCHt', getVal('osOCHt'));
+                setVal('osOCHt_slide', getVal('osOCHt'));
             } else if (htLeader === 'OD') {
                 htLeader = 'broken';
             }
@@ -969,7 +1181,9 @@
 
     function copyODtoOS() { 
         setVal('osPD', getVal('odPD')); 
+        setVal('osPD_slide', getVal('odPD')); 
         setVal('osOCHt', getVal('odOCHt')); 
+        setVal('osOCHt_slide', getVal('odOCHt')); 
         setVal('osHDec', getVal('odHDec')); 
         setVal('osVDec', getVal('odVDec')); 
         document.getElementById('osHDir').value = document.getElementById('odHDir').value; 
@@ -1042,14 +1256,16 @@
             const mX = ((e.clientX - r.left) * cssScaleX - 450) / scale;
             const mY = ((e.clientY - r.top) * cssScaleY - 170) / scale;
             
+            let palOffset = (lensType === 'PAL') ? 2 : (lensType === 'PAL_TLD') ? 4 : 0;
+
             if (dragTarget === 'OD') { 
                 odBlankX = mX; 
                 odBlankY = mY;
-                setSlidersFromOffset(window.odPupilX_val - mX, window.odPupilY_val - mY, null, null);
+                setSlidersFromOffset(window.odPupilX_val - mX, (window.odPupilY_val + palOffset) - mY, null, null);
             } else {
                 osBlankX = mX; 
                 osBlankY = mY;
-                setSlidersFromOffset(null, null, window.osPupilX_val - mX, window.osPupilY_val - mY);
+                setSlidersFromOffset(null, null, window.osPupilX_val - mX, (window.osPupilY_val + palOffset) - mY);
             }
             updateUI();
         });
