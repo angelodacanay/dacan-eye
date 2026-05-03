@@ -175,7 +175,7 @@
 <div class="max-w-6xl mx-auto bg-white rounded-lg shadow-xl overflow-hidden flex-1 flex flex-col w-full">
     
     <div class="bg-blue-900 text-white px-6 py-4 flex-shrink-0 flex justify-between items-center">
-        <!-- Updated Back Button and Link Name -->
+        <!-- Add Back Button and Link Name -->
         <div class="flex items-center gap-4">
             <button onclick="window.history.back()" class="bg-blue-800 hover:bg-blue-700 text-white p-2 rounded-full transition-colors focus:outline-none" title="Go Back">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -216,13 +216,12 @@
             <canvas id="lensCanvas" width="900" height="340"></canvas>
         </div>
         
-        <div class="flex justify-between items-center mb-6 px-4">
-            <p class="text-xs text-gray-500 font-bold">
-                <span id="physicalLabel">Physical 1:1 Scale. </span><span class="text-red-500">X = Pupil</span>, <span class="text-blue-500">+ = OC</span>
-            </p>
-            <!-- High Cylinder Warning Label -->
-            <p class="text-[10px] text-gray-500 italic">
-                <strong class="text-orange-500">Note on High Cylinder:</strong> For Rx with cylinder &ge; 2.00 D, actual cut-out may vary due to elliptical blank shapes. Consult lab for borderline sizes.
+        <!-- COMPACT SINGLE-LINE LEGEND AND WARNING -->
+        <div class="text-center mb-5 px-2">
+            <p class="text-[11px] text-gray-600">
+                <span class="font-bold"><span id="physicalLabel">Physical 1:1 Scale. </span><span class="text-red-500">X = Pupil</span>, <span class="text-blue-500">+ = OC</span></span>
+                <span class="mx-2 text-gray-300">|</span>
+                <span class="italic"><strong class="text-orange-500">High Cyl Note:</strong> Actual cut-out may vary due to elliptical blanks. Consult your lab.</span>
             </p>
         </div>
 
@@ -321,7 +320,7 @@
                         <div class="flex justify-between mb-2 pb-2 border-b border-gray-200"><span>Add Decentration Custom:</span> <span class="font-black text-indigo-700" id="resOD_Vec">-</span></div>
                         
                         <div class="flex justify-between mt-1"><span>Special Diameter:</span> <span class="font-black text-blue-800 text-xs" id="resOD_Dia">-</span></div>
-                        <div id="resOD_Warning" class="text-center text-[10px] text-red-600 font-bold mt-1" style="display:none;"></div>
+                        <div id="resOD_Warning" class="text-center text-[10px] text-red-600 font-bold mt-1 leading-tight" style="display:none;"></div>
                     </div>
                 </div>
             </div>
@@ -433,7 +432,7 @@
                         <div class="flex justify-between mb-2 pb-2 border-b border-gray-200"><span>Add Decentration Custom:</span> <span class="font-black text-indigo-700" id="resOS_Vec">-</span></div>
                         
                         <div class="flex justify-between mt-1"><span>Special Diameter:</span> <span class="font-black text-blue-800 text-xs" id="resOS_Dia">-</span></div>
-                        <div id="resOS_Warning" class="text-center text-[10px] text-red-600 font-bold mt-1" style="display:none;"></div>
+                        <div id="resOS_Warning" class="text-center text-[10px] text-red-600 font-bold mt-1 leading-tight" style="display:none;"></div>
                     </div>
                 </div>
             </div>
