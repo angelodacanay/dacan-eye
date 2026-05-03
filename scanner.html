@@ -1947,6 +1947,11 @@
             saveState(); 
             inventory = {}; systemDataEncoded = false; hasWarnedNoSystemData = false; auditLog = []; fastScanQueue = []; uploadedRawData = []; currentFileType = null; isLensesFilterActive = true;
             document.getElementById('queueCount').innerText = "0"; document.getElementById('fastScanTrailBox').style.display = 'none'; document.getElementById('dynamicFilters').style.display = 'none';
+            
+            // CLEAR THE TEXTAREA AND FILE UPLOAD
+            document.getElementById('pasteArea').value = '';
+            document.getElementById('sysDataUpload').value = '';
+
             resetFilterUI(); document.getElementById('slocFilterUI').value = 'ALL';
             
             const btn = document.getElementById('btnToggleLenses');
