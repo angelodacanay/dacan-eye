@@ -1002,7 +1002,12 @@
                 sto: document.getElementById('stoDropdown') ? document.getElementById('stoDropdown').value : 'ALL',
                 cat: document.getElementById('categoryDropdown') ? document.getElementById('categoryDropdown').value : 'ALL',
                 brand: document.getElementById('brandDropdown') ? document.getElementById('brandDropdown').value : 'ALL'
-            }
+            },
+            // CAPTURE UI STATE SO IT RESTORES PERFECTLY ON UNDO
+            currentPage,
+            itemsPerPage,
+            currentFilter,
+            currentSearchQuery
         };
     }
 
@@ -1073,6 +1078,23 @@
         uploadedRawData = state.uploadedRawData || [];
         currentFileType = state.currentFileType || null;
         isLensesFilterActive = state.isLensesFilterActive !== undefined ? state.isLensesFilterActive : true;
+
+        // RESTORE EXACT UI STATE 
+        currentPage = state.currentPage || 1;
+        itemsPerPage = state.itemsPerPage || 'All';
+        currentFilter = state.currentFilter || 'ALL';
+        currentSearchQuery = state.currentSearchQuery || '';
+
+        // Sync the HTML Elements with restored UI state
+        let pageSizeSelect = document.getElementById('pageSize');
+        if(pageSizeSelect) pageSizeSelect.value = itemsPerPage;
+
+        let searchInput = document.getElementById('tableSearchInput');
+        if(searchInput) searchInput.value = currentSearchQuery;
+
+        document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+        let activeFilterBtn = document.querySelector(`.filter-btn[onclick*="'${currentFilter}'"]`);
+        if(activeFilterBtn) activeFilterBtn.classList.add('active');
 
         if (uploadedRawData.length > 0 && currentFileType) {
             document.getElementById('dynamicFilters').style.display = 'block';
@@ -1379,12 +1401,12 @@
                     }
                     
                     if (!descRaw) {
-                       for (let j = 0; j < cols.length; j++) {
-                           if (cols[j] && String(cols[j]).includes(';')) {
-                               descRaw = String(cols[j]).trim();
-                               break;
-                           }
-                       }
+                        for (let j = 0; j < cols.length; j++) {
+                            if (cols[j] && String(cols[j]).includes(';')) {
+                                descRaw = String(cols[j]).trim();
+                                break;
+                            }
+                        }
                     }
                 }
 
