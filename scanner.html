@@ -21,7 +21,12 @@
         body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; background-color: var(--bg-color); margin: 0; padding: 0; display: flex; flex-direction: column; min-height: 100vh; padding-bottom: 90px; color: var(--text-primary); -webkit-font-smoothing: antialiased; }
         
         .navbar { background-color: var(--surface-color); padding: 16px 32px; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; }
-        .app-branding { font-size: 20px; font-weight: 700; letter-spacing: -0.5px; color: var(--text-primary); }
+        
+        /* MODERN BRANDING UPDATES */
+        .app-branding-container { display: flex; align-items: center; gap: 10px; }
+        .branding-title { font-size: 18px; font-weight: 700; letter-spacing: -0.5px; color: var(--text-primary); }
+        .branding-badge { background-color: var(--accent-blue); color: #ffffff; padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; box-shadow: var(--shadow-sm); }
+        
         .user-info { font-size: 13px; color: var(--text-secondary); text-align: right; line-height: 1.4; display: flex; align-items: center; gap: 24px; }
 
         .theme-switch-wrapper { display: flex; align-items: center; gap: 10px; }
@@ -48,7 +53,7 @@
         .step-title::before { content: ''; display: inline-block; width: 8px; height: 8px; background-color: var(--accent-blue); border-radius: 50%; }
 
         textarea, input[type="text"], select { width: 100%; padding: 12px 16px; border: 1px solid var(--border-color); border-radius: var(--radius-md); box-sizing: border-box; font-family: 'Inter', sans-serif; font-size: 14px; background-color: var(--bg-color); transition: all 0.2s ease; outline: none; color: var(--text-primary); }
-        textarea { height: 100px; resize: vertical; font-family: monospace; }
+        textarea { height: 210px; resize: vertical; font-family: monospace; line-height: 1.4; }
         textarea:focus, input[type="text"]:focus, select:focus { background-color: var(--surface-color); border-color: var(--accent-blue); box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.15); }
         .drag-over { background-color: #f0f9ff !important; border: 2px dashed var(--accent-blue) !important; }
         
@@ -262,7 +267,13 @@
         <a href="index.html" style="text-decoration: none; color: var(--text-secondary); transition: color 0.2s;" title="Back to Home" onmouseover="this.style.color='var(--text-primary)'" onmouseout="this.style.color='var(--text-secondary)'">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
         </a>
-        <div class="app-branding">SPX / SUN / Others Scanner</div>
+        <div class="app-branding-container">
+            <svg viewBox="0 0 24 24" width="22" height="22" stroke="var(--accent-blue)" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M4 7V4h3"></path><path d="M20 7V4h-3"></path><path d="M4 17v3h3"></path><path d="M20 17v3h-3"></path><line x1="7" y1="12" x2="17" y2="12"></line>
+            </svg>
+            <span class="branding-title">SPX / SUN & Others</span>
+            <span class="branding-badge">Scanner</span>
+        </div>
     </div>
     
     <div class="user-info">
@@ -272,11 +283,6 @@
                 <input type="checkbox" id="tutorialToggle" onchange="toggleTutorial()">
                 <div class="slider"></div>
             </label>
-        </div>
-
-        <div style="border-left: 1px solid var(--border-color); padding-left: 20px;">
-            <strong style="color:var(--text-primary);">Status:</strong> Active Session<br>
-            <strong style="color:var(--text-primary);">Module:</strong> Reconciliation
         </div>
     </div>
 </div>
@@ -300,20 +306,20 @@
         <div class="tutorial-tip">
             <svg class="tutorial-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
             <div>
-                <strong>How to start:</strong> Paste data directly from your MB52 / ZSTK_IT Excel spreadsheet into the text box below and click <strong>Encode Data</strong>. Alternatively, you can click <strong>Upload File</strong> to upload the saved CSV or XLSX directly. <em>Note: Contact Lenses and Spare Parts are automatically hidden for cleaner auditing.</em>
+                <strong>How to start:</strong> Paste data directly from your MB52 / ZSTK_IT Excel spreadsheet into the text box below and click <strong>Encode Data</strong>. Alternatively, you can click <strong>Upload File</strong> to upload the saved CSV, XLS, XLSX, or XML file directly. <em>Note: Contact Lenses and Spare Parts are automatically hidden for cleaner auditing.</em>
             </div>
         </div>
 
-        <label style="font-size: 13px; color: var(--text-secondary); display: block; margin-bottom: 12px;">Copy your columns directly from your MB52 or ZSTK_IT spreadsheet and <b><u>paste them below</u></b>, OR <b><u>drag and drop</u></b> the unedited file here:</label>
-        <textarea id="pasteArea" title="Paste your raw Excel data here or drag and drop your file" placeholder="Example format:&#10;000000000000099250	3.000&#10;920000000000002005	1.000&#10;000000000198848003	1.000"></textarea>
+        <label style="font-size: 13px; color: var(--text-secondary); display: block; margin-bottom: 12px;">Copy your columns directly from your MB52 or ZSTK_IT spreadsheet and <b><u>paste them below</u></b>, OR <b><u>you can drag and drop or upload</u></b> the unedited MB52 (/abdou) or ZSTK_IT exported spreadsheet file here:</label>
+        <textarea id="pasteArea" title="Paste your raw Excel data here or drag and drop your file" placeholder="Example format:&#10;&#10;000000000052787002	O;LINDBERG;BASIC145, 53, P10/ P10	EA	1.000&#10;000000000198657001	O;MONOSTROM;MONO206, 53, DBLUE	        EA	1.000&#10;&#10;OR&#10;&#10;94760001	O;RAY BAN;8724, 54, 1000	    1000	1&#10;97697006	O;RAY BAN JUNIOR;1536, 48, 3600	    1000	2"></textarea>
         
         <div style="display: flex; align-items: center; margin-top: 16px; flex-wrap: wrap; gap: 12px;">
-            <button class="btn btn-encode" onclick="loadPastedData()" title="Click to process the data you pasted above" style="margin: 0;">Encode Data</button>
-            <span style="font-weight: 500; color: var(--text-secondary); font-size: 13px;">OR</span>
-            <input type="file" id="sysDataUpload" accept=".csv, .xls, .xlsx, .xlsm, .xlsb, .txt, .tsv" style="display: none;" onchange="handleFileUpload(event)">
-            <button class="btn btn-encode" style="background-color: var(--accent-green); margin: 0;" onclick="document.getElementById('sysDataUpload').click()" title="Upload unedited MB52 or Intransit Excel Sheet (CSV, XLSX, XLS format)">Upload File</button>
+            <button class="btn btn-encode" onclick="loadPastedData()" title="Encode COPY / PASTED Data" style="margin: 0;">Encode Data</button>
+            <span style="font-weight: 600; color: var(--text-secondary); font-size: 13px; margin: 0 24px;">OR</span>
+            <input type="file" id="sysDataUpload" accept=".csv, .xls, .xlsx, .xlsm, .xlsb, .txt, .tsv, .xml" style="display: none;" onchange="handleFileUpload(event)">
+            <button class="btn btn-encode" style="background-color: var(--accent-green); margin: 0;" onclick="document.getElementById('sysDataUpload').click()" title="Upload ZSTK_IT or MB52 Excel File Instead">Upload File</button>
             
-            <button class="btn-secondary" id="btnToggleLenses" onclick="toggleLenses()" title="Click to put back the Contact Lenses, Ophthalmic Lenses, and Spare Parts that were removed by the auto-filter" style="margin-left: auto;">Restore CL & OL</button>
+            <button class="btn-secondary" id="btnToggleLenses" onclick="toggleLenses()" title="Click to put back the Contact Lenses, Ophthalmic Lenses, and Spare Parts that were removed by the auto-filter" style="margin-left: auto;">Unhide CL & OL</button>
         </div>
 
         <div id="filtersOriginalPlaceholder">
@@ -506,8 +512,7 @@
 </div>
 
 <div class="footer">
-    <p style="margin: 4px 0;">Created by <a href="https://www.linkedin.com/in/angelodacan-eye/" target="_blank">Angelo</a></p>
-    <p style="margin: 4px 0;">For any comments and suggestions <a href="mailto:3393@magrabi.com">email me</a>.</p>
+    <p style="margin: 4px 0;">For any comments and suggestions <a href="mailto:3393@magrabi.com">email me</a>. - <a href="https://www.linkedin.com/in/angelodacan-eye/" target="_blank" style="font-weight: 600; color: var(--accent-blue);">gelotools</a></p>
 </div>
 
 <div class="action-buttons-wrapper">
@@ -773,7 +778,7 @@
         isLensesFilterActive = !isLensesFilterActive;
         const btn = document.getElementById('btnToggleLenses');
         if (isLensesFilterActive) {
-            btn.innerText = "Restore CL & OL";
+            btn.innerText = "Unhide CL & OL";
             btn.style.backgroundColor = "var(--surface-color)";
             btn.style.color = "var(--text-primary)";
             btn.style.borderColor = "var(--border-color)";
@@ -1127,7 +1132,7 @@
 
         const btn = document.getElementById('btnToggleLenses');
         if (isLensesFilterActive) {
-            btn.innerText = "Restore CL & OL";
+            btn.innerText = "Unhide CL & OL";
             btn.style.backgroundColor = "var(--surface-color)";
             btn.style.color = "var(--text-primary)";
             btn.style.borderColor = "var(--border-color)";
@@ -1945,7 +1950,7 @@
             resetFilterUI(); document.getElementById('slocFilterUI').value = 'ALL';
             
             const btn = document.getElementById('btnToggleLenses');
-            btn.innerText = "Restore CL & OL"; btn.style.backgroundColor = "var(--surface-color)"; btn.style.color = "var(--text-primary)"; btn.style.borderColor = "var(--border-color)";
+            btn.innerText = "Unhide CL & OL"; btn.style.backgroundColor = "var(--surface-color)"; btn.style.color = "var(--text-primary)"; btn.style.borderColor = "var(--border-color)";
 
             await clearData();
             renderAuditTrail(); renderFastScanTrail(); renderTable();
