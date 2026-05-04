@@ -763,9 +763,14 @@
     window.addEventListener('resize', updateStickyHeaders);
 
     // --- UI TOGGLES ---
-    function toggleTutorial() {
-        const isChecked = document.getElementById('tutorialToggle').checked;
+    async function toggleTutorial() {
+        const toggleBtn = document.getElementById('tutorialToggle');
+        const isChecked = toggleBtn.checked;
         if (isChecked) {
+            const wantsVideo = await customConfirm("Would you like to view a tutorial video?", "Tutorial Video");
+            if (wantsVideo) {
+                window.open("https://youtu.be/jKZ-lK1g6e8?si=Pq4dGoFyFPqDwfT1", "_blank");
+            }
             document.body.classList.add('tutorial-active');
             updateStickyHeaders(); 
         } else {
