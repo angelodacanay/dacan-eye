@@ -15,7 +15,7 @@
             --accent-pink: #ec4899; --accent-green: #10b981; --accent-red: #ef4444; --accent-orange: #f59e0b;
             --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05); --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
             --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-            --radius-md: 6px; --radius-lg: 8px; /* Tighter borders */
+            --radius-md: 6px; --radius-lg: 8px;
         }
 
         /* Set uniform smaller font size */
@@ -57,8 +57,13 @@
 
         /* Compressed inputs */
         textarea, input[type="text"], select { width: 100%; padding: 6px 10px; border: 1px solid var(--border-color); border-radius: var(--radius-md); box-sizing: border-box; font-family: 'Inter', sans-serif; font-size: 12px; background-color: var(--bg-color); transition: all 0.2s ease; outline: none; color: var(--text-primary); height: 32px; }
-        textarea { height: 70px; resize: vertical; font-family: monospace; line-height: 1.4; padding: 8px 10px; }
+        textarea { height: 140px; resize: vertical; font-family: monospace; line-height: 1.4; padding: 8px 10px; }
         textarea:focus, input[type="text"]:focus, select:focus { background-color: var(--surface-color); border-color: var(--accent-blue); box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.15); }
+        
+        /* Faint Placeholder Text */
+        textarea::placeholder { color: #cbd5e1; opacity: 1; font-weight: 400; }
+        input::placeholder { color: #9ca3af; opacity: 1; font-weight: 400; }
+
         .drag-over { background-color: #f0f9ff !important; border: 2px dashed var(--accent-blue) !important; }
         
         .scan-input-wrapper { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 6px; }
@@ -131,9 +136,12 @@
         .dash-extra p { color: var(--accent-blue); }
 
         /* TIGHTER TABLE HEADERS */
-        .table-header-controls { display: flex; justify-content: space-between; align-items: center; background-color: var(--surface-color); padding: 8px 12px; border-bottom: 1px solid var(--border-color); border-radius: var(--radius-lg) var(--radius-lg) 0 0; }
-        .table-title { color: var(--text-primary); font-weight: 600; font-size: 13px; margin: 0; }
-        .pagination-select { display: flex; align-items: center; gap: 6px; color: var(--text-secondary); font-size: 12px; }
+        .table-header-controls { display: flex; justify-content: space-between; align-items: center; background-color: var(--surface-color); padding: 8px 12px; border-bottom: 1px solid var(--border-color); border-radius: var(--radius-lg) var(--radius-lg) 0 0; flex-wrap: nowrap; }
+        .table-title { color: var(--text-primary); font-weight: 600; font-size: 13px; margin: 0; white-space: nowrap; }
+        
+        /* Pagination One-Line Fix */
+        .pagination-select { display: flex; align-items: center; gap: 6px; color: var(--text-secondary); font-size: 12px; white-space: nowrap; }
+        .pagination-select label { white-space: nowrap; margin: 0; }
         .pagination-select select { padding: 4px 8px; border-radius: var(--radius-md); border: 1px solid var(--border-color); font-weight: 500; height: 26px; }
 
         .filter-bar { display: flex; align-items: center; background-color: var(--surface-color); border-bottom: 1px solid var(--border-color); padding: 0 12px; gap: 4px; }
@@ -174,7 +182,7 @@
         #error-toast.show { visibility: visible; opacity: 1; top: 40px; }
 
         /* --- DYNAMIC SMART FILTERS --- */
-        #dynamicFilters { background: var(--bg-color); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 12px; margin-top: 12px; transition: all 0.3s ease; }
+        #dynamicFilters { background: var(--bg-color); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 12px; margin-top: 8px; transition: all 0.3s ease; }
         .df-header { color: var(--text-primary); font-size: 12px; font-weight: 600; margin-bottom: 8px; }
         .df-layout { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
         .df-group { display: flex; align-items: center; gap: 8px; }
@@ -321,7 +329,8 @@
         <label style="font-size: 12px; color: var(--text-secondary); display: block; margin-bottom: 8px;">Copy your columns directly from your MB52 or ZSTK_IT spreadsheet and <b><u>paste them below</u></b>, OR <b><u>you can drag and drop or upload</u></b> the unedited MB52 (/abdou) or ZSTK_IT exported spreadsheet file here:</label>
         <textarea id="pasteArea" title="Paste your raw Excel data here or drag and drop your file" placeholder="Example format:&#10;&#10;000000000052787002	O;LINDBERG;BASIC145, 53, P10/ P10	EA	1.000&#10;000000000198657001	O;MONOSTROM;MONO206, 53, DBLUE	        EA	1.000&#10;&#10;OR&#10;&#10;94760001	O;RAY BAN;8724, 54, 1000	    1000	1&#10;97697006	O;RAY BAN JUNIOR;1536, 48, 3600	    1000	2"></textarea>
         
-        <div style="display: flex; align-items: center; margin-top: 12px; flex-wrap: wrap; gap: 8px;">
+        <!-- Removed extra margins below buttons to keep panel super tight -->
+        <div style="display: flex; align-items: center; margin-top: 12px; margin-bottom: 0; flex-wrap: wrap; gap: 8px;">
             <button class="btn btn-encode" onclick="loadPastedData()" title="Encode COPY / PASTED Data" style="margin: 0;">Encode Data</button>
             <span style="font-weight: 600; color: var(--text-secondary); font-size: 12px; margin: 0 16px;">OR</span>
             <input type="file" id="sysDataUpload" accept=".csv, .xls, .xlsx, .xlsm, .xlsb, .txt, .tsv, .xml" style="display: none;" onchange="handleFileUpload(event)">
