@@ -171,19 +171,11 @@
         #error-toast { visibility: hidden; min-width: 200px; background-color: var(--text-primary); color: #fff; text-align: center; border-radius: var(--radius-md); padding: 12px; position: fixed; z-index: 5000; left: 50%; top: 20px; transform: translateX(-50%); font-size: 12px; font-weight: 500; box-shadow: var(--shadow-lg); opacity: 0; transition: opacity 0.2s, top 0.2s; }
         #error-toast.show { visibility: visible; opacity: 1; top: 40px; }
 
-        #dynamicFilters { background: var(--bg-color); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 12px; margin-top: 8px; transition: all 0.2s ease; }
-        .df-header { color: var(--text-primary); font-size: 12px; font-weight: 600; margin-bottom: 8px; }
-        .df-layout { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
-        .df-group { display: flex; align-items: center; gap: 8px; }
-        .df-label { font-size: 12px; font-weight: 500; }
-        .df-subtext { margin-top: 8px; font-size: 11px; color: var(--text-secondary); }
-        .compact-icon { display: none; }
-        
-        #dynamicFilters.compact-mode { padding: 4px 8px; margin-top: 0; background: #f0f9ff; border-color: #bae6fd; display: flex; align-items: center; gap: 8px; }
-        #dynamicFilters.compact-mode .df-header, #dynamicFilters.compact-mode .df-label, #dynamicFilters.compact-mode .df-subtext { display: none; }
-        #dynamicFilters.compact-mode .df-layout { gap: 6px; }
-        #dynamicFilters.compact-mode .compact-icon { display: inline-flex; font-size: 11px; font-weight: 600; color: var(--accent-blue); align-items: center; gap: 4px; }
-        #dynamicFilters.compact-mode select { padding: 4px 20px 4px 8px; height: 26px; font-size: 11px; border-color: #bae6fd; }
+        /* --- DYNAMIC SMART FILTERS (PERMANENTLY COMPACT) --- */
+        #dynamicFilters { padding: 4px 8px; background: #f0f9ff; border: 1px solid #bae6fd; border-radius: var(--radius-md); display: flex; align-items: center; gap: 8px; transition: all 0.1s ease; margin-left: auto; }
+        .df-layout { display: flex; align-items: center; gap: 6px; }
+        .compact-icon { display: inline-flex; font-size: 11px; font-weight: 600; color: var(--accent-blue); align-items: center; gap: 4px; }
+        #dynamicFilters select { padding: 4px 20px 4px 8px; height: 26px; font-size: 11px; border-color: #bae6fd; }
 
         #printHeader, #signatureBlock { display: none; }
         @media print {
@@ -325,48 +317,6 @@
             
             <button class="btn-secondary" id="btnToggleLenses" onclick="toggleLenses()" title="Click to put back the Contact Lenses, Ophthalmic Lenses, and Spare Parts that were removed by the auto-filter" style="margin-left: auto;">Unhide CL & OL</button>
         </div>
-
-        <div id="filtersOriginalPlaceholder">
-            <div id="dynamicFilters" style="display: none;">
-                <div class="df-header">Dynamic Smart Filters</div>
-                
-                <div class="tutorial-tip" style="margin-top:-4px; margin-bottom:8px;">
-                    <svg class="tutorial-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
-                    <div><strong>Smart Filter Magic:</strong> Changing these dropdowns updates your *target system numbers* on the fly. It does not erase your physical scanned counts!</div>
-                </div>
-
-                <div class="compact-icon">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg>
-                    Smart Filter
-                </div>
-                
-                <div class="df-layout" id="intransitFilters" style="display: none;">
-                    <div class="df-group">
-                        <label class="df-label">S.T.O. #:</label>
-                        <select id="stoDropdown" onchange="applyDynamicFilters()"></select>
-                    </div>
-                </div>
-                
-                <div class="df-layout" id="mb52Filters" style="display: none;">
-                    <div class="df-group">
-                        <label class="df-label">Category:</label>
-                        <select id="categoryDropdown" onchange="updateBrandDropdown(); applyDynamicFilters();">
-                            <option value="ALL">ALL</option>
-                            <option value="SUN">SUN (S;)</option>
-                            <option value="SPX">SPX (O;)</option>
-                            <option value="OTHERS">Others (OA;, etc.)</option>
-                        </select>
-                    </div>
-                    <div class="df-group">
-                        <label class="df-label">Brand:</label>
-                        <select id="brandDropdown" onchange="applyDynamicFilters()" style="min-width: 150px;">
-                            <option value="ALL">ALL BRANDS</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="df-subtext"><i>Changing these filters will instantly update the target system quantities without deleting your current scanned counts.</i></div>
-            </div>
-        </div>
     </div>
 
     <div id="stickyGroup" class="sticky-group">
@@ -413,7 +363,34 @@
                     Compare (<span id="queueCount">0</span>)
                 </button>
 
-                <div id="filtersStickyTarget" style="margin-left: auto;"></div>
+                <div id="dynamicFilters" style="display: none;">
+                    <div class="compact-icon">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg>
+                        Smart Filter
+                    </div>
+                    
+                    <div class="df-layout" id="intransitFilters" style="display: none;">
+                        <div class="df-group">
+                            <select id="stoDropdown" onchange="applyDynamicFilters()"></select>
+                        </div>
+                    </div>
+                    
+                    <div class="df-layout" id="mb52Filters" style="display: none;">
+                        <div class="df-group">
+                            <select id="categoryDropdown" onchange="updateBrandDropdown(); applyDynamicFilters();">
+                                <option value="ALL">ALL</option>
+                                <option value="SUN">SUN (S;)</option>
+                                <option value="SPX">SPX (O;)</option>
+                                <option value="OTHERS">Others (OA;, etc.)</option>
+                            </select>
+                        </div>
+                        <div class="df-group">
+                            <select id="brandDropdown" onchange="applyDynamicFilters()" style="min-width: 150px;">
+                                <option value="ALL">ALL BRANDS</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
 
             </div>
 
@@ -725,48 +702,6 @@
             }
         });
     };
-
-    // --- MAGIC SCROLLING FILTER LOGIC ---
-    window.addEventListener('scroll', () => {
-        const filtersOrig = document.getElementById('filtersOriginalPlaceholder');
-        const filtersTarget = document.getElementById('filtersStickyTarget');
-        const dynamicFilters = document.getElementById('dynamicFilters');
-        const stickyGroup = document.getElementById('stickyGroup');
-
-        if (!dynamicFilters || !filtersOrig || !filtersTarget || !stickyGroup) return;
-
-        if (dynamicFilters.style.display === 'none') {
-            if (dynamicFilters.parentNode !== filtersOrig) {
-                filtersOrig.appendChild(dynamicFilters);
-                dynamicFilters.classList.remove('compact-mode');
-            }
-            filtersOrig.style.height = ''; // CLEAR INLINE STYLE AGGRESSIVELY
-            return;
-        }
-
-        const origRect = filtersOrig.getBoundingClientRect();
-        const stickyRect = stickyGroup.getBoundingClientRect();
-
-        const isScrolledPast = (origRect.top + 20) < stickyRect.top;
-
-        if (isScrolledPast) {
-            if (dynamicFilters.parentNode !== filtersTarget) {
-                filtersOrig.style.height = dynamicFilters.offsetHeight + 'px';
-                filtersTarget.appendChild(dynamicFilters);
-                dynamicFilters.classList.add('compact-mode');
-                updateStickyHeaders(); 
-            }
-        } else {
-            if (dynamicFilters.parentNode !== filtersOrig) {
-                filtersOrig.appendChild(dynamicFilters);
-                dynamicFilters.classList.remove('compact-mode');
-                filtersOrig.style.height = ''; // CLEAR INLINE STYLE AGGRESSIVELY
-                updateStickyHeaders(); 
-            }
-            // Always ensure it's cleared if we are not scrolled past
-            filtersOrig.style.height = '';
-        }
-    });
 
     const resizeObserver = new ResizeObserver(() => { updateStickyHeaders(); });
 
@@ -1122,7 +1057,7 @@
         if(activeFilterBtn) activeFilterBtn.classList.add('active');
 
         if (uploadedRawData.length > 0 && currentFileType) {
-            document.getElementById('dynamicFilters').style.display = 'block';
+            document.getElementById('dynamicFilters').style.display = 'flex'; // Changed to flex for new layout
             
             if (currentFileType === 'INTRANSIT') {
                 document.getElementById('intransitFilters').style.display = 'flex';
@@ -1148,7 +1083,6 @@
             }
         } else {
             document.getElementById('dynamicFilters').style.display = 'none';
-            document.getElementById('filtersOriginalPlaceholder').style.height = ''; // Ensure height resets aggressively
         }
 
         const btn = document.getElementById('btnToggleLenses');
@@ -1499,7 +1433,7 @@
                 return;
             }
 
-            document.getElementById('dynamicFilters').style.display = 'block';
+            document.getElementById('dynamicFilters').style.display = 'flex'; // Changed to flex for proper layout rendering
             if (currentFileType === 'INTRANSIT') {
                 document.getElementById('intransitFilters').style.display = 'flex';
                 document.getElementById('mb52Filters').style.display = 'none';
@@ -1969,12 +1903,6 @@
             saveState(); 
             inventory = {}; systemDataEncoded = false; hasWarnedNoSystemData = false; auditLog = []; fastScanQueue = []; uploadedRawData = []; currentFileType = null; isLensesFilterActive = true;
             document.getElementById('queueCount').innerText = "0"; document.getElementById('fastScanTrailBox').style.display = 'none'; document.getElementById('dynamicFilters').style.display = 'none';
-            document.getElementById('filtersOriginalPlaceholder').style.height = ''; // Ensure height resets aggressively
-            
-            if (document.getElementById('dynamicFilters').parentNode !== document.getElementById('filtersOriginalPlaceholder')) {
-                document.getElementById('filtersOriginalPlaceholder').appendChild(document.getElementById('dynamicFilters'));
-                document.getElementById('dynamicFilters').classList.remove('compact-mode');
-            }
             
             // CLEAR THE TEXTAREA AND FILE UPLOAD
             document.getElementById('pasteArea').value = '';
