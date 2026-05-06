@@ -45,19 +45,19 @@
         @keyframes fadeInDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
 
         .container { max-width: 1200px; margin: 32px auto; flex: 1; width: 95%; position: relative; }
-        .content-panel, .sticky-group { background-color: var(--surface-color); padding: 24px; border-radius: var(--radius-lg); border: 1px solid var(--border-color); box-shadow: var(--shadow-sm); margin-bottom: 24px; }
-        .sticky-group { position: sticky; top: 16px; z-index: 1000; padding: 24px 0 0 0; box-shadow: var(--shadow-md); }
-        .sticky-padding { padding: 0 24px; }
+        .content-panel, .sticky-group { background-color: var(--surface-color); padding: 16px; border-radius: var(--radius-lg); border: 1px solid var(--border-color); box-shadow: var(--shadow-sm); margin-bottom: 16px; }
+        .sticky-group { position: sticky; top: 16px; z-index: 1000; padding: 12px 0 0 0; box-shadow: var(--shadow-md); }
+        .sticky-padding { padding: 0 16px; padding-bottom: 12px; }
 
         .step-title { color: var(--text-primary); font-size: 16px; font-weight: 600; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
         .step-title::before { content: ''; display: inline-block; width: 8px; height: 8px; background-color: var(--accent-blue); border-radius: 50%; }
 
         textarea, input[type="text"], select { width: 100%; padding: 12px 16px; border: 1px solid var(--border-color); border-radius: var(--radius-md); box-sizing: border-box; font-family: 'Inter', sans-serif; font-size: 14px; background-color: var(--bg-color); transition: all 0.2s ease; outline: none; color: var(--text-primary); }
-        textarea { height: 210px; resize: vertical; font-family: monospace; line-height: 1.4; }
+        textarea { height: 100px; resize: vertical; font-family: monospace; line-height: 1.4; }
         textarea:focus, input[type="text"]:focus, select:focus { background-color: var(--surface-color); border-color: var(--accent-blue); box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.15); }
         .drag-over { background-color: #f0f9ff !important; border: 2px dashed var(--accent-blue) !important; }
         
-        .scan-input-wrapper { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-bottom: 16px; }
+        .scan-input-wrapper { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-bottom: 8px; }
         input[type="text"].main-scan { flex: 1; max-width: 400px; min-width: 200px; font-size: 16px; }
         
         .btn, .btn-secondary, .custom-modal-btn { padding: 10px 18px; border-radius: var(--radius-md); cursor: pointer; font-weight: 500; font-size: 14px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.2s; border: none; outline: none; white-space: nowrap; }
@@ -115,22 +115,22 @@
         #cameraModalBox { width: 500px; }
         #reader { width: 100%; margin-top: 10px; border-radius: var(--radius-md); overflow: hidden; }
 
-        .minimalist-dashboard { display: flex; justify-content: space-between; margin-top: 24px; padding-top: 24px; border-top: 1px solid var(--border-color); gap: 16px; }
-        .dash-card { flex: 1; padding: 16px; border-radius: var(--radius-md); background-color: var(--bg-color); display: flex; flex-direction: column; justify-content: center; border: 1px solid var(--border-color); }
-        .dash-card h3 { margin: 0; font-size: 12px; color: var(--text-secondary); font-weight: 500; }
-        .dash-card p { margin: 8px 0 0 0; font-size: 28px; font-weight: 700; color: var(--text-primary); letter-spacing: -1px; }
+        .minimalist-dashboard { display: flex; justify-content: space-between; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border-color); gap: 12px; }
+        .dash-card { flex: 1; padding: 10px 16px; border-radius: var(--radius-md); background-color: var(--bg-color); display: flex; flex-direction: row; align-items: center; justify-content: space-between; border: 1px solid var(--border-color); }
+        .dash-card h3 { margin: 0; font-size: 12px; color: var(--text-secondary); font-weight: 600; text-transform: uppercase; }
+        .dash-card p { margin: 0; font-size: 20px; font-weight: 700; color: var(--text-primary); letter-spacing: -0.5px; }
         .dash-missing { background-color: #fef2f2; border-color: #fecaca; }
         .dash-missing p { color: var(--accent-red); }
         .dash-extra { background-color: #f0f9ff; border-color: #bae6fd; }
         .dash-extra p { color: var(--accent-blue); }
 
-        .table-header-controls { display: flex; justify-content: space-between; align-items: center; background-color: var(--surface-color); padding: 16px 24px; border-bottom: 1px solid var(--border-color); border-radius: var(--radius-lg) var(--radius-lg) 0 0; }
+        .table-header-controls { display: flex; justify-content: space-between; align-items: center; background-color: var(--surface-color); padding: 10px 16px; border-bottom: 1px solid var(--border-color); border-radius: var(--radius-lg) var(--radius-lg) 0 0; }
         .table-title { color: var(--text-primary); font-weight: 600; font-size: 16px; margin: 0; }
         .pagination-select { display: flex; align-items: center; gap: 8px; color: var(--text-secondary); font-size: 13px; }
         .pagination-select select { padding: 6px 12px; border-radius: var(--radius-md); border: 1px solid var(--border-color); font-weight: 500; }
 
         .filter-bar { display: flex; align-items: center; background-color: var(--surface-color); border-bottom: 1px solid var(--border-color); padding: 0 16px; gap: 8px; }
-        .filter-btn { background: none; border: none; padding: 16px 12px; font-size: 13px; font-weight: 500; color: var(--text-secondary); cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.2s; white-space: nowrap; }
+        .filter-btn { background: none; border: none; padding: 10px 12px; font-size: 13px; font-weight: 500; color: var(--text-secondary); cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.2s; white-space: nowrap; }
         .filter-btn:hover { color: var(--text-primary); }
         .filter-btn.active { color: var(--accent-blue); border-bottom: 2px solid var(--accent-blue); font-weight: 600; }
 
