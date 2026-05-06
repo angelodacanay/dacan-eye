@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>POS Inventory Reconciliation</title>
+    <title>Barcode Scanner</title>
     <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -267,8 +267,8 @@
             <svg viewBox="0 0 24 24" width="18" height="18" stroke="var(--accent-blue)" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M4 7V4h3"></path><path d="M20 7V4h-3"></path><path d="M4 17v3h3"></path><path d="M20 17v3h-3"></path><line x1="7" y1="12" x2="17" y2="12"></line>
             </svg>
-            <span class="branding-title">SPX / SUN & Others</span>
-            <span class="branding-badge">Scanner</span>
+            <span class="branding-title">SPX - SUN - Others</span>
+            <span class="branding-badge">Barcode Scanner</span>
         </div>
     </div>
     
@@ -331,7 +331,7 @@
             </div>
 
             <div class="scan-input-wrapper">
-                <input type="text" id="scanInput" class="main-scan" placeholder="Scan barcode or type SKU..." autofocus title="Click here and use your scanner, or manually type a SKU and hit Enter">
+                <input type="text" id="scanInput" class="main-scan" placeholder="Scan barcode (wired/wireless scanner) or type SKU..." autofocus title="Click here and use your scanner, or manually type a SKU and hit Enter">
                 
                 <button class="btn-secondary" onclick="openCamera()" title="Use your device's camera to scan barcodes">
                     <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
@@ -379,10 +379,10 @@
                     <div class="df-layout" id="mb52Filters" style="display: none;">
                         <div class="df-group">
                             <select id="categoryDropdown" onchange="updateBrandDropdown(); applyDynamicFilters();">
-                                <option value="ALL">ALL</option>
-                                <option value="SUN">SUN (S;)</option>
-                                <option value="SPX">SPX (O;)</option>
-                                <option value="OTHERS">Others (OA;, etc.)</option>
+                                <option value="All">ALL</option>
+                                <option value="Sunglasses">SUN (S;)</option>
+                                <option value="Frames">SPX (O;)</option>
+                                <option value="Others">Others (OA;, etc.)</option>
                             </select>
                         </div>
                         <div class="df-group">
