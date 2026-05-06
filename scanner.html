@@ -8,7 +8,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     
     <style>
-        /* --- MODERN MINIMALIST STYLING - ULTRA COMPACT --- */
+        /* --- MODERN MINIMALIST STYLING - ULTRA COMPACT & SNAPPY --- */
         :root {
             --bg-color: #f9fafb; --surface-color: #ffffff; --text-primary: #111827; --text-secondary: #6b7280;
             --border-color: #e5e7eb; --accent-blue: #0ea5e9; --accent-blue-hover: #0284c7;
@@ -18,7 +18,6 @@
             --radius-md: 6px; --radius-lg: 8px;
         }
 
-        /* Set uniform smaller font size */
         body { font-size: 12px; font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; background-color: var(--bg-color); margin: 0; padding: 0; display: flex; flex-direction: column; min-height: 100vh; padding-bottom: 70px; color: var(--text-primary); -webkit-font-smoothing: antialiased; }
         
         .navbar { background-color: var(--surface-color); padding: 10px 24px; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; }
@@ -33,21 +32,20 @@
         .theme-switch-wrapper { display: flex; align-items: center; gap: 8px; }
         .theme-switch { display: inline-block; height: 20px; position: relative; width: 36px; margin: 0; }
         .theme-switch input { display: none; }
-        .slider { background-color: var(--border-color); bottom: 0; cursor: pointer; left: 0; position: absolute; right: 0; top: 0; transition: .3s; border-radius: 20px; }
-        .slider:before { background-color: #fff; bottom: 3px; content: ""; height: 14px; left: 3px; position: absolute; transition: .3s; width: 14px; border-radius: 50%; box-shadow: 0 1px 2px rgba(0,0,0,0.2); }
+        .slider { background-color: var(--border-color); bottom: 0; cursor: pointer; left: 0; position: absolute; right: 0; top: 0; transition: .1s; border-radius: 20px; }
+        .slider:before { background-color: #fff; bottom: 3px; content: ""; height: 14px; left: 3px; position: absolute; transition: .1s; width: 14px; border-radius: 50%; box-shadow: 0 1px 2px rgba(0,0,0,0.2); }
         input:checked + .slider { background-color: var(--accent-blue); }
         input:checked + .slider:before { transform: translateX(16px); }
 
-        .tutorial-tip { display: none; background-color: #f0f9ff; border-left: 3px solid var(--accent-blue); padding: 8px 12px; border-radius: 4px var(--radius-md) var(--radius-md) 4px; font-size: 12px; line-height: 1.4; color: #0369a1; margin-bottom: 12px; align-items: flex-start; gap: 8px; animation: fadeInDown 0.3s ease-out; box-shadow: var(--shadow-sm); }
+        .tutorial-tip { display: none; background-color: #f0f9ff; border-left: 3px solid var(--accent-blue); padding: 8px 12px; border-radius: 4px var(--radius-md) var(--radius-md) 4px; font-size: 12px; line-height: 1.4; color: #0369a1; margin-bottom: 12px; align-items: flex-start; gap: 8px; animation: fadeInDown 0.2s ease-out; box-shadow: var(--shadow-sm); }
         body.tutorial-active .tutorial-tip { display: flex; }
         .tutorial-icon { flex-shrink: 0; margin-top: 1px; color: var(--accent-blue); }
         .tutorial-tip strong { color: #075985; font-weight: 600; }
 
-        @keyframes fadeInDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeInDown { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
 
         .container { max-width: 1200px; margin: 16px auto; flex: 1; width: 95%; position: relative; }
         
-        /* Ultra compressed padding */
         .content-panel, .sticky-group { background-color: var(--surface-color); padding: 12px; border-radius: var(--radius-lg); border: 1px solid var(--border-color); box-shadow: var(--shadow-sm); margin-bottom: 12px; }
         .sticky-group { position: sticky; top: 12px; z-index: 1000; padding: 10px 0 0 0; box-shadow: var(--shadow-md); }
         .sticky-padding { padding: 0 12px; padding-bottom: 8px; }
@@ -55,13 +53,11 @@
         .step-title { color: var(--text-primary); font-size: 13px; font-weight: 600; margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
         .step-title::before { content: ''; display: inline-block; width: 6px; height: 6px; background-color: var(--accent-blue); border-radius: 50%; }
 
-        /* Compressed inputs */
-        textarea, input[type="text"], select { width: 100%; padding: 6px 10px; border: 1px solid var(--border-color); border-radius: var(--radius-md); box-sizing: border-box; font-family: 'Inter', sans-serif; font-size: 12px; background-color: var(--bg-color); transition: all 0.2s ease; outline: none; color: var(--text-primary); height: 32px; }
-        textarea { height: 160px; resize: vertical; font-family: monospace; line-height: 1.4; padding: 8px 10px; }
+        textarea, input[type="text"], select { width: 100%; padding: 6px 10px; border: 1px solid var(--border-color); border-radius: var(--radius-md); box-sizing: border-box; font-family: 'Inter', sans-serif; font-size: 12px; background-color: var(--bg-color); transition: all 0.1s ease; outline: none; color: var(--text-primary); height: 32px; }
+        textarea { height: 180px; resize: vertical; font-family: monospace; line-height: 1.4; padding: 8px 10px; }
         textarea:focus, input[type="text"]:focus, select:focus { background-color: var(--surface-color); border-color: var(--accent-blue); box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.15); }
         
-        /* Faint Placeholder Text */
-        textarea::placeholder { color: #d1d5db; opacity: 1; font-weight: 400; }
+        textarea::placeholder { color: #cbd5e1; opacity: 1; font-weight: 400; }
         input::placeholder { color: #9ca3af; opacity: 1; font-weight: 400; }
 
         .drag-over { background-color: #f0f9ff !important; border: 2px dashed var(--accent-blue) !important; }
@@ -69,8 +65,7 @@
         .scan-input-wrapper { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 6px; }
         input[type="text"].main-scan { flex: 1; max-width: 400px; min-width: 200px; font-size: 13px; }
         
-        /* Compressed Buttons */
-        .btn, .btn-secondary, .custom-modal-btn { padding: 6px 12px; height: 32px; border-radius: var(--radius-md); cursor: pointer; font-weight: 500; font-size: 12px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; transition: all 0.2s; border: none; outline: none; white-space: nowrap; }
+        .btn, .btn-secondary, .custom-modal-btn { padding: 6px 12px; height: 32px; border-radius: var(--radius-md); cursor: pointer; font-weight: 500; font-size: 12px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; transition: all 0.1s; border: none; outline: none; white-space: nowrap; }
         .btn { background-color: var(--accent-blue); color: #fff; box-shadow: var(--shadow-sm); }
         .btn:hover:not(:disabled) { background-color: var(--accent-blue-hover); transform: translateY(-1px); }
         .btn:disabled { background-color: #e5e7eb; cursor: not-allowed; color: #9ca3af; box-shadow: none; }
@@ -80,10 +75,8 @@
         .btn-fast-scan.active { background-color: #fef3c7; border-color: #f59e0b; color: #b45309; }
         .btn-fast-scan.active svg { stroke: #d97706; }
         
-        .btn-compare { background-color: var(--accent-blue); color: #fff; border: none; height: 32px; border-radius: var(--radius-md); cursor: pointer; font-weight: 600; font-size: 12px; display: none; align-items: center; justify-content: center; gap: 6px; transition: background-color 0.2s; animation: pulseBlue 2s infinite; padding: 0 16px; }
+        .btn-compare { background-color: var(--accent-blue); color: #fff; border: none; height: 32px; border-radius: var(--radius-md); cursor: pointer; font-weight: 600; font-size: 12px; display: none; align-items: center; justify-content: center; gap: 6px; transition: background-color 0.1s; padding: 0 16px; }
         .btn-compare:hover { background-color: var(--accent-blue-hover); }
-
-        @keyframes pulseBlue { 0% { box-shadow: 0 0 0 0 rgba(14, 165, 233, 0.4); } 70% { box-shadow: 0 0 0 4px rgba(14, 165, 233, 0); } 100% { box-shadow: 0 0 0 0 rgba(14, 165, 233, 0); } }
 
         .btn-pdf { background-color: var(--surface-color); color: var(--accent-pink); border: 1px solid var(--border-color); }
         .btn-pdf:hover:not(:disabled) { border-color: var(--accent-pink); background-color: #fdf2f8; }
@@ -111,7 +104,7 @@
         .custom-modal-box { background-color: var(--surface-color); width: 400px; max-width: 90%; border-radius: var(--radius-lg); box-shadow: var(--shadow-lg); display: flex; flex-direction: column; text-align: left; overflow: hidden; }
         .custom-modal-header { padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); background-color: var(--surface-color); }
         .custom-modal-header h3 { margin: 0; font-size: 14px; font-weight: 600; color: var(--text-primary); }
-        .custom-modal-close { color: var(--text-secondary); font-size: 16px; line-height: 1; cursor: pointer; border: none; background: transparent; padding: 4px; border-radius: 4px; transition: background 0.2s; }
+        .custom-modal-close { color: var(--text-secondary); font-size: 16px; line-height: 1; cursor: pointer; border: none; background: transparent; padding: 4px; border-radius: 4px; transition: background 0.1s; }
         .custom-modal-close:hover { background-color: var(--bg-color); color: var(--text-primary); }
         .custom-modal-body { padding: 20px; color: var(--text-primary); font-size: 13px; line-height: 1.5; }
         .custom-modal-input { margin-top: 12px; }
@@ -125,7 +118,6 @@
         #cameraModalBox { width: 500px; }
         #reader { width: 100%; margin-top: 8px; border-radius: var(--radius-md); overflow: hidden; }
 
-        /* HORIZONTAL, COMPACT DASHBOARD */
         .minimalist-dashboard { display: flex; flex-direction: row; justify-content: space-between; margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--border-color); gap: 8px; }
         .dash-card { flex: 1; padding: 6px 12px; border-radius: var(--radius-md); background-color: var(--bg-color); display: flex; flex-direction: row; align-items: baseline; justify-content: space-between; border: 1px solid var(--border-color); }
         .dash-card h3 { margin: 0; font-size: 11px; color: var(--text-secondary); font-weight: 600; text-transform: uppercase; }
@@ -135,17 +127,15 @@
         .dash-extra { background-color: #f0f9ff; border-color: #bae6fd; }
         .dash-extra p { color: var(--accent-blue); }
 
-        /* TIGHTER TABLE HEADERS */
         .table-header-controls { display: flex; justify-content: space-between; align-items: center; background-color: var(--surface-color); padding: 8px 12px; border-bottom: 1px solid var(--border-color); border-radius: var(--radius-lg) var(--radius-lg) 0 0; flex-wrap: nowrap; }
         .table-title { color: var(--text-primary); font-weight: 600; font-size: 13px; margin: 0; white-space: nowrap; }
         
-        /* Pagination One-Line Fix */
         .pagination-select { display: flex; align-items: center; gap: 6px; color: var(--text-secondary); font-size: 12px; white-space: nowrap; }
         .pagination-select label { white-space: nowrap; margin: 0; }
         .pagination-select select { padding: 4px 8px; border-radius: var(--radius-md); border: 1px solid var(--border-color); font-weight: 500; height: 26px; }
 
         .filter-bar { display: flex; align-items: center; background-color: var(--surface-color); border-bottom: 1px solid var(--border-color); padding: 0 12px; gap: 4px; }
-        .filter-btn { background: none; border: none; padding: 8px 10px; font-size: 12px; font-weight: 500; color: var(--text-secondary); cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.2s; white-space: nowrap; }
+        .filter-btn { background: none; border: none; padding: 8px 10px; font-size: 12px; font-weight: 500; color: var(--text-secondary); cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.1s; white-space: nowrap; }
         .filter-btn:hover { color: var(--text-primary); }
         .filter-btn.active { color: var(--accent-blue); border-bottom: 2px solid var(--accent-blue); font-weight: 600; }
 
@@ -153,16 +143,16 @@
         .sloc-dropdown { padding: 4px 8px; font-size: 12px; border-radius: var(--radius-md); height: 28px; }
         .search-box { min-width: 200px; padding: 4px 28px 4px 12px; height: 28px; border-radius: 20px; font-size: 12px; background: var(--bg-color) url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="%236b7280" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>') no-repeat right 10px center; }
 
-        /* ROW COMPRESSION */
         table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 12px; background-color: var(--surface-color); }
         th { position: sticky; z-index: 999; background-color: var(--bg-color); color: var(--text-secondary); padding: 8px 12px; text-align: left; border-bottom: 1px solid var(--border-color); font-weight: 600; text-transform: uppercase; font-size: 10px; letter-spacing: 0.5px; }
-        td { padding: 6px 12px; border-bottom: 1px solid var(--border-color); color: var(--text-primary); vertical-align: middle; transition: background 0.2s; height: 32px; }
+        td { padding: 6px 12px; border-bottom: 1px solid var(--border-color); color: var(--text-primary); vertical-align: middle; height: 32px; } 
         tr:hover td { background-color: #f8fafc; }
-        .highlight-flash td { animation: flashRow 2s ease-out; }
-        @keyframes flashRow { 0% { background-color: #e0f2fe; } 100% { background-color: transparent; } }
+        
+        .highlight-flash td { animation: flashRow 0.4s ease-out; }
+        @keyframes flashRow { 0% { background-color: #bae6fd; } 100% { background-color: transparent; } }
 
         .qty-container { display: flex; align-items: center; gap: 8px; min-width: 60px; }
-        .btn-edit, .btn-delete { background-color: transparent; border: none; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; transition: all 0.2s; border-radius: 4px; padding: 4px; }
+        .btn-edit, .btn-delete { background-color: transparent; border: none; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; transition: all 0.1s; border-radius: 4px; padding: 4px; }
         .btn-edit { color: var(--text-secondary); }
         .btn-edit:hover { background-color: var(--bg-color); color: var(--accent-blue); }
         .btn-delete { color: var(--text-secondary); }
@@ -175,14 +165,13 @@
         
         .clearfix::after { content: ""; clear: both; display: table; }
         .footer { text-align: center; padding: 20px; color: var(--text-secondary); font-size: 11px; margin-bottom: 16px; }
-        .footer a { font-weight: 500; color: var(--text-primary); text-decoration: none; border-bottom: 1px solid transparent; transition: border 0.2s; }
+        .footer a { font-weight: 500; color: var(--text-primary); text-decoration: none; border-bottom: 1px solid transparent; transition: border 0.1s; }
         .footer a:hover { border-color: var(--text-primary); }
 
-        #error-toast { visibility: hidden; min-width: 200px; background-color: var(--text-primary); color: #fff; text-align: center; border-radius: var(--radius-md); padding: 12px; position: fixed; z-index: 5000; left: 50%; top: 20px; transform: translateX(-50%); font-size: 12px; font-weight: 500; box-shadow: var(--shadow-lg); opacity: 0; transition: opacity 0.3s, top 0.3s; }
+        #error-toast { visibility: hidden; min-width: 200px; background-color: var(--text-primary); color: #fff; text-align: center; border-radius: var(--radius-md); padding: 12px; position: fixed; z-index: 5000; left: 50%; top: 20px; transform: translateX(-50%); font-size: 12px; font-weight: 500; box-shadow: var(--shadow-lg); opacity: 0; transition: opacity 0.2s, top 0.2s; }
         #error-toast.show { visibility: visible; opacity: 1; top: 40px; }
 
-        /* --- DYNAMIC SMART FILTERS --- */
-        #dynamicFilters { background: var(--bg-color); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 12px; margin-top: 8px; transition: all 0.3s ease; }
+        #dynamicFilters { background: var(--bg-color); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 12px; margin-top: 8px; transition: all 0.2s ease; }
         .df-header { color: var(--text-primary); font-size: 12px; font-weight: 600; margin-bottom: 8px; }
         .df-layout { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
         .df-group { display: flex; align-items: center; gap: 8px; }
@@ -196,7 +185,6 @@
         #dynamicFilters.compact-mode .compact-icon { display: inline-flex; font-size: 11px; font-weight: 600; color: var(--accent-blue); align-items: center; gap: 4px; }
         #dynamicFilters.compact-mode select { padding: 4px 20px 4px 8px; height: 26px; font-size: 11px; border-color: #bae6fd; }
 
-        /* --- PDF PRINT STYLES --- */
         #printHeader, #signatureBlock { display: none; }
         @media print {
             body { background-color: #fff; padding: 0; margin: 0; color: #000; font-family: sans-serif; font-size: 10px; }
@@ -280,7 +268,7 @@
 
 <div class="navbar">
     <div style="display: flex; align-items: center; gap: 16px;">
-        <a href="index.html" style="text-decoration: none; color: var(--text-secondary); transition: color 0.2s;" title="Back to Home" onmouseover="this.style.color='var(--text-primary)'" onmouseout="this.style.color='var(--text-secondary)'">
+        <a href="index.html" style="text-decoration: none; color: var(--text-secondary); transition: color 0.1s;" title="Back to Home" onmouseover="this.style.color='var(--text-primary)'" onmouseout="this.style.color='var(--text-secondary)'">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
         </a>
         <div class="app-branding-container">
@@ -472,10 +460,10 @@
             <div class="pagination-select">
                 <label for="pageSize">Rows per page:</label>
                 <select id="pageSize" onchange="changePageSize()" title="Change how many items are shown on the screen">
-                    <option value="All" selected>All</option>
-                    <option value="100">100</option>
+                    <option value="100" selected>100</option>
                     <option value="50">50</option>
                     <option value="10">10</option>
+                    <option value="All">All</option>
                 </select>
             </div>
         </div>
@@ -567,7 +555,7 @@
 
     // --- STATE ---
     let currentPage = 1;
-    let itemsPerPage = 'All';
+    let itemsPerPage = '100'; // Defaulting to 100 prevents massive DOM lag on scan
     let currentFilter = 'ALL';
     let currentSearchQuery = '';
     let systemDataEncoded = false;
@@ -747,25 +735,23 @@
 
         if (!dynamicFilters || !filtersOrig || !filtersTarget || !stickyGroup) return;
 
-        // If the filters are hidden, just ensure clean up and return
         if (dynamicFilters.style.display === 'none') {
             if (dynamicFilters.parentNode !== filtersOrig) {
                 filtersOrig.appendChild(dynamicFilters);
                 dynamicFilters.classList.remove('compact-mode');
             }
-            filtersOrig.style.height = 'auto';
+            filtersOrig.style.height = ''; // CLEAR INLINE STYLE AGGRESSIVELY
             return;
         }
 
         const origRect = filtersOrig.getBoundingClientRect();
         const stickyRect = stickyGroup.getBoundingClientRect();
 
-        // Use top bounds to determine if we scrolled past the placeholder
-        const isScrolledPast = origRect.top < stickyRect.top;
+        const isScrolledPast = (origRect.top + 20) < stickyRect.top;
 
         if (isScrolledPast) {
             if (dynamicFilters.parentNode !== filtersTarget) {
-                filtersOrig.style.height = filtersOrig.offsetHeight + 'px';
+                filtersOrig.style.height = dynamicFilters.offsetHeight + 'px';
                 filtersTarget.appendChild(dynamicFilters);
                 dynamicFilters.classList.add('compact-mode');
                 updateStickyHeaders(); 
@@ -774,9 +760,11 @@
             if (dynamicFilters.parentNode !== filtersOrig) {
                 filtersOrig.appendChild(dynamicFilters);
                 dynamicFilters.classList.remove('compact-mode');
-                filtersOrig.style.height = 'auto';
+                filtersOrig.style.height = ''; // CLEAR INLINE STYLE AGGRESSIVELY
                 updateStickyHeaders(); 
             }
+            // Always ensure it's cleared if we are not scrolled past
+            filtersOrig.style.height = '';
         }
     });
 
@@ -1118,7 +1106,7 @@
 
         // RESTORE EXACT UI STATE 
         currentPage = state.currentPage || 1;
-        itemsPerPage = state.itemsPerPage || 'All';
+        itemsPerPage = state.itemsPerPage || '100'; // Default to 100 on load for performance
         currentFilter = state.currentFilter || 'ALL';
         currentSearchQuery = state.currentSearchQuery || '';
 
@@ -1160,7 +1148,7 @@
             }
         } else {
             document.getElementById('dynamicFilters').style.display = 'none';
-            document.getElementById('filtersOriginalPlaceholder').style.height = 'auto'; // Ensure height resets
+            document.getElementById('filtersOriginalPlaceholder').style.height = ''; // Ensure height resets aggressively
         }
 
         const btn = document.getElementById('btnToggleLenses');
@@ -1889,17 +1877,18 @@
             
             renderTable();
 
-            setTimeout(() => {
+            // INSTANT SCROLLING PERFORMANCE FIX (behavior: 'auto' instead of 'smooth' + requestAnimationFrame)
+            requestAnimationFrame(() => {
                 let row = document.getElementById('row-' + sku);
                 if (row) {
                     const stickyGroup = document.getElementById('stickyGroup');
                     const offset = stickyGroup ? stickyGroup.getBoundingClientRect().height + 50 : 200;
                     const rowPosition = row.getBoundingClientRect().top - document.body.getBoundingClientRect().top;
-                    window.scrollTo({ top: rowPosition - offset, behavior: "smooth" });
+                    window.scrollTo({ top: rowPosition - offset, behavior: "auto" }); 
                     row.classList.add('highlight-flash');
-                    setTimeout(() => { row.classList.remove('highlight-flash'); }, 2000);
+                    setTimeout(() => { row.classList.remove('highlight-flash'); }, 400); // Super fast 400ms flash removal
                 }
-            }, 50); 
+            }); 
         }
     }
 
@@ -1980,7 +1969,7 @@
             saveState(); 
             inventory = {}; systemDataEncoded = false; hasWarnedNoSystemData = false; auditLog = []; fastScanQueue = []; uploadedRawData = []; currentFileType = null; isLensesFilterActive = true;
             document.getElementById('queueCount').innerText = "0"; document.getElementById('fastScanTrailBox').style.display = 'none'; document.getElementById('dynamicFilters').style.display = 'none';
-            document.getElementById('filtersOriginalPlaceholder').style.height = 'auto'; // Ensure height resets
+            document.getElementById('filtersOriginalPlaceholder').style.height = ''; // Ensure height resets aggressively
             
             if (document.getElementById('dynamicFilters').parentNode !== document.getElementById('filtersOriginalPlaceholder')) {
                 document.getElementById('filtersOriginalPlaceholder').appendChild(document.getElementById('dynamicFilters'));
