@@ -18,7 +18,8 @@
             --radius-md: 6px; --radius-lg: 8px;
         }
 
-        body { font-size: 12px; font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; background-color: var(--bg-color); margin: 0; padding: 0; display: flex; flex-direction: column; min-height: 100vh; padding-bottom: 70px; box-sizing: border-box; color: var(--text-primary); -webkit-font-smoothing: antialiased; }
+        /* Increased padding-bottom to 85px so the footer always clears the fixed bar */
+        body { font-size: 12px; font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; background-color: var(--bg-color); margin: 0; padding: 0; display: flex; flex-direction: column; min-height: 100vh; padding-bottom: 85px; box-sizing: border-box; color: var(--text-primary); -webkit-font-smoothing: antialiased; }
         
         .navbar { background-color: var(--surface-color); padding: 10px 24px; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; }
         
@@ -379,10 +380,10 @@
                     <div class="df-layout" id="mb52Filters" style="display: none;">
                         <div class="df-group">
                             <select id="categoryDropdown" onchange="updateBrandDropdown(); applyDynamicFilters();">
-                                <option value="All">ALL</option>
-                                <option value="Sunglasses">SUN (S;)</option>
-                                <option value="Frames">SPX (O;)</option>
-                                <option value="Others">Others (OA;, etc.)</option>
+                                <option value="ALL">All</option>
+                                <option value="SUN">Sunglasses (S;)</option>
+                                <option value="SPX">Frames (O;)</option>
+                                <option value="OTHERS">Others (OA; etc.)</option>
                             </select>
                         </div>
                         <div class="df-group">
@@ -1043,13 +1044,7 @@
 
         // RESTORE EXACT UI STATE 
         currentPage = state.currentPage || 1;
-        itemsPerPage = state.itemsPerPage || '100';
-        
-        // Protective override: if cache remembered 'All', force back to '100' on load to prevent massive DOM lag
-        if (isInitialLoad && itemsPerPage === 'All') {
-            itemsPerPage = '100';
-        }
-
+        itemsPerPage = state.itemsPerPage || '100'; // Default to 100 on load for performance
         currentFilter = state.currentFilter || 'ALL';
         currentSearchQuery = state.currentSearchQuery || '';
 
