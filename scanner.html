@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Barcode Scanner</title>
+    <title>POS Inventory Reconciliation</title>
     <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -18,7 +18,7 @@
             --radius-md: 6px; --radius-lg: 8px;
         }
 
-        body { font-size: 12px; font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; background-color: var(--bg-color); margin: 0; padding: 0; display: flex; flex-direction: column; min-height: 100vh; padding-bottom: 70px; color: var(--text-primary); -webkit-font-smoothing: antialiased; }
+        body { font-size: 12px; font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; background-color: var(--bg-color); margin: 0; padding: 0; display: flex; flex-direction: column; min-height: 100vh; padding-bottom: 70px; box-sizing: border-box; color: var(--text-primary); -webkit-font-smoothing: antialiased; }
         
         .navbar { background-color: var(--surface-color); padding: 10px 24px; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; }
         
@@ -164,7 +164,7 @@
         .pagination-nav .btn:hover:not(:disabled) { background-color: var(--bg-color); }
         
         .clearfix::after { content: ""; clear: both; display: table; }
-        .footer { text-align: center; padding: 20px; color: var(--text-secondary); font-size: 11px; margin-bottom: 16px; }
+        .footer { text-align: center; padding: 8px 20px; color: var(--text-secondary); font-size: 11px; margin-bottom: 0; }
         .footer a { font-weight: 500; color: var(--text-primary); text-decoration: none; border-bottom: 1px solid transparent; transition: border 0.1s; }
         .footer a:hover { border-color: var(--text-primary); }
 
@@ -267,8 +267,8 @@
             <svg viewBox="0 0 24 24" width="18" height="18" stroke="var(--accent-blue)" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M4 7V4h3"></path><path d="M20 7V4h-3"></path><path d="M4 17v3h3"></path><path d="M20 17v3h-3"></path><line x1="7" y1="12" x2="17" y2="12"></line>
             </svg>
-            <span class="branding-title">SPX - SUN - Others</span>
-            <span class="branding-badge">Barcode Scanner</span>
+            <span class="branding-title">SPX / SUN & Others</span>
+            <span class="branding-badge">Scanner</span>
         </div>
     </div>
     
