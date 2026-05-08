@@ -61,7 +61,7 @@
                         <label class="font-bold text-xs text-[#3598dc] uppercase tracking-tight">Webshop PDF</label>
                         <span class="text-[9px] font-bold text-[#3598dc] uppercase">Max 80 Files</span>
                     </div>
-                    <input type="file" id="fileWebshop" accept=".pdf" multiple class="w-full text-[10px] text-gray-600" title="print as PDF file set to 100 P.O. per page, print to PDF all the pages from Today until the last Inventory date. Upload multiple PDF here.">
+                    <input type="file" id="fileWebshop" accept=".pdf" multiple class="w-full text-[10px] text-gray-600" title="print as PDF file set to 100 P.O. per page, print to PDF all the pages until from Today until the last Inventory date. Upload multiple PDF here.">
                 </div>
 
                 <div class="p-4 border border-[#e4e7ea] rounded bg-white">
@@ -441,21 +441,50 @@
 
             const invoicesWithOL = new Set();
             const salesSumByInv = {};
+            const descToSkuMap = {};
 
             db.salesSum.forEach(row => {
                 const inv = getVal(row, ['invoice']);
                 const invStr = inv ? inv.toString().trim() : null;
+                let sku = cleanSKU(getVal(row, ['item', 'article', 'itemnumber']));
+                const desc = getVal(row, ['description', 'itemdescription', 'desc']) || "";
+                const cat = getVal(row, ['category', 'merchandisecategory']) || "";
+                
+                // Identify if SKU is completely pristine and not corrupted by Excel formatting
+                const isPristine = sku && !/^[\d\.]+E\+?\d+$/i.test(sku) && !sku.includes('+') && !(sku.match(/^\d+$/) && sku.length >= 14 && sku.endsWith('000'));
+                
+                // Build a universal fallback map based on descriptions
+                if (isPristine && desc) {
+                    descToSkuMap[desc] = sku;
+                }
+
                 if (invStr) {
-                    const sku = cleanSKU(getVal(row, ['item', 'article', 'itemnumber']));
-                    const desc = getVal(row, ['description', 'itemdescription', 'desc']) || "";
-                    const cat = getVal(row, ['category', 'merchandisecategory']) || "";
-                    
                     if (!salesSumByInv[invStr]) salesSumByInv[invStr] = [];
                     salesSumByInv[invStr].push({ sku: sku, desc: desc, category: cat });
-
                     if (isOphthalmicLens(desc, cat)) invoicesWithOL.add(invStr);
                 }
             });
+
+            // ULTIMATE GLOBAL SKU HEALER
+            function healSKU(sku, desc, inv = null) {
+                if (!sku) return sku;
+                const isBroken = sku.includes('+') || /^[\d\.]+E\+?\d+$/i.test(sku) || (sku.match(/^\d+$/) && sku.length >= 14 && sku.endsWith('000'));
+                if (!isBroken) return sku;
+
+                if (inv && salesSumByInv[inv]) {
+                    const exactItem = salesSumByInv[inv].find(item => item.desc === desc && isOphthalmicLens(item.desc, item.category));
+                    if (exactItem && !exactItem.sku.includes('+') && !exactItem.sku.endsWith('000')) return exactItem.sku;
+                    
+                    const fallbackItem = salesSumByInv[inv].find(item => isOphthalmicLens(item.desc, item.category));
+                    if (fallbackItem && !fallbackItem.sku.includes('+') && !fallbackItem.sku.endsWith('000')) return fallbackItem.sku;
+                }
+
+                if (desc && descToSkuMap[desc]) {
+                    return descToSkuMap[desc];
+                }
+
+                return sku;
+            }
 
             db.delivery.forEach(row => {
                 const inv = getVal(row, ['invoice']);
@@ -489,14 +518,6 @@
             });
 
             const needsBySKU = {}; const descBySKU = {}; const invOLNeeds = {};
-            
-            db.salesSum.forEach(row => {
-                const sku = cleanSKU(getVal(row, ['item', 'article', 'itemnumber']));
-                const desc = getVal(row, ['description', 'itemdescription', 'desc']) || "";
-                if (sku && desc && !descBySKU[sku]) {
-                    descBySKU[sku] = desc;
-                }
-            });
 
             db.toBeDel.forEach(row => {
                 let sku = cleanSKU(getVal(row, ['itemnumber', 'article']));
@@ -507,12 +528,7 @@
                 const invRaw = getVal(row, ['invoice']);
                 const inv = invRaw ? invRaw.toString().trim() : "";
 
-                const isBrokenSKU = sku && (sku.toUpperCase().includes('E+') || (sku.length >= 14 && sku.endsWith('000')));
-                if (isBrokenSKU && salesSumByInv[inv]) {
-                    let healedItem = salesSumByInv[inv].find(item => item.desc === desc && isOphthalmicLens(item.desc, item.category));
-                    if (!healedItem) healedItem = salesSumByInv[inv].find(item => isOphthalmicLens(item.desc, item.category));
-                    if (healedItem) sku = healedItem.sku;
-                }
+                sku = healSKU(sku, desc, inv);
 
                 if (sku && qty > 0 && isOphthalmicLens(desc, category)) {
                     needsBySKU[sku] = (needsBySKU[sku] || 0) + qty;
@@ -534,12 +550,7 @@
                 const category = getVal(row, ['category']) || "";
                 let sku = cleanSKU(getVal(row, ['item', 'article']));
                 
-                const isBrokenSKU = sku && (sku.toUpperCase().includes('E+') || (sku.length >= 14 && sku.endsWith('000')));
-                if (isBrokenSKU && salesSumByInv[inv]) {
-                    let healedItem = salesSumByInv[inv].find(item => item.desc === desc && isOphthalmicLens(item.desc, item.category));
-                    if (!healedItem) healedItem = salesSumByInv[inv].find(item => isOphthalmicLens(item.desc, item.category));
-                    if (healedItem) sku = healedItem.sku;
-                }
+                sku = healSKU(sku, desc, inv);
 
                 if (inv && isOphthalmicLens(desc, category)) {
                     const qty = parseInt(getVal(row, ['quantity', 'qty'])) || 1; 
@@ -567,12 +578,14 @@
 
             const s1000 = {}; const s4000 = {};
             db.stock.forEach(row => {
-                const sku = cleanSKU(getVal(row, ['article', 'itemnumber']));
+                let sku = cleanSKU(getVal(row, ['article', 'itemnumber']));
                 const sloc = (getVal(row, ['storagelocation', 'sloc']) || "").toString().trim();
                 const qty = parseInt(getVal(row, ['unrestricted'])) || 0;
                 const desc = getVal(row, ['articledescription', 'description', 'desc']) || "";
                 const merchCat = getVal(row, ['merchandisecategory', 'category']);
                 
+                sku = healSKU(sku, desc, null);
+
                 if (sku && isOphthalmicLens(desc, merchCat)) {
                     if (sloc === "1000") s1000[sku] = (s1000[sku] || 0) + qty;
                     if (sloc === "4000") s4000[sku] = (s4000[sku] || 0) + qty;
@@ -583,14 +596,13 @@
             const validIntransit = {};
 
             db.intransit.forEach(row => {
-                const sto = cleanSKU(getVal(row, ['sto', 'ponumber', 'purchasingdocument'])); 
-                const skuRaw = getVal(row, ['article', 'itemnumber']); 
-                const sku = cleanSKU(skuRaw);
+                let sku = cleanSKU(getVal(row, ['article', 'itemnumber'])); 
                 const desc = getVal(row, ['articledescription', 'description', 'desc']) || "";
-                
                 const poQtyRaw = getVal(row, ['poqty', 'poquantity', 'intransitqty', 'intransitquantity', 'quantity', 'qty']);
                 const qty = Math.round(parseFloat(poQtyRaw)) || 0;
                 
+                sku = healSKU(sku, desc, null);
+
                 if (sku && qty > 0 && isOphthalmicLens(desc)) {
                     if (!descBySKU[sku]) descBySKU[sku] = desc; 
                     validIntransit[sku] = (validIntransit[sku] || 0) + qty;
@@ -647,9 +659,13 @@
                 const cells = row.querySelectorAll('td');
                 if (cells.length === 7) {
                     reconData.push([
-                        cells[0].innerText, cells[1].innerText, parseInt(cells[2].innerText) || 0,
-                        parseInt(cells[3].innerText) || 0, parseInt(cells[4].innerText) || 0,
-                        parseInt(cells[5].innerText) || 0, cells[6].innerText
+                        String(cells[0].innerText), // Explicitly cast the healed SKU as a string so Excel doesn't truncate it upon opening
+                        cells[1].innerText, 
+                        parseInt(cells[2].innerText) || 0,
+                        parseInt(cells[3].innerText) || 0, 
+                        parseInt(cells[4].innerText) || 0,
+                        parseInt(cells[5].innerText) || 0, 
+                        cells[6].innerText
                     ]);
                 }
             });
