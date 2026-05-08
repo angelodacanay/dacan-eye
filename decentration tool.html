@@ -10,7 +10,7 @@
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #eef2f5; margin: 0; padding: 10px; height: 100vh; display: flex; flex-direction: column; overflow: hidden; box-sizing: border-box; }
         .container { flex: 1; display: flex; flex-direction: column; background: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); overflow: hidden; padding: 10px; gap: 8px; }
         
-        /* CANVAS AREA - Increased height for non-Surface laptops & Custom High-Contrast Cursor */
+        /* CANVAS AREA */
         .canvas-wrapper { display: flex; justify-content: center; overflow: hidden; background: #fff; border: 1px solid #ccc; border-radius: 6px; position: relative; min-height: 480px; }
         
         canvas { 
@@ -45,57 +45,15 @@
             animation: float-and-fade 4s ease-in-out infinite;
         }
 
-        .animated-hand {
-            animation: swipe-left-right 2s ease-in-out infinite;
-        }
-
-        @keyframes float-and-fade {
-            0%, 100% { opacity: 0.9; transform: translate(-50%, 0); }
-            50% { opacity: 1; transform: translate(-50%, -5px); }
-        }
-
-        @keyframes swipe-left-right {
-            0%, 100% { transform: translateX(0) rotate(0deg); }
-            50% { transform: translateX(-15px) rotate(-10deg); }
-        }
+        .animated-hand { animation: swipe-left-right 2s ease-in-out infinite; }
+        @keyframes float-and-fade { 0%, 100% { opacity: 0.9; transform: translate(-50%, 0); } 50% { opacity: 1; transform: translate(-50%, -5px); } }
+        @keyframes swipe-left-right { 0%, 100% { transform: translateX(0) rotate(0deg); } 50% { transform: translateX(-15px) rotate(-10deg); } }
 
         /* CUSTOM SLIDER TOOLTIP CONTAINER */
-        .slider-container {
-            position: relative;
-            padding-top: 15px; /* Room for tooltip */
-        }
-        
-        .slider-tooltip {
-            position: absolute;
-            top: -5px;
-            left: 50%;
-            transform: translateX(-50%);
-            background-color: #1e3a8a;
-            color: white;
-            font-size: 9px;
-            font-weight: bold;
-            padding: 2px 6px;
-            border-radius: 4px;
-            pointer-events: none;
-            opacity: 0;
-            transition: opacity 0.2s;
-            white-space: nowrap;
-        }
-
-        .slider-tooltip::after {
-            content: '';
-            position: absolute;
-            top: 100%;
-            left: 50%;
-            margin-left: -3px;
-            border-width: 3px;
-            border-style: solid;
-            border-color: #1e3a8a transparent transparent transparent;
-        }
-
-        .slider-container:hover .slider-tooltip {
-            opacity: 1;
-        }
+        .slider-container { position: relative; padding-top: 15px; }
+        .slider-tooltip { position: absolute; top: -5px; left: 50%; transform: translateX(-50%); background-color: #1e3a8a; color: white; font-size: 9px; font-weight: bold; padding: 2px 6px; border-radius: 4px; pointer-events: none; opacity: 0; transition: opacity 0.2s; white-space: nowrap; }
+        .slider-tooltip::after { content: ''; position: absolute; top: 100%; left: 50%; margin-left: -3px; border-width: 3px; border-style: solid; border-color: #1e3a8a transparent transparent transparent; }
+        .slider-container:hover .slider-tooltip { opacity: 1; }
 
         /* CUSTOM VISUAL SHAPE DROPDOWN */
         .custom-select { position: relative; width: 100%; height: 32px; user-select: none; }
@@ -119,23 +77,17 @@
         .toggle-checkbox:checked + .toggle-label::after { transform: translateX(20px); }
 
         /* LENS TYPE TOGGLE CSS */
-        .type-label {
-            box-shadow: inset 0 0 0 1px transparent;
-        }
-        input[type="radio"]:checked + .type-label {
-            background-color: #2563eb;
-            color: #ffffff;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
-        }
+        .type-label { box-shadow: inset 0 0 0 1px transparent; }
+        input[type="radio"]:checked + .type-label { background-color: #2563eb; color: #ffffff; box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
 
         /* Remove Number Input Spinners for cleaner look */
-        input[type="number"]::-webkit-inner-spin-button, 
-        input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+        input[type="number"]::-webkit-inner-spin-button, input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
         input[type="number"] { -moz-appearance: textfield; }
     </style>
 </head>
 <body class="bg-gray-100 p-4 md:p-8 font-sans min-h-screen flex flex-col">
 
+<!-- DEVICE DETECT MODAL -->
 <div id="deviceModal" class="fixed inset-0 bg-gray-900 bg-opacity-60 z-50 hidden flex items-center justify-center backdrop-filter backdrop-blur-sm transition-opacity">
     <div class="bg-white rounded-lg shadow-2xl p-6 max-w-md w-full border border-blue-300 border-2">
         <h3 class="text-lg font-bold text-blue-800 mb-2 flex items-center gap-2">🖥️ Device Mismatch</h3>
@@ -174,6 +126,7 @@
 <div class="max-w-6xl mx-auto bg-white rounded-lg shadow-xl overflow-hidden flex-1 flex flex-col w-full">
     
     <div class="bg-blue-900 text-white px-6 py-4 flex-shrink-0 flex justify-between items-center">
+        <!-- Add Back Button and Link Name -->
         <div class="flex items-center gap-4">
             <button onclick="window.history.back()" class="bg-blue-800 hover:bg-blue-700 text-white p-2 rounded-full transition-colors focus:outline-none" title="Go Back">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -214,6 +167,7 @@
             <canvas id="lensCanvas" width="900" height="340"></canvas>
         </div>
         
+        <!-- COMPACT SINGLE-LINE LEGEND AND WARNING -->
         <div class="text-center mb-5 px-2">
             <p class="text-[11px] text-gray-600">
                 <span class="font-bold"><span id="physicalLabel">Physical 1:1 Scale. </span><span class="text-red-500">X = Pupil</span>, <span class="text-blue-500">+ = OC</span></span>
@@ -222,6 +176,7 @@
             </p>
         </div>
 
+        <!-- FRAME CONTROLS -->
         <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
             <div class="p-3 border border-gray-200 rounded bg-gray-50">
                 <label class="block font-bold mb-1 text-xs text-gray-700">Shape</label>
@@ -265,6 +220,7 @@
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 flex-1">
             
+            <!-- OD (RIGHT EYE) PANEL -->
             <div class="border border-gray-200 rounded shadow-sm p-4 bg-white flex flex-col justify-between">
                 <div>
                     <h3 class="text-center font-bold text-gray-800 border-b border-gray-200 pb-2 mb-3">OD (Right Eye)</h3>
@@ -287,7 +243,7 @@
                     
                     <div class="flex justify-between items-center mt-2 mb-2">
                         <label class="text-xs font-bold text-gray-600 flex justify-between w-20">H. Dec <span id="t_odHDec" class="text-blue-600">0.0</span></label>
-                        <input type="range" id="odHDec" min="0" max="20" step="0.5" value="0" class="flex-1 mx-2">
+                        <input type="range" id="odHDec" min="0" max="5" step="0.5" value="0" class="flex-1 mx-2">
                         <select id="odHDir" class="border border-gray-300 rounded px-1 py-1 text-xs">
                             <option value="Nose">In</option>
                             <option value="Temple">Out</option>
@@ -295,7 +251,7 @@
                     </div>
                     <div class="flex justify-between items-center">
                         <label class="text-xs font-bold text-gray-600 flex justify-between w-20">V. Dec <span id="t_odVDec" class="text-blue-600">0.0</span></label>
-                        <input type="range" id="odVDec" min="0" max="20" step="0.5" value="0" class="flex-1 mx-2">
+                        <input type="range" id="odVDec" min="0" max="5" step="0.5" value="0" class="flex-1 mx-2">
                         <select id="odVDir" class="border border-gray-300 rounded px-1 py-1 text-xs">
                             <option value="Up">Up</option>
                             <option value="Down">Dn</option>
@@ -303,6 +259,7 @@
                     </div>
                 </div>
 
+                <!-- OD RESULTS BOX -->
                 <div class="mt-4 pt-3 border-t border-gray-200">
                     <p class="text-[11px] font-black text-blue-900 uppercase tracking-widest mb-2 text-center">Recommendations for OD</p>
                     <div class="bg-gray-50 rounded border border-gray-200 p-2 text-[11px] font-mono text-gray-800 shadow-inner">
@@ -319,9 +276,11 @@
                 </div>
             </div>
 
+            <!-- CENTER ACTIONS PANEL -->
             <div class="border border-blue-200 bg-blue-50 rounded shadow-sm p-4 flex flex-col gap-3">
                 <button onclick="copyODtoOS()" class="w-full bg-white border border-blue-600 text-blue-600 hover:bg-blue-50 font-bold py-1.5 rounded text-[10px] uppercase transition-colors shadow-sm">⮂ Copy OD to OS ⮂</button>
                 
+                <!-- LENS TYPE TOGGLE -->
                 <div class="flex justify-center mt-2 mb-1 bg-white rounded border border-blue-200 shadow-sm p-1">
                     <div class="relative flex w-full">
                         <input type="radio" name="lensType" id="typeSV" value="SV" class="hidden" checked onchange="handleLensTypeChange()">
@@ -373,6 +332,7 @@
                 </div>
             </div>
 
+            <!-- OS (LEFT EYE) PANEL -->
             <div class="border border-gray-200 rounded shadow-sm p-4 bg-white flex flex-col justify-between">
                 <div>
                     <h3 class="text-center font-bold text-gray-800 border-b border-gray-200 pb-2 mb-3">OS (Left Eye)</h3>
@@ -395,7 +355,7 @@
 
                     <div class="flex justify-between items-center mt-2 mb-2">
                         <label class="text-xs font-bold text-gray-600 flex justify-between w-20">H. Dec <span id="t_osHDec" class="text-blue-600">0.0</span></label>
-                        <input type="range" id="osHDec" min="0" max="20" step="0.5" value="0" class="flex-1 mx-2">
+                        <input type="range" id="osHDec" min="0" max="5" step="0.5" value="0" class="flex-1 mx-2">
                         <select id="osHDir" class="border border-gray-300 rounded px-1 py-1 text-xs">
                             <option value="Nose">In</option>
                             <option value="Temple">Out</option>
@@ -403,7 +363,7 @@
                     </div>
                     <div class="flex justify-between items-center">
                         <label class="text-xs font-bold text-gray-600 flex justify-between w-20">V. Dec <span id="t_osVDec" class="text-blue-600">0.0</span></label>
-                        <input type="range" id="osVDec" min="0" max="20" step="0.5" value="0" class="flex-1 mx-2">
+                        <input type="range" id="osVDec" min="0" max="5" step="0.5" value="0" class="flex-1 mx-2">
                         <select id="osVDir" class="border border-gray-300 rounded px-1 py-1 text-xs">
                             <option value="Up">Up</option>
                             <option value="Down">Dn</option>
@@ -411,6 +371,7 @@
                     </div>
                 </div>
 
+                <!-- OS RESULTS BOX -->
                 <div class="mt-4 pt-3 border-t border-gray-200">
                     <p class="text-[11px] font-black text-blue-900 uppercase tracking-widest mb-2 text-center">Recommendations for OS</p>
                     <div class="bg-gray-50 rounded border border-gray-200 p-2 text-[11px] font-mono text-gray-800 shadow-inner">
@@ -459,7 +420,7 @@
     let activeLiveMode = 'none'; 
     let isSurfaceMode = true; 
     let scale = 10.5118; 
-    let lensType = 'SV'; // Toggle state
+    let lensType = 'SV'; 
     
     const canvas = document.getElementById('lensCanvas');
     const ctx = canvas.getContext('2d');
@@ -470,7 +431,6 @@
     let dragTarget = null;
     let isInitialized = false;
     
-    // Smart Sync state variables
     let pdLeader = null;
     let htLeader = null;
 
@@ -685,8 +645,6 @@
 
     // --- MAIN ENGINE ---
     function updateUI() {
-        
-        // Hide or show the physical scale indicator label based on mode
         const physicalLabel = document.getElementById('physicalLabel');
         if (physicalLabel) {
             physicalLabel.style.display = isSurfaceMode ? 'inline' : 'none';
@@ -708,7 +666,6 @@
         const shape = document.getElementById('frameShape').value;
         const lensDia = getVal('lensDia');
         
-        // Update the slider text label to match the slider value
         document.getElementById('valLensDia').innerText = lensDia + " mm";
         
         const userED = getVal('diag');
@@ -782,17 +739,31 @@
         };
 
         if (activeLiveMode === 'plus') {
-            odBlankX = gcOD; 
-            odBlankY = 0; 
-            osBlankX = gcOS; 
-            osBlankY = 0;
+            // Apply 5mm Decentration Constraint to Plus Lenses
+            const capBlankPos = (pupilX, targetY, gcX) => {
+                const dx = gcX - pupilX;
+                const dy = 0 - targetY;
+                const dist = Math.hypot(dx, dy);
+                if (dist > 5) {
+                    return { x: pupilX + (dx * 5 / dist), y: targetY + (dy * 5 / dist) };
+                }
+                return { x: gcX, y: 0 };
+            };
+
+            const posOD = capBlankPos(odPupilX, targetBlankY_OD, gcOD);
+            odBlankX = posOD.x;
+            odBlankY = posOD.y;
+
+            const posOS = capBlankPos(osPupilX, targetBlankY_OS, gcOS);
+            osBlankX = posOS.x;
+            osBlankY = posOS.y;
             
             window.odOCX_val = odPupilX; 
             window.odOCY_val = odPupilY;
             window.osOCX_val = osPupilX; 
             window.osOCY_val = osPupilY;
             
-            setSlidersFromOffset(odPupilX - gcOD, targetBlankY_OD - 0, osPupilX - gcOS, targetBlankY_OS - 0);
+            setSlidersFromOffset(odPupilX - odBlankX, targetBlankY_OD - odBlankY, osPupilX - osBlankX, targetBlankY_OS - osBlankY);
 
         } else if (activeLiveMode === 'minus') {
             window.odOCX_val = odPupilX; 
@@ -803,6 +774,13 @@
             const R = lensDia / 2;
             
             const findMinusBlank = (pupilX, targetY, gcX, gcY, pointsArray) => {
+                const dx = gcX - pupilX;
+                const dy = gcY - targetY;
+                const totalDist = Math.hypot(dx, dy);
+
+                // Limit maximum decentration to 5mm for Minus lenses
+                const maxT = totalDist > 0 ? Math.min(1.0, 5.0 / totalDist) : 1.0;
+
                 const cx = pupilX - gcX;
                 const cy = targetY - gcY;
                 
@@ -815,14 +793,14 @@
                 }
                 
                 for (let i = 0; i <= 100; i++) {
-                    const t = i / 100;
-                    const testX = pupilX + t * (gcX - pupilX);
-                    const testY = targetY + t * (gcY - targetY);
+                    const t = (i / 100) * maxT; // Scale search path by 5mm limit
+                    const testX = pupilX + t * dx;
+                    const testY = targetY + t * dy;
                     if (R >= getMaxRadius(pointsArray, testX - gcX, testY - gcY)) {
                         return {x: testX, y: testY, valid: true};
                     }
                 }
-                return {x: gcX, y: gcY, valid: false};
+                return {x: pupilX + maxT * dx, y: targetY + maxT * dy, valid: false};
             };
 
             const resOD = findMinusBlank(odPupilX, targetBlankY_OD, gcOD, 0, shapePointsOD);
@@ -877,8 +855,6 @@
         const vValOD = getVal('odVDec');
         const vDirTextOD = document.getElementById('odVDir').options[document.getElementById('odVDir').selectedIndex].text;
 
-        // TABO Axis Mapping: 0° is Viewer's Right. 180° is Viewer's Left. 90° is Up.
-        // For OD (Right Eye on Viewer's Left): 'In' (Nasal) is towards Viewer's Right (+X). 'Out' is (-X).
         let xOD = (hDirTextOD === 'In') ? hValOD : -hValOD;
         let yOD = (vDirTextOD === 'Up') ? vValOD : -vValOD;
         
@@ -892,8 +868,13 @@
         document.getElementById('resOD_Dia').innerText = `${lensDia + diaPadding} mm`;
         
         const odWarn = document.getElementById('resOD_Warning');
-        if (activeLiveMode !== 'minus' && magOD > 5) {
-            odWarn.innerHTML = "(Warning: Decentration over 5mm. Choose a smaller frame or bigger diameter blank, then move the uncut lens to lessen the needed decentration)";
+        if (magOD > 5.01) {
+            odWarn.innerHTML = "⚠️ Decentration exceeds 5mm limit. Please lower H or V settings.";
+            odWarn.className = "text-center text-[10px] text-red-600 font-bold mt-1 leading-tight";
+            odWarn.style.display = 'block';
+        } else if (activeLiveMode !== 'none' && magOD >= 4.9) {
+            odWarn.innerHTML = "ℹ️ Maximum decentration limit (5mm) applied.";
+            odWarn.className = "text-center text-[10px] text-orange-600 font-bold mt-1 leading-tight";
             odWarn.style.display = 'block';
         } else {
             odWarn.style.display = 'none';
@@ -905,7 +886,6 @@
         const vValOS = getVal('osVDec');
         const vDirTextOS = document.getElementById('osVDir').options[document.getElementById('osVDir').selectedIndex].text;
 
-        // For OS (Left Eye on Viewer's Right): 'In' (Nasal) is towards Viewer's Left (-X). 'Out' is (+X).
         let xOS = (hDirTextOS === 'Out') ? hValOS : -hValOS; 
         let yOS = (vDirTextOS === 'Up') ? vValOS : -vValOS;
         
@@ -919,8 +899,13 @@
         document.getElementById('resOS_Dia').innerText = `${lensDia + diaPadding} mm`;
 
         const osWarn = document.getElementById('resOS_Warning');
-        if (activeLiveMode !== 'minus' && magOS > 5) {
-            osWarn.innerHTML = "(Warning: Decentration over 5mm. Choose a smaller frame or bigger diameter blank, then move the uncut lens to lessen the needed decentration)";
+        if (magOS > 5.01) {
+            osWarn.innerHTML = "⚠️ Decentration exceeds 5mm limit. Please lower H or V settings.";
+            osWarn.className = "text-center text-[10px] text-red-600 font-bold mt-1 leading-tight";
+            osWarn.style.display = 'block';
+        } else if (activeLiveMode !== 'none' && magOS >= 4.9) {
+            osWarn.innerHTML = "ℹ️ Maximum decentration limit (5mm) applied.";
+            osWarn.className = "text-center text-[10px] text-orange-600 font-bold mt-1 leading-tight";
             osWarn.style.display = 'block';
         } else {
             osWarn.style.display = 'none';
@@ -989,7 +974,6 @@
         bM.innerText = activeLiveMode === 'minus' ? "Stop Recommendation" : "Recommend for Minus Lens";
         ind.className = activeLiveMode === 'none' ? "invisible" : "flex justify-center items-center h-4 mt-1";
         
-        // Hide the animated drag hint if live mode is active (since clicking auto-disables it anyway)
         if (dragHint) {
             dragHint.style.opacity = activeLiveMode !== 'none' ? '0' : '1';
         }
@@ -1003,14 +987,36 @@
         const shape = document.getElementById('frameShape').value;
         const A = getVal('frameA');
         const B = getVal('frameB');
+        const DBL = getVal('dbl');
         let baseED = getVal('diag');
         
         if (shape === 'Aviator' || shape === 'CatEye') {
             baseED = Math.max(baseED, Math.hypot(A, B * 0.75));
         }
+
+        const gcOD = -((A + DBL) / 2);
+        const gcOS = ((A + DBL) / 2);
+        const btm = B / 2;
+        const odPupilX = -getVal('odPD');
+        const osPupilX = getVal('osPD');
+        const odPupilY = btm - getVal('odOCHt');
+        const osPupilY = btm - getVal('osOCHt');
+
+        let palOffset = (lensType === 'PAL') ? 2 : (lensType === 'PAL_TLD') ? 4 : 0;
+        const targetBlankY_OD = odPupilY + palOffset;
+        const targetBlankY_OS = osPupilY + palOffset;
+
+        const distOD = Math.hypot(gcOD - odPupilX, 0 - targetBlankY_OD);
+        const distOS = Math.hypot(gcOS - osPupilX, 0 - targetBlankY_OS);
+
+        // Calculate offset (shift) created by the 5mm limitation cap
+        const shiftOD = Math.max(0, distOD - 5);
+        const shiftOS = Math.max(0, distOS - 5);
         
-        let targetDia = Math.ceil(baseED + 2);
+        // Increase minimum diameter to accommodate the un-centered distance
+        let targetDia = Math.ceil(baseED + 2 + 2 * Math.max(shiftOD, shiftOS));
         if (targetDia < 40) targetDia = 40; 
+        
         setVal('lensDia', targetDia); 
         updateUI();
     }
@@ -1052,7 +1058,6 @@
         resetBlankSize(); 
         resetDecentration(); 
         
-        // Reset Link Leaders
         pdLeader = null;
         htLeader = null;
 
@@ -1067,20 +1072,19 @@
         document.getElementById('customModal').classList.add('hidden'); 
     }
 
-    // Modal functions to handle the workflow
     function proceedWithCopy() { 
         closeModal(); 
         copyODtoOS(); 
         hasSkippedCopyCheck = true;
         toggleRecommendation(pendingActionIsPlus); 
-        hasSkippedCopyCheck = false; // Reset for future clicks
+        hasSkippedCopyCheck = false; 
     }
 
     function proceedWithoutCopy() { 
         closeModal(); 
         hasSkippedCopyCheck = true;
         toggleRecommendation(pendingActionIsPlus); 
-        hasSkippedCopyCheck = false; // Reset for future clicks
+        hasSkippedCopyCheck = false; 
     }
 
     function closeZoomModal() { 
@@ -1088,7 +1092,6 @@
     }
 
     function handleInputEvent(id) {
-        // Bi-directional sync map
         const syncMap = {
             'frameA': 'frameA_num', 'frameA_num': 'frameA',
             'frameB': 'frameB_num', 'frameB_num': 'frameB',
@@ -1103,7 +1106,7 @@
         if (syncMap[id]) {
             setVal(syncMap[id], getVal(id));
             if (id.includes('_num') || id.includes('_slide')) {
-                id = syncMap[id]; // Alias back to primary ID for existing logic
+                id = syncMap[id];
             }
         }
         
@@ -1112,7 +1115,6 @@
         }
         
         // --- SMART SYNC LOGIC ---
-        // PD Link
         if (id === 'odPD') {
             if (pdLeader === null || pdLeader === 'OD') {
                 pdLeader = 'OD';
@@ -1131,7 +1133,6 @@
             }
         }
         
-        // Height Link
         if (id === 'odOCHt') {
             if (htLeader === null || htLeader === 'OD') {
                 htLeader = 'OD';
@@ -1181,7 +1182,6 @@
         document.getElementById('osHDir').value = document.getElementById('odHDir').value; 
         document.getElementById('osVDir').value = document.getElementById('odVDir').value; 
         
-        // Force the link back to OD as leader since they explicitly copied
         pdLeader = 'OD';
         htLeader = 'OD';
 
@@ -1245,16 +1245,31 @@
             const cssScaleX = 900 / r.width;
             const cssScaleY = 340 / r.height;
             
-            const mX = ((e.clientX - r.left) * cssScaleX - 450) / scale;
-            const mY = ((e.clientY - r.top) * cssScaleY - 170) / scale;
+            let mX = ((e.clientX - r.left) * cssScaleX - 450) / scale;
+            let mY = ((e.clientY - r.top) * cssScaleY - 170) / scale;
             
             let palOffset = (lensType === 'PAL') ? 2 : (lensType === 'PAL_TLD') ? 4 : 0;
 
+            // Apply 5mm circular tether constraint to Manual Dragging
             if (dragTarget === 'OD') { 
+                let dx = window.odPupilX_val - mX;
+                let dy = (window.odPupilY_val + palOffset) - mY;
+                let dist = Math.hypot(dx, dy);
+                if (dist > 5) {
+                    mX = window.odPupilX_val - (dx * 5 / dist);
+                    mY = (window.odPupilY_val + palOffset) - (dy * 5 / dist);
+                }
                 odBlankX = mX; 
                 odBlankY = mY;
                 setSlidersFromOffset(window.odPupilX_val - mX, (window.odPupilY_val + palOffset) - mY, null, null);
             } else {
+                let dx = window.osPupilX_val - mX;
+                let dy = (window.osPupilY_val + palOffset) - mY;
+                let dist = Math.hypot(dx, dy);
+                if (dist > 5) {
+                    mX = window.osPupilX_val - (dx * 5 / dist);
+                    mY = (window.osPupilY_val + palOffset) - (dy * 5 / dist);
+                }
                 osBlankX = mX; 
                 osBlankY = mY;
                 setSlidersFromOffset(null, null, window.osPupilX_val - mX, (window.osPupilY_val + palOffset) - mY);
