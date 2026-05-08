@@ -450,10 +450,8 @@
                 const desc = getVal(row, ['description', 'itemdescription', 'desc']) || "";
                 const cat = getVal(row, ['category', 'merchandisecategory']) || "";
                 
-                // Identify if SKU is completely pristine and not corrupted by Excel formatting
                 const isPristine = sku && !/^[\d\.]+E\+?\d+$/i.test(sku) && !sku.includes('+') && !(sku.match(/^\d+$/) && sku.length >= 14 && sku.endsWith('000'));
                 
-                // Build a universal fallback map based on descriptions
                 if (isPristine && desc) {
                     descToSkuMap[desc] = sku;
                 }
@@ -465,7 +463,6 @@
                 }
             });
 
-            // ULTIMATE GLOBAL SKU HEALER
             function healSKU(sku, desc, inv = null) {
                 if (!sku) return sku;
                 const isBroken = sku.includes('+') || /^[\d\.]+E\+?\d+$/i.test(sku) || (sku.match(/^\d+$/) && sku.length >= 14 && sku.endsWith('000'));
@@ -517,7 +514,7 @@
                 }
             });
 
-            const needsBySKU = {}; const descBySKU = {}; const invOLNeeds = {};
+            const needsBySKU = {}; const descBySKU = {}; const invOLNeeds = {}; const invOLSkus = {};
 
             db.toBeDel.forEach(row => {
                 let sku = cleanSKU(getVal(row, ['itemnumber', 'article']));
@@ -536,6 +533,8 @@
 
                     if (inv) {
                         invOLNeeds[inv] = (invOLNeeds[inv] || 0) + qty;
+                        if (!invOLSkus[inv]) invOLSkus[inv] = new Set();
+                        invOLSkus[inv].add(sku);
                         
                         let orderFound = !!invoiceOrderCount[inv];
                         if (!orderFound) htmlMissing += `<li>Missing Order: Invoice <b>${inv}</b> needs Lens <b>${sku}</b>, but no Order ID found in PDFs.</li>`;
@@ -555,6 +554,8 @@
                 if (inv && isOphthalmicLens(desc, category)) {
                     const qty = parseInt(getVal(row, ['quantity', 'qty'])) || 1; 
                     invOLNeeds[inv] = (invOLNeeds[inv] || 0) + qty;
+                    if (!invOLSkus[inv]) invOLSkus[inv] = new Set();
+                    if (sku) invOLSkus[inv].add(sku);
                     
                     if (sku && !descBySKU[sku]) descBySKU[sku] = desc;
 
@@ -572,7 +573,11 @@
                 const neededQty = invOLNeeds[inv] || 0;
 
                 if (ordersPlaced > neededQty && neededQty > 0) {
-                    htmlOverOrders += `<li>Over-Ordered: Inv <b class="text-[#3598dc]">${inv}</b> requires ${neededQty} lens(es) based on system records, but has ${ordersPlaced} distinct Webshop Order IDs.</li>`;
+                    let skuText = "";
+                    if (invOLSkus[inv] && invOLSkus[inv].size > 0) {
+                        skuText = ` <span class="text-gray-500 font-mono text-[10px]">(SKU: ${[...invOLSkus[inv]].join(', ')})</span>`;
+                    }
+                    htmlOverOrders += `<li>Over-Ordered: Inv <b class="text-[#3598dc]">${inv}</b>${skuText} requires ${neededQty} lens(es) based on system records, but has ${ordersPlaced} distinct Webshop Order IDs.</li>`;
                 }
             }
 
