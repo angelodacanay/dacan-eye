@@ -598,6 +598,7 @@
     let auditLog = [];
     let currentBin = 1;
     let binTotals = { 1: 0 };
+    let binCounters = { 1: 0 }; // Tracks the line numbering per bin
 
     let isFastScanMode = false;
     let fastScanQueue = [];
@@ -1094,6 +1095,7 @@
             isLensesFilterActive,
             currentBin,
             binTotals: JSON.parse(JSON.stringify(binTotals)),
+            binCounters: JSON.parse(JSON.stringify(binCounters)),
             smartFilters: {
                 sto: document.getElementById('stoDropdown') ? document.getElementById('stoDropdown').value : 'ALL',
                 cat: document.getElementById('categoryDropdown') ? document.getElementById('categoryDropdown').value : 'ALL',
@@ -1176,6 +1178,7 @@
         
         currentBin = state.currentBin || 1;
         binTotals = state.binTotals || { 1: 0 };
+        binCounters = state.binCounters || { 1: 0 };
 
         for (let sku in inventory) {
             if (inventory[sku].pendingQty === undefined) {
@@ -1183,7 +1186,6 @@
             }
         }
 
-        // Ensure all logs have unique IDs generated for edits/deletes if loaded from old version
         auditLog.forEach((log, i) => {
             if (!log.id) log.id = Date.now().toString() + Math.floor(Math.random() * 100000).toString() + i.toString();
         });
@@ -1305,6 +1307,7 @@
         saveState();
         currentBin++;
         binTotals[currentBin] = 0;
+        binCounters[currentBin] = 0;
         saveData();
         renderAuditTrail();
     }
@@ -1335,6 +1338,7 @@
             delete binTotals[binNumber];
             
             if (!binTotals[currentBin]) binTotals[currentBin] = 0;
+            if (!binCounters[currentBin]) binCounters[currentBin] = 0;
             
             await saveData();
             renderTable();
@@ -1374,7 +1378,7 @@
         }
     }
 
-    async function editHistoryItem(logId) {
+    async function editHistorySku(logId) {
         let logIndex = auditLog.findIndex(l => l.id === logId);
         if (logIndex === -1) return;
         let log = auditLog[logIndex];
@@ -1382,26 +1386,15 @@
         let newSku = await customPrompt(`Edit SKU for this scan:`, log.sku, "Edit SKU");
         if (newSku === null) return; 
         newSku = newSku.trim().replace(/^0+/, '') || '0';
-        if (newSku === "" || newSku === "0") {
-            await customAlert("Invalid SKU.", "Error");
-            return;
-        }
-        
-        let newQtyRaw = await customPrompt(`Edit Quantity for this scan:`, log.qty, "Edit Quantity");
-        if (newQtyRaw === null) return;
-        let newQty = parseInt(newQtyRaw.replace(/,/g, ''));
-        if (isNaN(newQty) || newQty <= 0) {
-            await customAlert("Invalid quantity. Must be greater than 0.", "Error");
-            return;
-        }
+        if (newSku === "" || newSku === "0" || newSku === log.sku) return;
         
         saveState();
         
         let oldSku = log.sku;
-        let oldQty = log.qty;
+        let logQty = log.qty;
         
         if (inventory[oldSku]) {
-            inventory[oldSku].scannedQty -= oldQty;
+            inventory[oldSku].scannedQty -= logQty;
             if (inventory[oldSku].scannedQty < 0) inventory[oldSku].scannedQty = 0;
             if (inventory[oldSku].systemQty === 0 && inventory[oldSku].scannedQty === 0 && (inventory[oldSku].pendingQty || 0) === 0) {
                 delete inventory[oldSku];
@@ -1421,16 +1414,50 @@
             playSound('success');
         }
         
-        inventory[newSku].scannedQty += newQty;
-        
-        if (binTotals[log.bin] !== undefined) {
-            binTotals[log.bin] = binTotals[log.bin] - oldQty + newQty;
-        }
+        inventory[newSku].scannedQty += logQty;
         
         log.sku = newSku;
-        log.qty = newQty;
         log.isError = isError;
         log.desc = inventory[newSku].description;
+        
+        await saveData();
+        renderTable();
+        renderAuditTrail();
+    }
+
+    async function editHistoryQty(logId) {
+        let logIndex = auditLog.findIndex(l => l.id === logId);
+        if (logIndex === -1) return;
+        let log = auditLog[logIndex];
+        
+        let newQtyRaw = await customPrompt(`Edit Quantity for this scan (${log.sku}):`, log.qty, "Edit Quantity");
+        if (newQtyRaw === null) return;
+        let newQty = parseInt(newQtyRaw.replace(/,/g, ''));
+        if (isNaN(newQty) || newQty < 0) {
+            await customAlert("Invalid quantity. Must be 0 or greater.", "Error");
+            return;
+        }
+        if (newQty === log.qty) return;
+        
+        saveState();
+        
+        let diff = newQty - log.qty;
+        
+        if (inventory[log.sku]) {
+            inventory[log.sku].scannedQty += diff;
+            if (inventory[log.sku].scannedQty < 0) inventory[log.sku].scannedQty = 0;
+            
+            if (inventory[log.sku].systemQty === 0 && inventory[log.sku].scannedQty === 0 && (inventory[log.sku].pendingQty || 0) === 0) {
+                delete inventory[log.sku];
+            }
+        }
+        
+        if (binTotals[log.bin] !== undefined) {
+            binTotals[log.bin] += diff;
+            if (binTotals[log.bin] < 0) binTotals[log.bin] = 0;
+        }
+        
+        log.qty = newQty;
         
         await saveData();
         renderTable();
@@ -1442,7 +1469,11 @@
         let desc = inventory[sku] && inventory[sku].description ? inventory[sku].description : "Unknown Item";
         let logId = Date.now().toString() + Math.floor(Math.random() * 10000).toString();
         
-        auditLog.unshift({ id: logId, time: timeStr, sku: sku, desc: desc, isError: isError, bin: currentBin, qty: qty });
+        if (!binCounters[currentBin]) binCounters[currentBin] = 0;
+        binCounters[currentBin]++;
+        let currentLine = binCounters[currentBin];
+        
+        auditLog.unshift({ id: logId, time: timeStr, sku: sku, desc: desc, isError: isError, bin: currentBin, binLine: currentLine, qty: qty });
         if(auditLog.length > 1000) auditLog.pop(); 
         
         if (!binTotals[currentBin]) binTotals[currentBin] = 0;
@@ -1488,9 +1519,12 @@
                     : `<span class="audit-success">Matched/Found</span>`;
                 
                 let actionBtns = `
-                    <div style="display:inline-flex; gap: 4px; margin-left: 8px; flex-shrink: 0;">
-                        <button onclick="editHistoryItem('${log.id}')" style="background:transparent; border:none; cursor:pointer; color:var(--accent-blue);" title="Edit Scan">
-                            <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                    <div style="display:inline-flex; gap: 6px; margin-left: 8px; flex-shrink: 0;">
+                        <button onclick="editHistorySku('${log.id}')" style="background:transparent; border:none; cursor:pointer; color:var(--accent-blue);" title="Edit SKU">
+                            <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7V4h3"></path><path d="M20 7V4h-3"></path><path d="M4 17v3h3"></path><path d="M20 17v3h-3"></path><line x1="7" y1="12" x2="17" y2="12"></line></svg>
+                        </button>
+                        <button onclick="editHistoryQty('${log.id}')" style="background:transparent; border:none; cursor:pointer; color:var(--accent-orange);" title="Edit QTY">
+                            <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="9" x2="20" y2="9"></line><line x1="4" y1="15" x2="20" y2="15"></line><line x1="10" y1="3" x2="8" y2="21"></line><line x1="16" y1="3" x2="14" y2="21"></line></svg>
                         </button>
                         <button onclick="deleteHistoryItem('${log.id}')" style="background:transparent; border:none; cursor:pointer; color:var(--accent-red);" title="Delete Scan">
                             <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
@@ -1498,7 +1532,7 @@
                     </div>
                 `;
 
-                li.innerHTML = `<div style="flex: 1; word-break: break-all;"><span style="display:inline-block; width:45px; font-weight:bold; color:var(--accent-blue);">Bin ${log.bin || 1}</span> <span class="audit-time">[${log.time}]</span> Scanned <strong style="color:var(--text-primary);">${log.sku}</strong> <strong style="color:var(--accent-orange); margin-left: 4px;">[${log.qty} QTY]</strong> - ${log.desc} - ${statusSpan}</div> ${actionBtns}`;
+                li.innerHTML = `<div style="flex: 1; word-break: break-all;"><span style="display:inline-block; width:90px; font-weight:bold; color:var(--accent-blue);">Bin ${log.bin || 1} Line ${log.binLine || 1}</span> <span class="audit-time">[${log.time}]</span> Scanned <strong style="color:var(--text-primary);">${log.sku}</strong> <strong style="color:var(--accent-orange); margin-left: 4px;">[${log.qty} QTY]</strong> - ${log.desc} - ${statusSpan}</div> ${actionBtns}`;
                 list.appendChild(li);
             });
         }
@@ -1867,7 +1901,7 @@
         reader.readAsArrayBuffer(file);
     }
 
-    // --- PENDING ITEMS PARSER (IDENTICAL SNIFFING LOGIC, PUSHES TO PENDING QTY) ---
+    // --- PENDING ITEMS PARSER ---
     async function processPendingArrayOfArrays(aoa, event) {
         try {
             let headerRowIndex = -1;
@@ -2509,6 +2543,7 @@
             
             currentBin = 1;
             binTotals = { 1: 0 };
+            binCounters = { 1: 0 };
             
             itemsPerPage = '100';
             document.getElementById('pageSize').value = '100';
@@ -2877,6 +2912,7 @@
 
                 currentBin = 1;
                 binTotals = { 1: totalScannedLoaded };
+                binCounters = { 1: 0 };
                 
                 resetFilterUI();
                 await saveData();
