@@ -412,11 +412,11 @@
 
             <div class="audit-trail-wrapper" id="auditTrailBox" style="display: none; height: 160px; padding-bottom: 4px;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; padding-bottom: 6px; border-bottom: 1px solid var(--border-color);">
+                    <strong style="color: var(--text-primary); font-size: 12px;">Scan History <span style="color:var(--accent-blue); font-weight:600;">(Current: Bin <span id="currentBinLabel">1</span>)</span></strong>
                     <div style="display: flex; align-items: center; gap: 8px;">
-                        <strong style="color: var(--text-primary); font-size: 12px;">Scan History <span style="color:var(--accent-blue); font-weight:600;">(Current: Bin <span id="currentBinLabel">1</span>)</span></strong>
                         <input type="text" id="historySearchInput" placeholder="Search Scan History..." oninput="renderAuditTrail()" style="height: 24px; font-size: 11px; padding: 2px 8px; width: 150px; border-radius: 4px; border: 1px solid var(--border-color);">
+                        <button class="btn-secondary" onclick="endCurrentBin()" style="height: 24px; font-size: 11px; padding: 0 8px; color: var(--accent-red); border-color: #fecaca; background-color: #fef2f2;">End Scan (Next Bin)</button>
                     </div>
-                    <button class="btn-secondary" onclick="endCurrentBin()" style="height: 24px; font-size: 11px; padding: 0 8px; color: var(--accent-red); border-color: #fecaca; background-color: #fef2f2;">End Scan (Next Bin)</button>
                 </div>
                 <div style="display: flex; gap: 12px; height: calc(100% - 32px);">
                     <div style="flex: 3; overflow-y: auto; padding-right: 8px; border-right: 1px solid var(--border-color);">
@@ -598,7 +598,7 @@
     let auditLog = [];
     let currentBin = 1;
     let binTotals = { 1: 0 };
-    let binCounters = { 1: 0 }; // Tracks the line numbering per bin
+    let binCounters = { 1: 0 }; 
 
     let isFastScanMode = false;
     let fastScanQueue = [];
