@@ -127,11 +127,13 @@
         .dash-missing p { color: var(--accent-red); }
         .dash-extra { background-color: #f0f9ff; border-color: #bae6fd; }
         .dash-extra p { color: var(--accent-blue); }
+        .dash-pending-card { background-color: #fffbeb; border-color: #fde68a; }
+        .dash-pending-card p { color: var(--accent-orange); }
 
-        .table-header-controls { display: flex; justify-content: space-between; align-items: center; background-color: var(--surface-color); padding: 8px 12px; border-bottom: 1px solid var(--border-color); border-radius: var(--radius-lg) var(--radius-lg) 0 0; flex-wrap: nowrap; }
-        .table-title { color: var(--text-primary); font-weight: 600; font-size: 13px; margin: 0; white-space: nowrap; }
+        .table-header-controls { display: flex; justify-content: space-between; align-items: center; background-color: var(--surface-color); padding: 8px 12px; border-bottom: 1px solid var(--border-color); border-radius: var(--radius-lg) var(--radius-lg) 0 0; flex-wrap: wrap; gap: 8px; }
+        .table-title { color: var(--text-primary); font-weight: 600; font-size: 13px; margin: 0; white-space: nowrap; flex: 1; }
         
-        .pagination-select { display: flex; align-items: center; gap: 6px; color: var(--text-secondary); font-size: 12px; white-space: nowrap; }
+        .pagination-select { display: flex; align-items: center; justify-content: flex-end; gap: 6px; color: var(--text-secondary); font-size: 12px; white-space: nowrap; flex: 1; }
         .pagination-select label { white-space: nowrap; margin: 0; }
         .pagination-select select { padding: 4px 8px; border-radius: var(--radius-md); border: 1px solid var(--border-color); font-weight: 500; height: 26px; }
 
@@ -172,8 +174,8 @@
         #error-toast { visibility: hidden; min-width: 200px; background-color: var(--text-primary); color: #fff; text-align: center; border-radius: var(--radius-md); padding: 12px; position: fixed; z-index: 5000; left: 50%; top: 20px; transform: translateX(-50%); font-size: 12px; font-weight: 500; box-shadow: var(--shadow-lg); opacity: 0; transition: opacity 0.2s, top 0.2s; }
         #error-toast.show { visibility: visible; opacity: 1; top: 40px; }
 
-        /* --- DYNAMIC SMART FILTERS (PERMANENTLY HOUSED IN BOX 2) --- */
-        #dynamicFilters { padding: 4px 8px; background: #f0f9ff; border: 1px solid #bae6fd; border-radius: var(--radius-md); display: flex; align-items: center; gap: 8px; transition: all 0.1s ease; margin-left: auto; }
+        /* --- DYNAMIC SMART FILTERS --- */
+        #dynamicFilters { padding: 4px 8px; background: #f0f9ff; border: 1px solid #bae6fd; border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.1s ease; flex: 1; }
         .df-layout { display: flex; align-items: center; gap: 6px; }
         .compact-icon { display: inline-flex; font-size: 11px; font-weight: 600; color: var(--accent-blue); align-items: center; gap: 4px; }
         #dynamicFilters select { padding: 4px 20px 4px 8px; height: 26px; font-size: 11px; border-color: #bae6fd; }
@@ -255,6 +257,25 @@
         </div>
         <div class="custom-modal-footer">
             <button class="custom-modal-btn" style="background-color: var(--accent-red); color: #fff;" onclick="closeCamera()" title="Stop the camera feed">Stop Camera</button>
+        </div>
+    </div>
+</div>
+
+<div id="manualEncodeModal" class="modal-overlay" style="display: none;">
+    <div class="custom-modal-box" style="width: 500px;">
+        <div class="custom-modal-header">
+            <h3>Manual Encode Barcodes</h3>
+            <button class="custom-modal-close" onclick="closeManualEncode()" title="Close without saving">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
+        </div>
+        <div class="custom-modal-body">
+            <p style="margin-top: 0; color: var(--text-secondary);">Paste barcodes here, one per line. You can optionally add a space or tab and a quantity (e.g. "982132222 4"). They will be immediately added to your <strong>Scanned QTY</strong>.</p>
+            <textarea id="manualEncodeInput" style="height: 250px; font-size: 13px;" placeholder="Example:&#10;982132222&#10;982132222  98&#10;938382122  3&#10;938382121      921"></textarea>
+        </div>
+        <div class="custom-modal-footer">
+            <button class="custom-modal-btn" style="background-color: var(--accent-blue); color: #fff;" onclick="submitManualEncode()">Encode into Scanned QTY</button>
+            <button class="sloc-btn-cancel" onclick="closeManualEncode()">Cancel</button>
         </div>
     </div>
 </div>
@@ -364,35 +385,25 @@
                     Compare (<span id="queueCount">0</span>)
                 </button>
 
-                <div id="dynamicFilters" style="display: none;">
-                    <div class="compact-icon">
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg>
-                        Smart Filter
-                    </div>
-                    
-                    <div class="df-layout" id="intransitFilters" style="display: none;">
-                        <div class="df-group">
-                            <select id="stoDropdown" onchange="applyDynamicFilters()"></select>
-                        </div>
-                    </div>
-                    
-                    <div class="df-layout" id="mb52Filters" style="display: none;">
-                        <div class="df-group">
-                            <select id="categoryDropdown" onchange="updateBrandDropdown(); applyDynamicFilters();">
-                                <option value="ALL">All</option>
-                                <option value="SUN">Sunglasses (S;)</option>
-                                <option value="SPX">Frames (O;)</option>
-                                <option value="OTHERS">Others (OA; etc.)</option>
-                            </select>
-                        </div>
-                        <div class="df-group">
-                            <select id="brandDropdown" onchange="applyDynamicFilters()" style="min-width: 150px;">
-                                <option value="ALL">ALL BRANDS</option>
-                            </select>
-                        </div>
-                    </div>
-                </div>
-                </div>
+                <input type="file" id="pendingDataUpload" accept=".csv, .xls, .xlsx, .xlsm, .xlsb, .txt, .tsv, .xml, .mhtml, .mht" style="display: none;" onchange="handlePendingUpload(event)">
+                <button class="btn-secondary" onclick="promptPendingUpload()" title="Upload a spreadsheet of items yet to be delivered. The quantities will be added to the Scanned calculation dynamically.">
+                    <svg viewBox="0 0 24 24" width="14" height="14" stroke="var(--accent-orange)" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: text-bottom; margin-right: 4px;">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="17 8 12 3 7 8"></polyline>
+                        <line x1="12" y1="3" x2="12" y2="15"></line>
+                    </svg> Pending Items
+                </button>
+
+                <button class="btn-secondary" onclick="openManualEncode()" title="Paste a raw list of barcodes to add them automatically to your Scanned items">
+                    <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: text-bottom; margin-right: 4px;">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                        <polyline points="14 2 14 8 20 8"></polyline>
+                        <line x1="16" y1="13" x2="8" y2="13"></line>
+                        <line x1="16" y1="17" x2="8" y2="17"></line>
+                        <polyline points="10 9 9 9 8 9"></polyline>
+                    </svg> Manual Encode
+                </button>
+            </div>
 
             <div class="audit-trail-wrapper fast-scan-trail" id="fastScanTrailBox" style="display: none;">
                 <div class="fast-scan-header">⚡ Fast Scan Queue</div>
@@ -421,6 +432,10 @@
                     <h3>Scanned</h3>
                     <p id="dashScanned" title="Total physical items scanned">0</p>
                 </div>
+                <div class="dash-card dash-pending-card" id="dashCardPending" style="display: none;">
+                    <h3>Pending</h3>
+                    <p id="dashPending" title="Items pending delivery uploaded via file">0</p>
+                </div>
                 <div class="dash-card dash-missing">
                     <h3>Missing</h3>
                     <p id="dashMissing" title="Items in the system but not physically found">0</p>
@@ -434,6 +449,36 @@
 
         <div class="table-header-controls">
             <div class="table-title">Inventory List</div>
+            
+            <div id="dynamicFilters" style="display: none;">
+                <div class="compact-icon">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg>
+                    Smart Filter
+                </div>
+                
+                <div class="df-layout" id="intransitFilters" style="display: none;">
+                    <div class="df-group">
+                        <select id="stoDropdown" onchange="applyDynamicFilters()"></select>
+                    </div>
+                </div>
+                
+                <div class="df-layout" id="mb52Filters" style="display: none;">
+                    <div class="df-group">
+                        <select id="categoryDropdown" onchange="updateBrandDropdown(); applyDynamicFilters();">
+                            <option value="ALL">All</option>
+                            <option value="SUN">Sunglasses (S;)</option>
+                            <option value="SPX">Frames (O;)</option>
+                            <option value="OTHERS">Others (OA; etc.)</option>
+                        </select>
+                    </div>
+                    <div class="df-group">
+                        <select id="brandDropdown" onchange="applyDynamicFilters()" style="min-width: 150px;">
+                            <option value="ALL">ALL BRANDS</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
             <div class="pagination-select">
                 <label for="pageSize">Rows per page:</label>
                 <select id="pageSize" onchange="changePageSize()" title="Change how many items are shown on the screen">
@@ -851,6 +896,83 @@
         }
     }
 
+    // --- MANUAL ENCODE MODAL CONTROLS ---
+    function openManualEncode() {
+        document.getElementById('manualEncodeModal').style.display = 'flex';
+        document.getElementById('manualEncodeInput').value = '';
+        setTimeout(() => document.getElementById('manualEncodeInput').focus(), 100);
+    }
+
+    function closeManualEncode() {
+        document.getElementById('manualEncodeModal').style.display = 'none';
+    }
+
+    async function submitManualEncode() {
+        let text = document.getElementById('manualEncodeInput').value;
+        if (!text.trim()) {
+            closeManualEncode();
+            return;
+        }
+        
+        saveState();
+        let lines = text.split(/\r?\n/);
+        let addedCount = 0;
+        let errorCount = 0;
+
+        lines.forEach(line => {
+            line = line.trim();
+            if (!line) return;
+            
+            let parts = line.split(/\s+/);
+            let skuRaw = parts[0].replace(/^0+/, '') || '0';
+            if (skuRaw === "" || skuRaw === "0") return;
+
+            let qty = 1;
+            if (parts.length > 1) {
+                let parsedQty = parseInt(parts[1].replace(/,/g, ''));
+                if (!isNaN(parsedQty) && parsedQty > 0) {
+                    qty = parsedQty;
+                }
+            }
+
+            if (!inventory[skuRaw]) {
+                inventory[skuRaw] = { 
+                    description: "Manually Encoded", systemQty: 0, sysQty1000: 0, sysQty4000: 0, 
+                    sysQtyOther: 0, scannedQty: 0, pendingQty: 0, sloc: 'Scanned', isLens: false
+                };
+                errorCount++;
+                appendAuditLog(skuRaw, true);
+            } else {
+                appendAuditLog(skuRaw, false);
+            }
+            
+            inventory[skuRaw].scannedQty += qty;
+            addedCount += qty;
+        });
+
+        closeManualEncode();
+        await saveData();
+        renderTable();
+        
+        if (addedCount > 0) {
+            if (errorCount > 0) {
+                playSound('error');
+                await customAlert(`Added ${addedCount} total quantity.<br><br><span style="color:var(--accent-red);font-weight:bold;">${errorCount} SKUs were NOT in the system list.</span>`, "Manual Encode Results");
+            } else {
+                playSound('success');
+                await customAlert(`Successfully added ${addedCount} total quantity.`, "Manual Encode Results");
+            }
+        }
+    }
+
+    // --- PENDING UPLOAD WRAPPER ---
+    async function promptPendingUpload() {
+        const confirmed = await customConfirm("Do you want to add <b>Items to be Delivered</b> spreadsheet data as pending?", "Pending Items");
+        if (confirmed) {
+            document.getElementById('pendingDataUpload').click();
+        }
+    }
+
     // --- CUSTOM MODAL CONTROLLER ---
     function openCustomModal(options) {
         return new Promise((resolve) => {
@@ -1039,6 +1161,13 @@
         currentFileType = state.currentFileType || null;
         isLensesFilterActive = state.isLensesFilterActive !== undefined ? state.isLensesFilterActive : true;
 
+        // Ensure all loaded items have pendingQty property securely initialized
+        for (let sku in inventory) {
+            if (inventory[sku].pendingQty === undefined) {
+                inventory[sku].pendingQty = 0;
+            }
+        }
+
         // RESTORE EXACT UI STATE 
         currentPage = state.currentPage || 1;
         itemsPerPage = state.itemsPerPage || '100'; // Default to 100 on load for performance
@@ -1208,7 +1337,7 @@
     }
 
     /* ========================================================
-       SMART UPLOADER & PARSER
+       SMART UPLOADER & PARSER (SYSTEM)
        ======================================================== */
 
     async function processArrayOfArrays(aoa, event) {
@@ -1216,7 +1345,6 @@
             let headerRowIndex = -1;
             let skuCol = -1, qtyCol = -1, descCol = -1, slocCol = -1, stoCol = -1, merchCol = -1;
 
-            // Find headers dynamically
             for (let i = 0; i < Math.min(aoa.length, 25); i++) {
                 let cols = aoa[i];
                 if (!cols || !cols.length) continue;
@@ -1262,7 +1390,6 @@
                 combineBrands = await customConfirm("Do you want to combine similar brand names and fix misspellings (e.g., Rayban and Rayban Junior)?", "Combine Similar Brands");
             }
             
-            // Allow the UI to visually hide the modal before we freeze the thread with heavy data loops
             await new Promise(r => setTimeout(r, 50));
 
             let uniqueSTOs = new Set();
@@ -1283,7 +1410,6 @@
                     stoRaw = stoCol !== -1 && cols[stoCol] != null ? String(cols[stoCol]).trim() : "";
                     merchRaw = merchCol !== -1 && cols[merchCol] != null ? String(cols[merchCol]).trim() : "";
                 } else {
-                    // FALLBACK LOGIC
                     let possibleSkus = [];
                     let possibleSlocs = [];
                     let uomIndex = -1;
@@ -1295,17 +1421,13 @@
                         if (!val) continue;
 
                         let valUpper = val.toUpperCase();
-                        if (uomKeywords.includes(valUpper)) {
-                            uomIndex = j;
-                        }
+                        if (uomKeywords.includes(valUpper)) { uomIndex = j; }
 
                         let valNoCommas = val.replace(/,/g, '');
-                        // Check if it's purely digits for classification
                         if (/^\d+$/.test(valNoCommas)) {
                             if (valNoCommas === "1000" || valNoCommas === "2000" || valNoCommas === "3000" || valNoCommas === "4000" || valNoCommas === "5000") {
                                 possibleSlocs.push({val: valNoCommas, index: j});
                             } else if (valNoCommas.length >= 5) {
-                                // Likely SKU
                                 possibleSkus.push({val: valNoCommas, index: j});
                             }
                         }
@@ -1313,8 +1435,6 @@
 
                     if (possibleSlocs.length > 0) slocRaw = possibleSlocs[0].val;
                     
-                    // The best SKU candidate is the longest numeric string.
-                    // Filter out exactly 4 digits to avoid store codes mapping as SKU if no real SKU exists
                     possibleSkus = possibleSkus.filter(s => s.val.length !== 4 && s.val !== slocRaw);
                     possibleSkus.sort((a, b) => b.val.length - a.val.length);
                     if (possibleSkus.length > 0) skuRaw = possibleSkus[0].val;
@@ -1323,7 +1443,6 @@
                     let skuIndex = possibleSkus.length > 0 ? possibleSkus[0].index : -1;
                     let slocIndex = possibleSlocs.length > 0 ? possibleSlocs[0].index : -1;
 
-                    // 1. ZSTK_IT Strategy: Try right after the UOM indicator
                     if (uomIndex !== -1) {
                         for (let j = uomIndex + 1; j < cols.length; j++) {
                             if (cols[j] == null) continue;
@@ -1337,15 +1456,12 @@
                         }
                     }
 
-                    // 2. MB52 Strategy: Scan for the first valid quantity AFTER the SKU
                     if (foundQtyIndex === -1 && skuIndex !== -1) {
                         let potentialQtys = [];
                         for(let j = skuIndex + 1; j < cols.length; j++) {
                             if(cols[j] == null) continue;
                             let val = String(cols[j]).trim();
                             let valNoCommas = val.replace(/,/g, '');
-                            
-                            // Check for trailing negatives just in case (e.g. 3.000-)
                             let numCheck = valNoCommas.endsWith('-') ? '-' + valNoCommas.slice(0, -1) : valNoCommas;
                             
                             if (numCheck !== "" && !isNaN(numCheck)) {
@@ -1360,7 +1476,6 @@
                         }
 
                         if (potentialQtys.length > 0) {
-                            // Prioritize floats (like 3.000) to avoid catching stray integers in descriptions like "1 DAY"
                             let floatMatch = potentialQtys.find(q => q.isFloat);
                             if (floatMatch) {
                                 qtyRaw = floatMatch.val;
@@ -1372,7 +1487,6 @@
                         }
                     }
 
-                    // Extract Description safely
                     let descParts = [];
                     if (skuIndex !== -1) {
                         let endIndex = uomIndex !== -1 ? uomIndex : (foundQtyIndex !== -1 ? foundQtyIndex : cols.length);
@@ -1434,8 +1548,6 @@
             }
 
             document.getElementById('dynamicFilters').style.display = 'flex'; 
-            
-            // Override cache lag: Force items per page to 100 on new file upload to prevent massive DOM freezes
             itemsPerPage = '100';
             document.getElementById('pageSize').value = '100';
 
@@ -1539,6 +1651,261 @@
         reader.readAsArrayBuffer(file);
     }
 
+    // --- PENDING ITEMS PARSER (IDENTICAL SNIFFING LOGIC, PUSHES TO PENDING QTY) ---
+    async function processPendingArrayOfArrays(aoa, event) {
+        try {
+            let headerRowIndex = -1;
+            let skuCol = -1, qtyCol = -1, descCol = -1, slocCol = -1, merchCol = -1;
+
+            for (let i = 0; i < Math.min(aoa.length, 25); i++) {
+                let cols = aoa[i];
+                if (!cols || !cols.length) continue;
+                
+                for (let j = 0; j < cols.length; j++) {
+                    if (cols[j] == null) continue;
+                    let h = String(cols[j]).trim().toLowerCase().replace(/['"]/g, '');
+                    if (h === 'article' || h === 'article #' || h === 'sku' || h === 'material') skuCol = j;
+                    if (h === 'unrestricted' || h === 'p.o. qty.' || h === 'p.o. qty' || h === 'qty' || h === 'quantity' || h === 'in-transit qty.') qtyCol = j;
+                    if (h === 'storage location' || h === 'sloc') slocCol = j;
+                    if (h.includes('description') || h === 'desc' || h === 'article description') descCol = j;
+                    if (h.includes('merch') || h.includes('category')) merchCol = j;
+                }
+                if (skuCol !== -1 && qtyCol !== -1) {
+                    headerRowIndex = i;
+                    break;
+                }
+            }
+
+            let isFallbackMode = (headerRowIndex === -1);
+            let startIndex = isFallbackMode ? 0 : headerRowIndex + 1;
+
+            saveState();
+            await new Promise(r => setTimeout(r, 50));
+
+            let addedCount = 0;
+
+            for (let i = startIndex; i < aoa.length; i++) {
+                let cols = aoa[i];
+                if (!cols || cols.length < 2) continue;
+
+                let skuRaw = "", qtyRaw = "", descRaw = "", slocRaw = "", merchRaw = "";
+
+                if (!isFallbackMode) {
+                    skuRaw = cols[skuCol] != null ? String(cols[skuCol]).trim() : "";
+                    qtyRaw = cols[qtyCol] != null ? String(cols[qtyCol]).trim() : "";
+                    descRaw = descCol !== -1 && cols[descCol] != null ? String(cols[descCol]).trim() : "";
+                    slocRaw = slocCol !== -1 && cols[slocCol] != null ? String(cols[slocCol]).trim() : "";
+                    merchRaw = merchCol !== -1 && cols[merchCol] != null ? String(cols[merchCol]).trim() : "";
+                } else {
+                    let possibleSkus = [];
+                    let possibleSlocs = [];
+                    let uomIndex = -1;
+                    let uomKeywords = ['PAK', 'EA', 'PC', 'ST', 'PR'];
+
+                    for (let j = 0; j < cols.length; j++) {
+                        if (cols[j] == null) continue;
+                        let val = String(cols[j]).trim();
+                        if (!val) continue;
+
+                        let valUpper = val.toUpperCase();
+                        if (uomKeywords.includes(valUpper)) { uomIndex = j; }
+
+                        let valNoCommas = val.replace(/,/g, '');
+                        if (/^\d+$/.test(valNoCommas)) {
+                            if (valNoCommas === "1000" || valNoCommas === "2000" || valNoCommas === "3000" || valNoCommas === "4000" || valNoCommas === "5000") {
+                                possibleSlocs.push({val: valNoCommas, index: j});
+                            } else if (valNoCommas.length >= 5) {
+                                possibleSkus.push({val: valNoCommas, index: j});
+                            }
+                        }
+                    }
+
+                    if (possibleSlocs.length > 0) slocRaw = possibleSlocs[0].val;
+                    possibleSkus = possibleSkus.filter(s => s.val.length !== 4 && s.val !== slocRaw);
+                    possibleSkus.sort((a, b) => b.val.length - a.val.length);
+                    if (possibleSkus.length > 0) skuRaw = possibleSkus[0].val;
+
+                    let foundQtyIndex = -1;
+                    let skuIndex = possibleSkus.length > 0 ? possibleSkus[0].index : -1;
+                    let slocIndex = possibleSlocs.length > 0 ? possibleSlocs[0].index : -1;
+
+                    if (uomIndex !== -1) {
+                        for (let j = uomIndex + 1; j < cols.length; j++) {
+                            if (cols[j] == null) continue;
+                            let val = String(cols[j]).trim();
+                            let valNoCommas = val.replace(/,/g, '');
+                            if (val !== "" && !isNaN(valNoCommas)) {
+                                qtyRaw = valNoCommas;
+                                foundQtyIndex = j;
+                                break;
+                            }
+                        }
+                    }
+
+                    if (foundQtyIndex === -1 && skuIndex !== -1) {
+                        let potentialQtys = [];
+                        for(let j = skuIndex + 1; j < cols.length; j++) {
+                            if(cols[j] == null) continue;
+                            let val = String(cols[j]).trim();
+                            let valNoCommas = val.replace(/,/g, '');
+                            let numCheck = valNoCommas.endsWith('-') ? '-' + valNoCommas.slice(0, -1) : valNoCommas;
+                            
+                            if (numCheck !== "" && !isNaN(numCheck)) {
+                                let isVendorShape = /^\d+$/.test(numCheck) && numCheck.length >= 7 && numCheck.length <= 10 && val.startsWith("000");
+                                let isStoreShape = /^\d+$/.test(numCheck) && numCheck.length === 4;
+                                let isSlocShape = (numCheck === "1000" || numCheck === "2000" || numCheck === "3000" || numCheck === "4000" || numCheck === "5000");
+
+                                if (!isVendorShape && !isStoreShape && !isSlocShape && j !== slocIndex) {
+                                    potentialQtys.push({ val: numCheck, index: j, isFloat: numCheck.includes('.') });
+                                }
+                            }
+                        }
+                        if (potentialQtys.length > 0) {
+                            let floatMatch = potentialQtys.find(q => q.isFloat);
+                            if (floatMatch) {
+                                qtyRaw = floatMatch.val;
+                                foundQtyIndex = floatMatch.index;
+                            } else {
+                                qtyRaw = potentialQtys[0].val;
+                                foundQtyIndex = potentialQtys[0].index;
+                            }
+                        }
+                    }
+
+                    let descParts = [];
+                    if (skuIndex !== -1) {
+                        let endIndex = uomIndex !== -1 ? uomIndex : (foundQtyIndex !== -1 ? foundQtyIndex : cols.length);
+                        for (let j = skuIndex + 1; j < endIndex; j++) {
+                            if (cols[j] == null) continue;
+                            if (j === foundQtyIndex || j === slocIndex) continue;
+                            let val = String(cols[j]).trim();
+                            let valNoCommas = val.replace(/,/g, '');
+                            if(val === "" || (!isNaN(valNoCommas) && !val.includes(';'))) continue; 
+                            descParts.push(val);
+                        }
+                        descRaw = descParts.join(' ');
+                    }
+                    if (!descRaw) {
+                        for (let j = 0; j < cols.length; j++) {
+                            if (cols[j] && String(cols[j]).includes(';')) {
+                                descRaw = String(cols[j]).trim();
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                let fullRowText = cols.join(' ');
+                let sku = skuRaw.replace(/^0+/, '') || '0';
+                let qtyClean = qtyRaw.replace(/,/g, '');
+                let penQty = Math.round(parseFloat(qtyClean));
+
+                if (penQty < 0) penQty = Math.abs(penQty); 
+
+                if (sku === "" || sku === "0" || isNaN(penQty) || penQty === 0) continue;
+
+                let isLens = isExcludedItem(fullRowText, descRaw, merchRaw);
+
+                if (!inventory[sku]) {
+                    inventory[sku] = { 
+                        description: descRaw || "Pending Data", 
+                        systemQty: 0, sysQty1000: 0, sysQty4000: 0, sysQtyOther: 0, 
+                        scannedQty: 0, pendingQty: 0, sloc: slocRaw || 'Pending', isLens: isLens 
+                    };
+                }
+                
+                inventory[sku].pendingQty += penQty;
+                addedCount++;
+            }
+
+            if (addedCount === 0) {
+                await customAlert(`No valid rows found to encode as Pending Items.`, "Upload Result");
+                undoStack.pop(); 
+                updateUndoRedoButtons();
+                if(event && event.target) event.target.value = '';
+                return;
+            }
+
+            await saveData();
+            renderTable();
+            await customAlert(`Successfully added pending quantities for ${addedCount} items.<br><br>These are now being dynamically added to your Scanned quantities in the calculations.`, "Pending Upload Success");
+            if(event && event.target) event.target.value = '';
+            
+        } catch (error) {
+            console.error(error);
+            undoStack.pop(); 
+            updateUndoRedoButtons();
+            await customAlert("An error occurred while parsing the pending data: " + error.message, "Parsing Error");
+            if(event && event.target) event.target.value = '';
+        }
+    }
+
+    async function handlePendingUpload(event) {
+        const file = event.target.files ? event.target.files[0] : null;
+        if (!file) return;
+
+        const fileName = file.name.toLowerCase();
+
+        if (fileName.endsWith('.csv') || fileName.endsWith('.txt') || fileName.endsWith('.tsv')) {
+            const reader = new FileReader();
+            reader.onload = async function(e) {
+                try {
+                    let text = e.target.result;
+                    let aoa = [];
+                    let lines = text.split(/\r?\n/);
+                    let delim = text.indexOf('\t') !== -1 ? '\t' : ',';
+                    
+                    for(let i=0; i<lines.length; i++) {
+                        let line = lines[i];
+                        if(!line.trim()) continue;
+                        aoa.push(parseCSVLine(line, delim));
+                    }
+                    await processPendingArrayOfArrays(aoa, event);
+                } catch(err) {
+                    console.error(err);
+                    await customAlert("There was an error reading the CSV text.", "File Error");
+                    if(event.target) event.target.value = '';
+                }
+            };
+            reader.readAsText(file);
+            return;
+        }
+
+        if (typeof XLSX === 'undefined') {
+            await customAlert("The Excel parser library couldn't load. Please save it as a .CSV and try uploading.", "Library Blocked");
+            if(event.target) event.target.value = '';
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = async function(e) {
+            try {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, {type: 'array'});
+                const firstSheetName = workbook.SheetNames[0];
+                const worksheet = workbook.Sheets[firstSheetName];
+                const aoa = XLSX.utils.sheet_to_json(worksheet, {header: 1, defval: ""}); 
+                await processPendingArrayOfArrays(aoa, event);
+            } catch (err) {
+                console.error("SheetJS error:", err);
+                try {
+                    let text = new TextDecoder("utf-8").decode(new Uint8Array(e.target.result));
+                    if(text.includes('<table') || text.includes('\t') || text.includes(',')) {
+                         const workbook = XLSX.read(text, {type: 'string'});
+                         const aoa = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], {header: 1, defval: ""});
+                         await processPendingArrayOfArrays(aoa, event);
+                         return;
+                    }
+                } catch(e2) {
+                    console.error(e2);
+                }
+                await customAlert("There was an error parsing the spreadsheet. Ensure the file is not corrupted.", "File Error");
+                if(event.target) event.target.value = '';
+            }
+        };
+        reader.readAsArrayBuffer(file);
+    }
+
     function updateBrandDropdown() {
         let cat = document.getElementById('categoryDropdown').value;
         let brandSelect = document.getElementById('brandDropdown');
@@ -1590,7 +1957,7 @@
                 inventory[row.sku] = { 
                     description: row.desc, 
                     systemQty: 0, sysQty1000: 0, sysQty4000: 0, sysQtyOther: 0, 
-                    scannedQty: 0, sloc: row.sloc, isLens: row.isLens 
+                    scannedQty: 0, pendingQty: 0, sloc: row.sloc, isLens: row.isLens 
                 };
             } else {
                 inventory[row.sku].isLens = inventory[row.sku].isLens || row.isLens;
@@ -1609,7 +1976,7 @@
         });
 
         for (let sku in inventory) {
-            if (inventory[sku].systemQty === 0 && inventory[sku].scannedQty === 0) {
+            if (inventory[sku].systemQty === 0 && inventory[sku].scannedQty === 0 && (inventory[sku].pendingQty === 0 || !inventory[sku].pendingQty)) {
                 delete inventory[sku];
             }
         }
@@ -1691,7 +2058,7 @@
             if (!inventory[sku]) {
                 inventory[sku] = { 
                     description: "Manually Scanned", systemQty: 0, sysQty1000: 0, sysQty4000: 0, 
-                    sysQtyOther: 0, scannedQty: 0, sloc: 'Scanned', isLens: false
+                    sysQtyOther: 0, scannedQty: 0, pendingQty: 0, sloc: 'Scanned', isLens: false
                 };
                 isError = true;
                 errorCount++;
@@ -1744,10 +2111,9 @@
             let isVisible = true;
             let slocDropdownVal = document.getElementById('slocFilterUI').value;
 
-            // Safe guard if no SLOC exists so we don't accidentally evaluate against 1000 and hide rows.
             let hasSloc = false;
             for (let k in inventory) {
-                if (inventory[k].sloc && inventory[k].sloc !== "" && inventory[k].sloc !== "Scanned") {
+                if (inventory[k].sloc && inventory[k].sloc !== "" && inventory[k].sloc !== "Scanned" && inventory[k].sloc !== "Pending") {
                     hasSloc = true; break;
                 }
             }
@@ -1759,12 +2125,13 @@
                     isVisible = false;
                 } else {
                     let currentScannedQty = item ? item.scannedQty : 0;
+                    let currentPendingQty = item ? (item.pendingQty || 0) : 0;
                     let sysQty = item ? item.systemQty : 0;
-                    let currentDiff = currentScannedQty - sysQty;
+                    let currentDiff = (currentScannedQty + currentPendingQty) - sysQty;
                     let sloc = item ? item.sloc || "" : "Scanned";
                     let desc = item ? (item.description || "").toLowerCase() : "manually scanned";
                     
-                    if (slocDropdownVal !== 'ALL' && sloc !== "Scanned" && !sloc.includes(slocDropdownVal)) isVisible = false;
+                    if (slocDropdownVal !== 'ALL' && sloc !== "Scanned" && sloc !== "Pending" && !sloc.includes(slocDropdownVal)) isVisible = false;
                     if (currentFilter === 'DISCREPANCIES' && currentDiff === 0) isVisible = false;
                     if (currentFilter === 'MISSING' && currentDiff >= 0) isVisible = false;
                     if (currentFilter === 'EXTRA' && currentDiff <= 0) isVisible = false;
@@ -1777,7 +2144,7 @@
                 const proceed = await customConfirm(`Since the scanned item (<b>${sku}</b>) is hidden or filtered, should we search the whole list?`, "Search Whole System?");
                 if (proceed) {
                     resetFilterUI();
-                    document.getElementById('slocFilterUI').value = 'ALL'; // Needs to switch to ALL to deliberately show all for searching
+                    document.getElementById('slocFilterUI').value = 'ALL';
                 } else return; 
             }
 
@@ -1787,7 +2154,7 @@
             if (!inventory[sku]) {
                 playSound('error');
                 showErrorToast(`⚠️ Alert: SKU ${sku} is NOT in the encoded list!`);
-                inventory[sku] = { description: "Manually Scanned", systemQty: 0, sysQty1000: 0, sysQty4000: 0, sysQtyOther: 0, scannedQty: 0, sloc: 'Scanned', isLens: false };
+                inventory[sku] = { description: "Manually Scanned", systemQty: 0, sysQty1000: 0, sysQty4000: 0, sysQtyOther: 0, scannedQty: 0, pendingQty: 0, sloc: 'Scanned', isLens: false };
                 isError = true;
             } else {
                 playSound('success');
@@ -1804,8 +2171,8 @@
             for (let k in inventory) {
                 let itm = inventory[k];
                 if (isLensesFilterActive && itm.isLens) continue; 
-                let df = itm.scannedQty - itm.systemQty;
-                if (sVal !== 'ALL') { let itemSloc = itm.sloc || ""; if (itemSloc !== "Scanned" && !itemSloc.includes(sVal)) continue; }
+                let df = (itm.scannedQty + (itm.pendingQty || 0)) - itm.systemQty;
+                if (sVal !== 'ALL') { let itemSloc = itm.sloc || ""; if (itemSloc !== "Scanned" && itemSloc !== "Pending" && !itemSloc.includes(sVal)) continue; }
                 if (currentFilter === 'DISCREPANCIES' && df === 0) continue;
                 if (currentFilter === 'MISSING' && df >= 0) continue;
                 if (currentFilter === 'EXTRA' && df <= 0) continue;
@@ -1826,7 +2193,6 @@
             
             renderTable();
 
-            // INSTANT SCROLLING PERFORMANCE FIX
             requestAnimationFrame(() => {
                 let row = document.getElementById('row-' + sku);
                 if (row) {
@@ -1841,9 +2207,11 @@
         }
     }
 
-    // --- MANUAL EDIT AND DELETE LOGIC ---
     async function editQuantity(sku, type) {
-        let typeName = type === 'systemQty' ? 'System QTY' : 'Scanned QTY';
+        let typeName = 'Quantity';
+        if (type === 'systemQty') typeName = 'System QTY';
+        else if (type === 'scannedQty') typeName = 'Scanned QTY';
+        else if (type === 'pendingQty') typeName = 'Pending QTY';
         
         if (type === 'systemQty') {
             let item = inventory[sku];
@@ -1872,7 +2240,7 @@
             }
         }
         
-        let currentQty = inventory[sku][type];
+        let currentQty = inventory[sku][type] || 0;
         const confirmed = await customConfirm(`Are you sure you want to manually edit the ${typeName} for SKU ${sku}?`);
         
         if (confirmed) {
@@ -1919,15 +2287,14 @@
             inventory = {}; systemDataEncoded = false; hasWarnedNoSystemData = false; auditLog = []; fastScanQueue = []; uploadedRawData = []; currentFileType = null; isLensesFilterActive = true;
             document.getElementById('queueCount').innerText = "0"; document.getElementById('fastScanTrailBox').style.display = 'none'; document.getElementById('dynamicFilters').style.display = 'none';
             
-            // Force reset items per page
             itemsPerPage = '100';
             document.getElementById('pageSize').value = '100';
             
-            // CLEAR THE TEXTAREA AND FILE UPLOAD
             document.getElementById('pasteArea').value = '';
             document.getElementById('sysDataUpload').value = '';
+            document.getElementById('pendingDataUpload').value = '';
 
-            resetFilterUI(); document.getElementById('slocFilterUI').value = '1000'; // Defaulting filter back to 1000 here
+            resetFilterUI(); document.getElementById('slocFilterUI').value = '1000'; 
             
             const btn = document.getElementById('btnToggleLenses');
             btn.innerText = "Unhide CL & OL"; btn.style.backgroundColor = "var(--surface-color)"; btn.style.color = "var(--text-primary)"; btn.style.borderColor = "var(--border-color)";
@@ -1943,8 +2310,8 @@
         const tbody = document.querySelector('#resultsTable tbody');
         tbody.innerHTML = ''; thead.innerHTML = ''; 
         
-        let totalSys = 0; let totalScan = 0; let totalMiss = 0; let totalExt = 0;
-        let showDescriptionColumn = false; let showSlocColumn = false;
+        let totalSys = 0; let totalScan = 0; let totalMiss = 0; let totalExt = 0; let totalPending = 0;
+        let showDescriptionColumn = false; let showSlocColumn = false; let showPendingColumn = false;
 
         const filteredArray = [];
         let slocDropdownVal = document.getElementById('slocFilterUI').value;
@@ -1952,26 +2319,31 @@
         let hasSlocData = false;
         for (let sku in inventory) {
             if (isLensesFilterActive && inventory[sku].isLens) continue; 
-            if (inventory[sku].sloc && inventory[sku].sloc !== "" && inventory[sku].sloc !== "Scanned") {
-                hasSlocData = true; showSlocColumn = true; break;
+            if (inventory[sku].sloc && inventory[sku].sloc !== "" && inventory[sku].sloc !== "Scanned" && inventory[sku].sloc !== "Pending") {
+                hasSlocData = true; showSlocColumn = true;
+            }
+            if (inventory[sku].pendingQty && inventory[sku].pendingQty > 0) {
+                showPendingColumn = true;
             }
         }
         document.getElementById('slocFilterUI').style.display = hasSlocData ? 'inline-block' : 'none';
         
-        // Safeguard to ensure files uploaded without SLOCs do not have their rows unintentionally hidden by the '1000' value
         if (!hasSlocData) slocDropdownVal = 'ALL';
 
         for (let sku in inventory) {
             let item = inventory[sku];
             if (isLensesFilterActive && item.isLens) continue;
 
-            let diff = item.scannedQty - item.systemQty;
+            let diff = (item.scannedQty + (item.pendingQty || 0)) - item.systemQty;
 
-            totalSys += item.systemQty; totalScan += item.scannedQty;
+            totalSys += item.systemQty; 
+            totalScan += item.scannedQty;
+            totalPending += (item.pendingQty || 0);
+
             if (diff < 0) totalMiss += Math.abs(diff);
             if (diff > 0) totalExt += diff;
 
-            if (slocDropdownVal !== 'ALL') { let itemSloc = item.sloc || ""; if (itemSloc !== "Scanned" && !itemSloc.includes(slocDropdownVal)) continue; }
+            if (slocDropdownVal !== 'ALL') { let itemSloc = item.sloc || ""; if (itemSloc !== "Scanned" && itemSloc !== "Pending" && !itemSloc.includes(slocDropdownVal)) continue; }
             if (currentFilter === 'DISCREPANCIES' && diff === 0) continue;
             if (currentFilter === 'MISSING' && diff >= 0) continue;
             if (currentFilter === 'EXTRA' && diff <= 0) continue;
@@ -1992,6 +2364,13 @@
         document.getElementById('dashMissing').innerText = totalMiss;
         document.getElementById('dashExtra').innerText = totalExt;
 
+        if (showPendingColumn) {
+            document.getElementById('dashCardPending').style.display = 'flex';
+            document.getElementById('dashPending').innerText = totalPending;
+        } else {
+            document.getElementById('dashCardPending').style.display = 'none';
+        }
+
         let headerRow = document.createElement('tr');
         headerRow.innerHTML = `
             <th style="border-radius: var(--radius-lg) 0 0 0;">NO.</th>
@@ -2000,6 +2379,7 @@
             ${showSlocColumn ? '<th>SLOC</th>' : ''}
             <th>System QTY</th>
             <th>Scanned QTY</th>
+            ${showPendingColumn ? '<th>Pending QTY</th>' : ''}
             <th>Difference</th>
             <th>Status</th>
             <th style="text-align: center; border-radius: 0 var(--radius-lg) 0 0;">Action</th>
@@ -2040,230 +2420,4 @@
             }
 
             if (q1000 > 0) parts.push(`<span style="color: var(--accent-green); font-weight: 600;">${q1000}</span>`);
-            if (q4000 > 0) parts.push(`<span style="color: var(--accent-red); font-weight: 600;">${q4000}</span>`);
-            if (qOther > 0) parts.push(`<span style="color: var(--text-primary); font-weight: 600;">${qOther}</span>`);
-            if (parts.length === 0) sysQtyHtml = `<span style="color: var(--text-primary); font-weight: 600;">0</span>`;
-            else sysQtyHtml = parts.join(' <span style="color:var(--text-secondary); font-size:11px; font-weight:600;">+</span> ');
-
-            let displaySloc = (item.sloc || '').split(', ').map(s => {
-                if (s === '1000') return '<span style="color: var(--accent-green); font-weight: 600;">1000</span>';
-                if (s === '4000') return '<span style="color: var(--accent-red); font-weight: 600;">4000</span>';
-                return s;
-            }).join('<span style="color: var(--text-secondary);">, </span>');
-
-            let tr = document.createElement('tr');
-            tr.className = rowClass;
-            tr.id = `row-${item.sku}`; 
-            
-            tr.innerHTML = `
-                <td style="color: var(--text-secondary);">${counter}</td>
-                <td style="font-weight: 500;">${item.sku}</td>
-                ${showDescriptionColumn ? `<td style="color: var(--text-secondary);">${item.description || ''}</td>` : ''}
-                ${showSlocColumn ? `<td>${displaySloc}</td>` : ''}
-                <td>
-                    <div class="qty-container">
-                        <span>${sysQtyHtml}</span>
-                        <button class="btn-edit" onclick="editQuantity('${item.sku}', 'systemQty')" title="Edit System QTY">
-                            <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
-                        </button>
-                    </div>
-                </td>
-                <td>
-                    <div class="qty-container">
-                        <span style="font-weight:600;">${item.scannedQty}</span>
-                        <button class="btn-edit" onclick="editQuantity('${item.sku}', 'scannedQty')" title="Edit Scanned QTY">
-                            <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
-                        </button>
-                    </div>
-                </td>
-                <td><strong style="color: ${diffColor};">${item.diff}</strong></td>
-                <td><strong style="color: ${statusColor}; font-weight: 600;">${statusText}</strong></td>
-                <td style="text-align: center;">
-                    <button class="btn-delete" onclick="deleteRow('${item.sku}')" title="Delete Row">
-                        <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
-                    </button>
-                </td>
-            `;
-            tbody.appendChild(tr);
-            counter++;
-        });
-
-        document.getElementById('btnNextPage').onclick = function() {
-            if (currentPage < totalPages) { currentPage++; renderTable(); }
-        };
-        setTimeout(updateStickyHeaders, 10);
-    }
-
-    function exportPDF() {
-        if (Object.keys(inventory).length === 0) { customAlert("There is no data to print yet.", "Print Error"); return; }
-        let oldSize = itemsPerPage; itemsPerPage = 'All'; renderTable(); 
-        document.getElementById('printDate').innerText = new Date().toLocaleDateString();
-        document.getElementById('printTime').innerText = new Date().toLocaleTimeString();
-        setTimeout(() => { window.print(); itemsPerPage = oldSize; renderTable(); }, 300);
-    }
-
-    async function exportToCSV() {
-        if (Object.keys(inventory).length === 0) { await customAlert("No data to save!", "Export Error"); return; }
-        let defaultName = `SavedSession_${new Date().toISOString().split('T')[0]}`;
-        let fileName = await customPrompt("Enter a name for your save file:", defaultName, "Save File");
-        if (!fileName) return; 
-        if (!fileName.toLowerCase().endsWith('.csv')) fileName += '.csv';
-
-        let hasDescriptions = false; let hasSlocs = false;
-        for (let sku in inventory) {
-            if (isLensesFilterActive && inventory[sku].isLens) continue; 
-            if (inventory[sku].description && inventory[sku].description.trim() !== "") hasDescriptions = true;
-            if (inventory[sku].sloc && inventory[sku].sloc.trim() !== "" && inventory[sku].sloc !== "Scanned") hasSlocs = true;
-        }
-
-        let csvContent = "";
-        let headers = ["Item # (SKU)"];
-        if (hasDescriptions) headers.push("Description");
-        if (hasSlocs) headers.push("SLOC");
-        
-        if (hasSlocs) { headers.push("System QTY (Total)", "Sys QTY 1000", "Sys QTY 4000", "Scanned QTY", "Difference", "Status"); } 
-        else { headers.push("System QTY", "Scanned QTY", "Difference", "Status"); }
-        
-        csvContent += headers.join(",") + "\n";
-
-        for (let sku in inventory) {
-            let item = inventory[sku];
-            if (isLensesFilterActive && item.isLens) continue;
-
-            let diff = item.scannedQty - item.systemQty;
-            let statusText = '';
-            if (diff === 0) statusText = 'Matched';
-            else if (diff < 0) statusText = 'Missing Stock';
-            else statusText = item.systemQty === 0 ? 'Not in system' : 'Extra Stock';
-            
-            let row = [sku];
-            if (hasDescriptions) {
-                let safeDesc = item.description ? item.description.replace(/"/g, '""') : '';
-                row.push(`"${safeDesc}"`);
-            }
-            if (hasSlocs) row.push(item.sloc || "");
-            
-            if (hasSlocs) row.push(item.systemQty, (item.sysQty1000 || 0), (item.sysQty4000 || 0), item.scannedQty, diff, statusText);
-            else row.push(item.systemQty, item.scannedQty, diff, statusText);
-            
-            csvContent += row.join(",") + "\n";
-        }
-
-        // Use Blob instead of encodeURI for reliable export
-        const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8;' });
-        const url = URL.createObjectURL(blob);
-        
-        const link = document.createElement("a");
-        link.setAttribute("href", url);
-        link.setAttribute("download", fileName);
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(url);
-    }
-    
-    // --- LOAD SAVED SESSION FUNCTION ---
-    async function loadFromFile(event) {
-        const file = event.target.files ? event.target.files[0] : null;
-        if (!file) return;
-
-        const reader = new FileReader();
-        reader.onload = async function(e) {
-            try {
-                let text = e.target.result;
-                let lines = text.split(/\r?\n/);
-                let delim = text.indexOf('\t') !== -1 ? '\t' : ',';
-                
-                if (lines.length === 0) return;
-                
-                let headers = parseCSVLine(lines[0], delim).map(h => h ? h.trim() : '');
-                
-                let skuCol = headers.indexOf("Item # (SKU)");
-                let descCol = headers.indexOf("Description");
-                let slocCol = headers.indexOf("SLOC");
-                let sysQtyTotalCol = headers.indexOf("System QTY (Total)");
-                if (sysQtyTotalCol === -1) sysQtyTotalCol = headers.indexOf("System QTY");
-                let sys1000Col = headers.indexOf("Sys QTY 1000");
-                let sys4000Col = headers.indexOf("Sys QTY 4000");
-                let scanQtyCol = headers.indexOf("Scanned QTY");
-
-                if (skuCol === -1 || scanQtyCol === -1) {
-                    await customAlert("Invalid file format. Please make sure you are loading a file generated by the 'Save Data' button.", "Load Error");
-                    event.target.value = '';
-                    return;
-                }
-
-                const confirmed = await customConfirm("Loading this session will replace your current on-screen data. Do you want to continue?", "Load Saved Data");
-                if (!confirmed) {
-                    event.target.value = '';
-                    return;
-                }
-
-                saveState();
-                let newInventory = {};
-                
-                for (let i = 1; i < lines.length; i++) {
-                    if (!lines[i].trim()) continue;
-                    let row = parseCSVLine(lines[i], delim);
-                    if (row.length < 2) continue;
-
-                    let sku = row[skuCol] ? row[skuCol].trim().replace(/^0+/, '') : '';
-                    if (!sku || sku === "0") continue;
-
-                    let desc = descCol !== -1 && row[descCol] ? row[descCol].replace(/^"|"$/g, '').trim() : '';
-                    let sloc = slocCol !== -1 && row[slocCol] ? row[slocCol].trim() : '';
-                    
-                    let sysQty = sysQtyTotalCol !== -1 && row[sysQtyTotalCol] ? Math.round(parseFloat(row[sysQtyTotalCol].replace(/,/g, ''))) : 0;
-                    if (isNaN(sysQty)) sysQty = 0;
-                    
-                    let sys1000 = sys1000Col !== -1 && row[sys1000Col] ? Math.round(parseFloat(row[sys1000Col].replace(/,/g, ''))) : 0;
-                    if (isNaN(sys1000)) sys1000 = 0;
-                    
-                    let sys4000 = sys4000Col !== -1 && row[sys4000Col] ? Math.round(parseFloat(row[sys4000Col].replace(/,/g, ''))) : 0;
-                    if (isNaN(sys4000)) sys4000 = 0;
-                    
-                    let scanQty = scanQtyCol !== -1 && row[scanQtyCol] ? Math.round(parseFloat(row[scanQtyCol].replace(/,/g, ''))) : 0;
-                    if (isNaN(scanQty)) scanQty = 0;
-
-                    let isLens = isExcludedItem(lines[i], desc, "");
-
-                    newInventory[sku] = {
-                        description: desc,
-                        systemQty: sysQty,
-                        sysQty1000: sys1000,
-                        sysQty4000: sys4000,
-                        sysQtyOther: Math.max(0, sysQty - sys1000 - sys4000),
-                        scannedQty: scanQty,
-                        sloc: sloc,
-                        isLens: isLens
-                    };
-                }
-
-                inventory = newInventory;
-                systemDataEncoded = true;
-                hasWarnedNoSystemData = true;
-                auditLog = []; 
-                fastScanQueue = [];
-                document.getElementById('queueCount').innerText = "0";
-                
-                document.getElementById('dynamicFilters').style.display = 'none';
-
-                resetFilterUI();
-                await saveData();
-                renderTable();
-                
-                await customAlert(`Successfully loaded ${Object.keys(inventory).length} items.`, "Load Success");
-                event.target.value = '';
-                
-            } catch (error) {
-                console.error(error);
-                await customAlert("There was an error parsing the save file: " + error.message, "Load Error");
-                event.target.value = '';
-            }
-        };
-        reader.readAsText(file);
-    }
-</script>
-
-</body>
-</html>
+            if (q4000 > 0) parts.push(`<span style="color: var(--accent-red); font-weight: 6
