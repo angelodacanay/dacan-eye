@@ -2640,7 +2640,7 @@
             <th>System QTY</th>
             <th>Scanned QTY</th>
             ${showPendingColumn ? '<th>Pending QTY</th>' : ''}
-            <th>Difference</th>
+            <th>Variance</th>
             <th>Status</th>
             <th style="text-align: center; border-radius: 0 var(--radius-lg) 0 0;">Action</th>
         `;
@@ -2758,12 +2758,48 @@
         if (!fileName.toLowerCase().endsWith('.csv')) fileName += '.csv';
 
         let hasDescriptions = false; let hasSlocs = false; let hasPending = false;
+        
+        let exportData = [];
         for (let sku in inventory) {
-            if (isLensesFilterActive && inventory[sku].isLens) continue; 
-            if (inventory[sku].description && inventory[sku].description.trim() !== "") hasDescriptions = true;
-            if (inventory[sku].sloc && inventory[sku].sloc.trim() !== "" && inventory[sku].sloc !== "Scanned" && inventory[sku].sloc !== "Pending") hasSlocs = true;
-            if (inventory[sku].pendingQty && inventory[sku].pendingQty > 0) hasPending = true;
+            let item = inventory[sku];
+            if (item.description && item.description.trim() !== "") hasDescriptions = true;
+            if (item.sloc && item.sloc.trim() !== "" && item.sloc !== "Scanned" && item.sloc !== "Pending") hasSlocs = true;
+            if (item.pendingQty && item.pendingQty > 0) hasPending = true;
+            exportData.push({ sku: sku, ...item });
         }
+
+        exportData.sort((a, b) => {
+            let getSortKeys = (item) => {
+                let descRaw = item.description || "";
+                let upperDesc = descRaw.toUpperCase();
+                let catRank = 3; 
+                let { category, brand } = extractBrandAndCategory(descRaw);
+
+                if (category === 'SPX') catRank = 1;
+                else if (category === 'SUN') catRank = 2;
+                else if (item.isLens) {
+                    let clKeywords = ['CL;', 'CLCP', 'CLSP', 'CONTACT LENS', 'DAILIES', 'ACUVUE', 'BELLA', 'FRESHLOOK', 'ALCON', 'SOFLENS', 'JOHNSON', 'TRUEYE', 'OASYS', 'BIOTRUE', 'CLARITI', 'MYDAY', 'BIOFINITY', 'CS;', 'SP;'];
+                    let isCL = clKeywords.some(kw => upperDesc.includes(kw));
+                    if (isCL) {
+                        catRank = 5; 
+                    } else {
+                        catRank = 4; 
+                    }
+                }
+                return { catRank, brand };
+            };
+
+            let catA = getSortKeys(a);
+            let catB = getSortKeys(b);
+
+            if (catA.catRank !== catB.catRank) return catA.catRank - catB.catRank;
+
+            let brandA = catA.brand.toLowerCase();
+            let brandB = catB.brand.toLowerCase();
+            if (brandA !== brandB) return brandA.localeCompare(brandB);
+
+            return a.sku.localeCompare(b.sku);
+        });
 
         let csvContent = "";
         let headers = ["Item # (SKU)"];
@@ -2771,37 +2807,37 @@
         if (hasSlocs) headers.push("SLOC");
         
         if (hasSlocs) { 
-            headers.push("System QTY (Total)", "Sys QTY 1000", "Sys QTY 4000", "Scanned QTY");
+            headers.push("System QTY (Total)", "Sys QTY 1000", "Sys QTY 4000");
         } else { 
-            headers.push("System QTY", "Scanned QTY");
+            headers.push("System QTY");
         }
         
+        headers.push("Scanned QTY");
         if (hasPending) headers.push("Pending QTY");
         
-        headers.push("Difference", "Status");
+        headers.push("Variance", "Status");
         
         csvContent += headers.join(",") + "\n";
 
-        for (let sku in inventory) {
-            let item = inventory[sku];
-            if (isLensesFilterActive && item.isLens) continue;
-
+        for (let i = 0; i < exportData.length; i++) {
+            let item = exportData[i];
             let diff = (item.scannedQty + (item.pendingQty || 0)) - item.systemQty;
             let statusText = '';
             if (diff === 0) statusText = 'Matched';
             else if (diff < 0) statusText = 'Missing Stock';
             else statusText = item.systemQty === 0 ? 'Not in system' : 'Extra Stock';
             
-            let row = [sku];
+            let row = [item.sku];
             if (hasDescriptions) {
                 let safeDesc = item.description ? item.description.replace(/"/g, '""') : '';
                 row.push(`"${safeDesc}"`);
             }
             if (hasSlocs) row.push(item.sloc || "");
             
-            if (hasSlocs) row.push(item.systemQty, (item.sysQty1000 || 0), (item.sysQty4000 || 0), item.scannedQty);
-            else row.push(item.systemQty, item.scannedQty);
+            if (hasSlocs) row.push(item.systemQty, (item.sysQty1000 || 0), (item.sysQty4000 || 0));
+            else row.push(item.systemQty);
             
+            row.push(item.scannedQty);
             if (hasPending) row.push(item.pendingQty || 0);
             
             row.push(diff, statusText);
