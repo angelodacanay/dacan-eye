@@ -1884,19 +1884,40 @@
                 await processArrayOfArrays(aoa, event);
             } catch (err) {
                 console.error("SheetJS error:", err);
-                try {
-                    let text = new TextDecoder("utf-8").decode(new Uint8Array(e.target.result));
-                    if(text.includes('<table') || text.includes('\t') || text.includes(',')) {
-                         const workbook = XLSX.read(text, {type: 'string'});
-                         const aoa = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], {header: 1, defval: ""});
-                         await processArrayOfArrays(aoa, event);
-                         return;
+                const textReader = new FileReader();
+                textReader.onload = async function(textEvent) {
+                    try {
+                        let text = textEvent.target.result;
+                        if(text.includes('<table')) {
+                            const htmlDoc = new DOMParser().parseFromString(text, 'text/html');
+                            const table = htmlDoc.querySelector('table');
+                            if (table) {
+                                const workbook = XLSX.utils.table_to_book(table);
+                                const aoa = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], {header: 1, defval: ""});
+                                await processArrayOfArrays(aoa, event);
+                                return;
+                            }
+                        }
+                        let aoa = [];
+                        let lines = text.split(/\r?\n/);
+                        let delim = text.indexOf('\t') !== -1 ? '\t' : ',';
+                        for(let i=0; i<lines.length; i++) {
+                            let line = lines[i];
+                            if(!line.trim()) continue;
+                            aoa.push(parseCSVLine(line, delim));
+                        }
+                        if (aoa.length > 0) {
+                            await processArrayOfArrays(aoa, event);
+                        } else {
+                            throw new Error("Empty parsing result");
+                        }
+                    } catch(e2) {
+                        console.error("Fallback parsing failed:", e2);
+                        await customAlert("There was an error parsing the spreadsheet. Ensure the file is not corrupted. Tip: Open the file, save it as a .CSV, and try uploading again.", "File Error");
+                        if(event.target) event.target.value = '';
                     }
-                } catch(e2) {
-                    console.error(e2);
-                }
-                await customAlert("There was an error parsing the spreadsheet. Ensure the file is not corrupted. Tip: Open the file, save it as a .CSV, and try uploading again.", "File Error");
-                if(event.target) event.target.value = '';
+                };
+                textReader.readAsText(file); 
             }
         };
         reader.readAsArrayBuffer(file);
@@ -2139,19 +2160,40 @@
                 await processPendingArrayOfArrays(aoa, event);
             } catch (err) {
                 console.error("SheetJS error:", err);
-                try {
-                    let text = new TextDecoder("utf-8").decode(new Uint8Array(e.target.result));
-                    if(text.includes('<table') || text.includes('\t') || text.includes(',')) {
-                         const workbook = XLSX.read(text, {type: 'string'});
-                         const aoa = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], {header: 1, defval: ""});
-                         await processPendingArrayOfArrays(aoa, event);
-                         return;
+                const textReader = new FileReader();
+                textReader.onload = async function(textEvent) {
+                    try {
+                        let text = textEvent.target.result;
+                        if(text.includes('<table')) {
+                            const htmlDoc = new DOMParser().parseFromString(text, 'text/html');
+                            const table = htmlDoc.querySelector('table');
+                            if (table) {
+                                const workbook = XLSX.utils.table_to_book(table);
+                                const aoa = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], {header: 1, defval: ""});
+                                await processPendingArrayOfArrays(aoa, event);
+                                return;
+                            }
+                        }
+                        let aoa = [];
+                        let lines = text.split(/\r?\n/);
+                        let delim = text.indexOf('\t') !== -1 ? '\t' : ',';
+                        for(let i=0; i<lines.length; i++) {
+                            let line = lines[i];
+                            if(!line.trim()) continue;
+                            aoa.push(parseCSVLine(line, delim));
+                        }
+                        if (aoa.length > 0) {
+                            await processPendingArrayOfArrays(aoa, event);
+                        } else {
+                            throw new Error("Empty parsing result");
+                        }
+                    } catch(e2) {
+                        console.error("Fallback parsing failed:", e2);
+                        await customAlert("There was an error parsing the spreadsheet. Ensure the file is not corrupted.", "File Error");
+                        if(event.target) event.target.value = '';
                     }
-                } catch(e2) {
-                    console.error(e2);
-                }
-                await customAlert("There was an error parsing the spreadsheet. Ensure the file is not corrupted.", "File Error");
-                if(event.target) event.target.value = '';
+                };
+                textReader.readAsText(file);
             }
         };
         reader.readAsArrayBuffer(file);
