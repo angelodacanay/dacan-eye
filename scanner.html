@@ -582,7 +582,7 @@
 
 <script>
     let inventory = {};
-    let pendingParsedRows = []; 
+    let pendingRawData = []; 
     
     let uploadedRawData = []; 
     let currentFileType = null;
@@ -614,15 +614,17 @@
         let brand = "UNKNOWN";
         if (!desc) return { category, brand };
 
+        // Robust check: strip leading spaces, quotes, and tabs before evaluating prefix
+        let cleanDesc = desc.replace(/^['"\s\t]+/, '').toUpperCase();
+
+        if (cleanDesc.startsWith('S;')) category = 'SUN';
+        else if (cleanDesc.startsWith('O;')) category = 'SPX';
+        else if (cleanDesc.startsWith('OA;')) category = 'OTHERS';
+
         let parts = desc.split(';');
         if (parts.length >= 2) {
-            let prefix = parts[0].trim().toUpperCase();
-            if (prefix === 'S') category = 'SUN';
-            else if (prefix === 'O') category = 'SPX';
-            else if (prefix === 'OA') category = 'OTHERS';
-            else category = 'OTHERS';
-
-            if (category === 'SUN' || category === 'SPX' || prefix === 'OA') {
+            let possiblePrefix = parts[0].replace(/^['"\s\t]+/, '').toUpperCase();
+            if (possiblePrefix === 'S' || possiblePrefix === 'O' || possiblePrefix === 'OA') {
                 brand = parts[1].trim().toUpperCase();
             }
         }
@@ -631,7 +633,8 @@
 
     function normalizeDescription(desc) {
         if (!desc) return desc;
-        let parts = desc.split(';');
+        let cleanDesc = desc.replace(/^['"\s\t]+/, '');
+        let parts = cleanDesc.split(';');
         if (parts.length >= 2) {
             let prefix = parts[0].trim().toUpperCase();
             if (prefix === 'S' || prefix === 'O' || prefix === 'OA') {
@@ -663,12 +666,13 @@
     }
 
     function isExcludedItem(fullRowText, descRaw, merchRaw) {
-        let cleanDesc = (descRaw || "").replace(/['"]/g, '').trim();
+        let cleanDesc = (descRaw || "").replace(/^['"\s\t]+/, '').trim();
         let lowerDesc = cleanDesc.toLowerCase();
         let upperDesc = cleanDesc.toUpperCase();
         let upperMerch = (merchRaw || "").replace(/['"]/g, '').toUpperCase().trim();
         let lowerRow = fullRowText.toLowerCase();
 
+        // Guaranteed to exempt S; and O; logic
         if (upperDesc.startsWith('S;') || upperDesc.startsWith('O;') || upperDesc.startsWith('OA;')) {
             return false;
         }
@@ -952,7 +956,7 @@
             if (!inventory[skuRaw]) {
                 inventory[skuRaw] = { 
                     description: "Manually Encoded", systemQty: 0, sysQty1000: 0, sysQty4000: 0, 
-                    sysQtyOther: 0, scannedQty: 0, pendingQty: 0, sloc: 'Scanned', isLens: false
+                    sysQtyOther: 0, scannedQty: 0, pendingQty: 0, sloc: 'Scanned', isLens: false, bins: []
                 };
                 errorCount++;
                 appendAuditLog(skuRaw, true, qty);
@@ -1084,6 +1088,17 @@
         document.getElementById('tableSearchInput').value = '';
     }
 
+    function filterHistoryBySkuAndBin(sku, bin) {
+        const auditBox = document.getElementById('auditTrailBox');
+        if (auditBox && auditBox.style.display === 'none') {
+            toggleAuditTrail();
+        }
+        const searchInput = document.getElementById('historySearchInput');
+        searchInput.value = `bin:${bin} sku:${sku}`;
+        renderAuditTrail();
+        window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
     // --- CHROME EXTENSION STORAGE WRAPPER ---
     function getCurrentState() {
         return {
@@ -1092,6 +1107,7 @@
             hasWarnedNoSystemData,
             auditLog: JSON.parse(JSON.stringify(auditLog)),
             uploadedRawData: JSON.parse(JSON.stringify(uploadedRawData)),
+            pendingRawData: JSON.parse(JSON.stringify(pendingRawData)),
             currentFileType,
             isLensesFilterActive,
             currentBin,
@@ -1116,6 +1132,20 @@
         } else {
             localStorage.setItem('posInventoryState', JSON.stringify(payload));
         }
+    }
+
+    function rebuildSkuBins() {
+        for (let sku in inventory) {
+            inventory[sku].bins = [];
+        }
+        auditLog.forEach(log => {
+            if (inventory[log.sku]) {
+                if (!inventory[log.sku].bins) inventory[log.sku].bins = [];
+                if (!inventory[log.sku].bins.includes(log.bin)) {
+                    inventory[log.sku].bins.push(log.bin);
+                }
+            }
+        });
     }
 
     async function loadData() {
@@ -1174,6 +1204,7 @@
         hasWarnedNoSystemData = state.hasWarnedNoSystemData || false;
         auditLog = state.auditLog || [];
         uploadedRawData = state.uploadedRawData || [];
+        pendingRawData = state.pendingRawData || [];
         currentFileType = state.currentFileType || null;
         isLensesFilterActive = state.isLensesFilterActive !== undefined ? state.isLensesFilterActive : true;
         
@@ -1191,6 +1222,9 @@
             if (!log.id) log.id = Date.now().toString() + Math.floor(Math.random() * 100000).toString() + i.toString();
         });
 
+        // Ensure bins are perfectly mapped after loading old state
+        rebuildSkuBins();
+
         currentPage = state.currentPage || 1;
         itemsPerPage = state.itemsPerPage || '100'; 
         currentFilter = state.currentFilter || 'ALL';
@@ -1206,7 +1240,7 @@
         let activeFilterBtn = document.querySelector(`.filter-btn[onclick*="'${currentFilter}'"]`);
         if(activeFilterBtn) activeFilterBtn.classList.add('active');
 
-        if (uploadedRawData.length > 0 && currentFileType) {
+        if (uploadedRawData.length > 0 || pendingRawData.length > 0) {
             document.getElementById('dynamicFilters').style.display = 'flex'; 
             
             if (currentFileType === 'INTRANSIT') {
@@ -1341,6 +1375,7 @@
             if (!binTotals[currentBin]) binTotals[currentBin] = 0;
             if (!binCounters[currentBin]) binCounters[currentBin] = 0;
             
+            rebuildSkuBins();
             await saveData();
             renderTable();
             renderAuditTrail();
@@ -1373,6 +1408,7 @@
             
             auditLog.splice(logIndex, 1);
             
+            rebuildSkuBins();
             await saveData();
             renderTable();
             renderAuditTrail();
@@ -1406,7 +1442,7 @@
         if (!inventory[newSku]) {
             inventory[newSku] = { 
                 description: "Manually Edited", systemQty: 0, sysQty1000: 0, sysQty4000: 0, 
-                sysQtyOther: 0, scannedQty: 0, pendingQty: 0, sloc: 'Scanned', isLens: false
+                sysQtyOther: 0, scannedQty: 0, pendingQty: 0, sloc: 'Scanned', isLens: false, bins: []
             };
             isError = true;
             showErrorToast(`⚠️ SKU ${newSku} is NOT in the encoded list!`);
@@ -1421,6 +1457,7 @@
         log.isError = isError;
         log.desc = inventory[newSku].description;
         
+        rebuildSkuBins();
         await saveData();
         renderTable();
         renderAuditTrail();
@@ -1475,10 +1512,17 @@
         let currentLine = binCounters[currentBin];
         
         auditLog.unshift({ id: logId, time: timeStr, sku: sku, desc: desc, isError: isError, bin: currentBin, binLine: currentLine, qty: qty });
-        if(auditLog.length > 1000) auditLog.pop(); 
+        if(auditLog.length > 50000) auditLog.pop(); 
         
         if (!binTotals[currentBin]) binTotals[currentBin] = 0;
         binTotals[currentBin] += qty;
+
+        if (inventory[sku]) {
+            if (!inventory[sku].bins) inventory[sku].bins = [];
+            if (!inventory[sku].bins.includes(currentBin)) {
+                inventory[sku].bins.push(currentBin);
+            }
+        }
         
         renderAuditTrail();
 
@@ -1497,10 +1541,33 @@
 
         let filteredLog = auditLog;
         if (searchQuery) {
-            filteredLog = auditLog.filter(log => log.sku.toLowerCase().includes(searchQuery) || log.desc.toLowerCase().includes(searchQuery));
+            if (searchQuery.includes('bin:') && searchQuery.includes('sku:')) {
+                let bMatch = searchQuery.match(/bin:(\d+)/);
+                let sMatch = searchQuery.match(/sku:([\w\d-]+)/);
+                let binTarget = bMatch ? parseInt(bMatch[1]) : null;
+                let skuTarget = sMatch ? sMatch[1] : null;
+
+                filteredLog = auditLog.filter(log => {
+                    return log.bin === binTarget && log.sku.toLowerCase() === skuTarget;
+                });
+            } else {
+                let isBinSearch = searchQuery.startsWith('bin ');
+                let binTarget = isBinSearch ? parseInt(searchQuery.replace('bin ', '')) : null;
+
+                filteredLog = auditLog.filter(log => {
+                    if (isBinSearch && !isNaN(binTarget)) return log.bin === binTarget;
+                    return log.sku.toLowerCase().includes(searchQuery) || log.desc.toLowerCase().includes(searchQuery);
+                });
+            }
         }
 
-        if(filteredLog.length === 0) {
+        let displayLimit = 300; 
+        let logsToRender = filteredLog;
+        if (!searchQuery && filteredLog.length > displayLimit) {
+            logsToRender = filteredLog.slice(0, displayLimit);
+        }
+
+        if(logsToRender.length === 0) {
             if (searchQuery) {
                 list.innerHTML = '<li style="color:var(--text-secondary); font-style:italic;">No results found...</li>';
             } else {
@@ -1508,7 +1575,7 @@
             }
         } else {
             list.innerHTML = '';
-            filteredLog.forEach(log => {
+            logsToRender.forEach(log => {
                 let li = document.createElement('li');
                 li.style.display = "flex";
                 li.style.alignItems = "center";
@@ -1536,6 +1603,12 @@
                 li.innerHTML = `<div style="flex: 1; word-break: break-all;"><span style="display:inline-block; width:75px; font-weight:bold; color:var(--accent-blue);">Bin ${log.bin || 1} Line ${log.binLine || 1}</span> <span class="audit-time">[${log.time}]</span> Scanned <strong style="color:var(--text-primary);">${log.sku}</strong> <strong style="color:var(--accent-orange); margin-left: 4px;">[${log.qty} QTY]</strong> - ${log.desc} - ${statusSpan}</div> ${actionBtns}`;
                 list.appendChild(li);
             });
+
+            if (!searchQuery && filteredLog.length > displayLimit) {
+                let moreLi = document.createElement('li');
+                moreLi.innerHTML = `<i style="color: var(--text-secondary); font-size: 10px;">...and ${filteredLog.length - displayLimit} older scans hidden to maintain speed. Use the search box to find them!</i>`;
+                list.appendChild(moreLi);
+            }
         }
 
         summaryList.innerHTML = '';
@@ -2055,17 +2128,20 @@
 
                 if (sku === "" || sku === "0" || isNaN(penQty) || penQty === 0) continue;
 
+                descRaw = normalizeDescription(descRaw);
                 let isLens = isExcludedItem(fullRowText, descRaw, merchRaw);
+                let { category, brand } = extractBrandAndCategory(descRaw);
 
-                if (!inventory[sku]) {
-                    inventory[sku] = { 
-                        description: descRaw || "Pending Data", 
-                        systemQty: 0, sysQty1000: 0, sysQty4000: 0, sysQtyOther: 0, 
-                        scannedQty: 0, pendingQty: 0, sloc: slocRaw || 'Pending', isLens: isLens 
-                    };
-                }
+                pendingRawData.push({
+                    sku: sku,
+                    qty: penQty,
+                    desc: descRaw,
+                    sloc: slocRaw,
+                    category: category,
+                    brand: brand,
+                    isLens: isLens
+                });
                 
-                inventory[sku].pendingQty += penQty;
                 addedCount++;
             }
 
@@ -2077,9 +2153,15 @@
                 return;
             }
 
-            await saveData();
-            renderTable();
-            await customAlert(`Successfully added pending quantities for ${addedCount} items.<br><br>These are now being dynamically added to your Scanned quantities in the calculations.`, "Pending Upload Success");
+            document.getElementById('dynamicFilters').style.display = 'flex'; 
+            if (currentFileType !== 'INTRANSIT') {
+                document.getElementById('mb52Filters').style.display = 'flex';
+                updateBrandDropdown();
+            }
+
+            applyDynamicFilters();
+            
+            await customAlert(`Successfully added pending quantities for ${addedCount} items.<br><br>These are now being dynamically added to your Scanned quantities in the calculations and fully integrated into your smart filters.`, "Pending Upload Success");
             if(event && event.target) event.target.value = '';
             
         } catch (error) {
@@ -2163,13 +2245,17 @@
         let currentBrand = brandSelect.value;
         
         let validBrands = new Set();
-        uploadedRawData.forEach(row => {
+        
+        const processBrand = (row) => {
             if (isLensesFilterActive && row.isLens) return;
 
             if (cat === 'ALL' || row.category === cat) {
                 if (row.brand !== "UNKNOWN") validBrands.add(row.brand);
             }
-        });
+        };
+
+        uploadedRawData.forEach(processBrand);
+        pendingRawData.forEach(processBrand);
 
         brandSelect.innerHTML = '<option value="ALL">ALL BRANDS</option>';
         Array.from(validBrands).sort().forEach(b => {
@@ -2187,6 +2273,7 @@
             inventory[sku].sysQty1000 = 0;
             inventory[sku].sysQty4000 = 0;
             inventory[sku].sysQtyOther = 0;
+            inventory[sku].pendingQty = 0; 
         }
 
         let isIntransit = (currentFileType === 'INTRANSIT');
@@ -2208,10 +2295,11 @@
                 inventory[row.sku] = { 
                     description: row.desc, 
                     systemQty: 0, sysQty1000: 0, sysQty4000: 0, sysQtyOther: 0, 
-                    scannedQty: 0, pendingQty: 0, sloc: row.sloc, isLens: row.isLens 
+                    scannedQty: 0, pendingQty: 0, sloc: row.sloc, isLens: row.isLens, bins: [] 
                 };
             } else {
                 inventory[row.sku].isLens = inventory[row.sku].isLens || row.isLens;
+                if (!inventory[row.sku].description && row.desc) inventory[row.sku].description = row.desc;
             }
 
             inventory[row.sku].systemQty += row.qty;
@@ -2226,13 +2314,39 @@
             }
         });
 
+        pendingRawData.forEach(row => {
+            if (isIntransit) {
+                
+            } else {
+                if (selectedCat !== 'ALL' && row.category !== selectedCat) return;
+                if (selectedBrand !== 'ALL' && row.brand !== selectedBrand) return;
+            }
+
+            if (!inventory[row.sku]) {
+                inventory[row.sku] = { 
+                    description: row.desc, 
+                    systemQty: 0, sysQty1000: 0, sysQty4000: 0, sysQtyOther: 0, 
+                    scannedQty: 0, pendingQty: 0, sloc: row.sloc, isLens: row.isLens, bins: [] 
+                };
+            } else {
+                inventory[row.sku].isLens = inventory[row.sku].isLens || row.isLens;
+                if (!inventory[row.sku].description && row.desc) inventory[row.sku].description = row.desc;
+            }
+
+            inventory[row.sku].pendingQty += row.qty;
+
+            if (!(isLensesFilterActive && row.isLens)) {
+                filteredCount++;
+            }
+        });
+
         for (let sku in inventory) {
             if (inventory[sku].systemQty === 0 && inventory[sku].scannedQty === 0 && (inventory[sku].pendingQty === 0 || !inventory[sku].pendingQty)) {
                 delete inventory[sku];
             }
         }
 
-        systemDataEncoded = (filteredCount > 0);
+        systemDataEncoded = (filteredCount > 0) || uploadedRawData.length > 0 || pendingRawData.length > 0;
         hasWarnedNoSystemData = systemDataEncoded;
 
         saveData();
@@ -2265,7 +2379,6 @@
 
     function closeSlocModal() {
         document.getElementById('slocModal').style.display = 'none';
-        pendingParsedRows = []; 
     }
 
     async function finalizeEncoding(filterType) {
@@ -2309,7 +2422,7 @@
             if (!inventory[sku]) {
                 inventory[sku] = { 
                     description: "Manually Scanned", systemQty: 0, sysQty1000: 0, sysQty4000: 0, 
-                    sysQtyOther: 0, scannedQty: 0, pendingQty: 0, sloc: 'Scanned', isLens: false
+                    sysQtyOther: 0, scannedQty: 0, pendingQty: 0, sloc: 'Scanned', isLens: false, bins: []
                 };
                 isError = true;
                 errorCount++;
@@ -2405,7 +2518,7 @@
             if (!inventory[sku]) {
                 playSound('error');
                 showErrorToast(`⚠️ Alert: SKU ${sku} is NOT in the encoded list!`);
-                inventory[sku] = { description: "Manually Scanned", systemQty: 0, sysQty1000: 0, sysQty4000: 0, sysQtyOther: 0, scannedQty: 0, pendingQty: 0, sloc: 'Scanned', isLens: false };
+                inventory[sku] = { description: "Manually Scanned", systemQty: 0, sysQty1000: 0, sysQty4000: 0, sysQtyOther: 0, scannedQty: 0, pendingQty: 0, sloc: 'Scanned', isLens: false, bins: [] };
                 isError = true;
             } else {
                 playSound('success');
@@ -2462,7 +2575,7 @@
         let typeName = 'Quantity';
         if (type === 'systemQty') typeName = 'System QTY';
         else if (type === 'pendingQty') typeName = 'Pending QTY';
-        else return; // DO NOT ALLOW EDITING SCANNED QTY FROM MAIN TABLE ANYMORE
+        else return; 
         
         if (type === 'systemQty') {
             let item = inventory[sku];
@@ -2540,7 +2653,7 @@
         const confirmed = await customConfirm("Are you sure you want to completely reset the session? ALL scanned data and encoded lists will be permanently deleted.");
         if (confirmed) {
             saveState(); 
-            inventory = {}; systemDataEncoded = false; hasWarnedNoSystemData = false; auditLog = []; fastScanQueue = []; uploadedRawData = []; currentFileType = null; isLensesFilterActive = true;
+            inventory = {}; systemDataEncoded = false; hasWarnedNoSystemData = false; auditLog = []; fastScanQueue = []; uploadedRawData = []; pendingRawData = []; currentFileType = null; isLensesFilterActive = true;
             document.getElementById('queueCount').innerText = "0"; document.getElementById('fastScanTrailBox').style.display = 'none'; document.getElementById('dynamicFilters').style.display = 'none';
             
             currentBin = 1;
@@ -2577,6 +2690,8 @@
         let slocDropdownVal = document.getElementById('slocFilterUI').value;
         
         let hasSlocData = false;
+        let hasScannedData = false;
+
         for (let sku in inventory) {
             if (isLensesFilterActive && inventory[sku].isLens) continue; 
             if (inventory[sku].sloc && inventory[sku].sloc !== "" && inventory[sku].sloc !== "Scanned" && inventory[sku].sloc !== "Pending") {
@@ -2584,6 +2699,9 @@
             }
             if (inventory[sku].pendingQty && inventory[sku].pendingQty > 0) {
                 showPendingColumn = true;
+            }
+            if (inventory[sku].scannedQty && inventory[sku].scannedQty > 0) {
+                hasScannedData = true;
             }
         }
         document.getElementById('slocFilterUI').style.display = hasSlocData ? 'inline-block' : 'none';
@@ -2639,6 +2757,7 @@
             ${showSlocColumn ? '<th>SLOC</th>' : ''}
             <th>System QTY</th>
             <th>Scanned QTY</th>
+            ${hasScannedData ? '<th>Bins</th>' : ''}
             ${showPendingColumn ? '<th>Pending QTY</th>' : ''}
             <th>Variance</th>
             <th>Status</th>
@@ -2692,6 +2811,15 @@
             }).join('<span style="color: var(--text-secondary);">, </span>');
 
             let penQtyValue = item.pendingQty || 0;
+            let binHtml = '';
+            
+            if (hasScannedData) {
+                if (item.bins && item.bins.length > 0) {
+                    binHtml = item.bins.sort((a,b)=>a-b).map(b => `<a href="javascript:void(0)" onclick="filterHistoryBySkuAndBin('${item.sku}', ${b})" style="color:var(--accent-blue); text-decoration:none; font-weight:600; padding:2px; display:inline-block;" title="Click to view history for Bin ${b}">(${b})</a>`).join(' ');
+                } else {
+                    binHtml = `<span style="color:var(--text-secondary); font-size: 10px;">--</span>`;
+                }
+            }
 
             let tr = document.createElement('tr');
             tr.className = rowClass;
@@ -2715,6 +2843,7 @@
                         <span style="font-weight:600;">${item.scannedQty}</span>
                     </div>
                 </td>
+                ${hasScannedData ? `<td>${binHtml}</td>` : ''}
                 ${showPendingColumn ? `
                 <td>
                     <div class="qty-container">
@@ -2812,7 +2941,7 @@
             headers.push("System QTY");
         }
         
-        headers.push("Scanned QTY");
+        headers.push("Scanned QTY", "Bins");
         if (hasPending) headers.push("Pending QTY");
         
         headers.push("Variance", "Status");
@@ -2837,7 +2966,10 @@
             if (hasSlocs) row.push(item.systemQty, (item.sysQty1000 || 0), (item.sysQty4000 || 0));
             else row.push(item.systemQty);
             
-            row.push(item.scannedQty);
+            let binsStr = item.bins && item.bins.length > 0 ? item.bins.sort((a,b)=>a-b).map(b => `(${b})`).join(' ') : '';
+
+            row.push(item.scannedQty, binsStr);
+
             if (hasPending) row.push(item.pendingQty || 0);
             
             row.push(diff, statusText);
@@ -2965,7 +3097,8 @@
                         scannedQty: scanQty,
                         pendingQty: penQty,
                         sloc: sloc,
-                        isLens: isLens
+                        isLens: isLens,
+                        bins: [] 
                     };
 
                     totalScannedLoaded += scanQty;
@@ -2990,6 +3123,7 @@
                 }
                 
                 resetFilterUI();
+                rebuildSkuBins();
                 await saveData();
                 renderTable();
                 renderAuditTrail();
