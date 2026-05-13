@@ -428,7 +428,7 @@
 
             <div class="audit-trail-wrapper" id="auditTrailBox" style="display: none; height: 130px; padding-bottom: 4px;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; padding-bottom: 4px; border-bottom: 1px solid var(--border-color);">
-                    <strong style="color: var(--text-primary); font-size: 11px;">Scan History <span style="color:var(--accent-blue); font-weight:600;">(Current: Bin <span id="currentBinLabel">1</span>)</span></strong>
+                    <strong style="color: var(--text-primary); font-size: 11px;">Scan History <span style="color:var(--accent-blue); font-weight:600;">(Current: Bin <span id="currentBinLabel">A1</span>)</span></strong>
                     <div style="display: flex; align-items: center; gap: 6px;">
                         <input type="text" id="historySearchInput" placeholder="Search Scan History..." oninput="renderAuditTrail()" style="height: 22px; font-size: 10px; padding: 2px 6px; width: 130px; border-radius: 4px; border: 1px solid var(--border-color);">
                         <button class="btn-secondary" onclick="endCurrentBin()" style="height: 22px; font-size: 10px; padding: 0 8px; color: var(--accent-red); border-color: #fecaca; background-color: #fef2f2;">End Scan (Next Bin)</button>
@@ -622,6 +622,16 @@
     let undoStack = [];
     let redoStack = [];
     const MAX_HISTORY = 50;
+
+    // --- ALPHABETICAL BIN TRANSLATOR ENGINE ---
+    function getBinName(num) {
+        let n = parseInt(num);
+        if(isNaN(n)) return num;
+        let letterIndex = (n - 1) % 26;
+        let numberIndex = Math.floor((n - 1) / 26) + 1;
+        let letter = String.fromCharCode(65 + letterIndex);
+        return letter + numberIndex;
+    }
 
     // --- UTILITY & PARSING FUNCTIONS ---
     function extractBrandAndCategory(desc) {
@@ -962,15 +972,20 @@
             line = line.trim();
             if (!line) return;
             
-            let parts = line.split(/\s+/);
+            // Fortified to strip massive tabs correctly if copy-pasted from Excel
+            let parts = line.split(/[\t\s]+/);
             let skuRaw = parts[0].replace(/^0+/, '') || '0';
             if (skuRaw === "" || skuRaw === "0") return;
 
             let qty = 1;
             if (parts.length > 1) {
-                let parsedQty = parseInt(parts[1].replace(/,/g, ''));
-                if (!isNaN(parsedQty) && parsedQty > 0) {
-                    qty = parsedQty;
+                // Find the first valid number after the SKU to use as quantity
+                for (let i = 1; i < parts.length; i++) {
+                    let parsedQty = parseInt(parts[i].replace(/,/g, ''));
+                    if (!isNaN(parsedQty) && parsedQty > 0) {
+                        qty = parsedQty;
+                        break;
+                    }
                 }
             }
 
@@ -1109,13 +1124,19 @@
         document.getElementById('tableSearchInput').value = '';
     }
 
+    function filterHistoryByBin(binId) {
+        const searchInput = document.getElementById('historySearchInput');
+        searchInput.value = `bin:${getBinName(binId)}`;
+        renderAuditTrail();
+    }
+
     function filterHistoryBySkuAndBin(sku, bin) {
         const auditBox = document.getElementById('auditTrailBox');
         if (auditBox && auditBox.style.display === 'none') {
             toggleAuditTrail();
         }
         const searchInput = document.getElementById('historySearchInput');
-        searchInput.value = `bin:${bin} sku:${sku}`;
+        searchInput.value = `bin:${getBinName(bin)} sku:${sku}`;
         renderAuditTrail();
         window.scrollTo({ top: 0, behavior: "smooth" });
     }
@@ -1375,7 +1396,7 @@
     }
 
     async function deleteBin(binNumber) {
-        const confirmed = await customConfirm(`Are you sure you want to completely delete Bin ${binNumber}? This will subtract its scanned quantities from the items.`, "Delete Bin");
+        const confirmed = await customConfirm(`Are you sure you want to completely delete Bin ${getBinName(binNumber)}? This will subtract its scanned quantities from the items.`, "Delete Bin");
         if (confirmed) {
             saveState();
             
@@ -1532,7 +1553,9 @@
     function appendAuditLog(sku, isError, qty = 1) {
         let timeStr = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second:'2-digit'});
         let desc = inventory[sku] && inventory[sku].description ? inventory[sku].description : "Unknown Item";
-        let logId = Date.now().toString() + Math.floor(Math.random() * 10000).toString();
+        
+        // Expanded randomizer to completely prevent rapid looping collisions
+        let logId = Date.now().toString() + Math.floor(Math.random() * 1000000).toString();
         
         if (!binCounters[currentBin]) binCounters[currentBin] = 0;
         binCounters[currentBin]++;
@@ -1562,28 +1585,39 @@
     function renderAuditTrail() {
         const list = document.getElementById('auditList');
         const summaryList = document.getElementById('binSummaryList');
-        document.getElementById('currentBinLabel').innerText = currentBin;
+        document.getElementById('currentBinLabel').innerText = getBinName(currentBin);
         
         let searchQuery = (document.getElementById('historySearchInput') ? document.getElementById('historySearchInput').value.toLowerCase() : '');
 
         let filteredLog = auditLog;
         if (searchQuery) {
-            if (searchQuery.includes('bin:') && searchQuery.includes('sku:')) {
-                let bMatch = searchQuery.match(/bin:(\d+)/);
-                let sMatch = searchQuery.match(/sku:([\w\d-]+)/);
-                let binTarget = bMatch ? parseInt(bMatch[1]) : null;
-                let skuTarget = sMatch ? sMatch[1] : null;
+            let binTargetStr = null;
+            let skuTargetStr = null;
+            
+            if (searchQuery.includes('bin:')) {
+                let match = searchQuery.match(/bin:([a-z0-9]+)/i);
+                if (match) binTargetStr = match[1].toLowerCase();
+            }
+            if (searchQuery.includes('sku:')) {
+                let match = searchQuery.match(/sku:([\w\d-]+)/i);
+                if (match) skuTargetStr = match[1].toLowerCase();
+            }
 
+            if (binTargetStr || skuTargetStr) {
                 filteredLog = auditLog.filter(log => {
-                    return log.bin === binTarget && log.sku.toLowerCase() === skuTarget;
+                    let binMatch = true;
+                    if (binTargetStr) {
+                        binMatch = getBinName(log.bin).toLowerCase() === binTargetStr;
+                    }
+                    let skuMatch = true;
+                    if (skuTargetStr) {
+                        skuMatch = log.sku.toLowerCase() === skuTargetStr;
+                    }
+                    return binMatch && skuMatch;
                 });
             } else {
-                let isBinSearch = searchQuery.startsWith('bin ');
-                let binTarget = isBinSearch ? parseInt(searchQuery.replace('bin ', '')) : null;
-
                 filteredLog = auditLog.filter(log => {
-                    if (isBinSearch && !isNaN(binTarget)) return log.bin === binTarget;
-                    return log.sku.toLowerCase().includes(searchQuery) || log.desc.toLowerCase().includes(searchQuery);
+                    return log.sku.toLowerCase().includes(searchQuery) || log.desc.toLowerCase().includes(searchQuery) || getBinName(log.bin).toLowerCase() === searchQuery;
                 });
             }
         }
@@ -1627,7 +1661,7 @@
                     </div>
                 `;
 
-                li.innerHTML = `<div style="flex: 1; word-break: break-all;"><span style="display:inline-block; width:75px; font-weight:bold; color:var(--accent-blue);">Bin ${log.bin || 1} Line ${log.binLine || 1}</span> <span class="audit-time">[${log.time}]</span> Scanned <strong style="color:var(--text-primary);">${log.sku}</strong> <strong style="color:var(--accent-orange); margin-left: 4px;">[${log.qty} QTY]</strong> - ${log.desc} - ${statusSpan}</div> ${actionBtns}`;
+                li.innerHTML = `<div style="flex: 1; word-break: break-all;"><span style="display:inline-block; width:75px; font-weight:bold; color:var(--accent-blue);">Bin ${getBinName(log.bin)} Line ${log.binLine || 1}</span> <span class="audit-time">[${log.time}]</span> Scanned <strong style="color:var(--text-primary);">${log.sku}</strong> <strong style="color:var(--accent-orange); margin-left: 4px;">[${log.qty} QTY]</strong> - ${log.desc} - ${statusSpan}</div> ${actionBtns}`;
                 list.appendChild(li);
             });
 
@@ -1641,7 +1675,7 @@
         summaryList.innerHTML = '';
         let binKeys = Object.keys(binTotals).map(Number).sort((a,b) => a - b);
         if (binKeys.length === 0) {
-            summaryList.innerHTML = `<li>Bin ${currentBin} = 0 QTY</li>`;
+            summaryList.innerHTML = `<li>Bin ${getBinName(currentBin)} = 0 QTY</li>`;
         } else {
             binKeys.forEach(b => {
                 let li = document.createElement('li');
@@ -1653,8 +1687,8 @@
                 li.style.justifyContent = "space-between";
                 li.style.alignItems = "center";
                 
-                li.innerHTML = `<span>Bin ${b} = ${binTotals[b]} QTY</span>
-                                <button onclick="deleteBin(${b})" style="background:transparent; border:none; cursor:pointer; color:var(--accent-red); padding:0 4px; border-radius:4px;" title="Delete Bin ${b}" onmouseover="this.style.backgroundColor='#fef2f2'" onmouseout="this.style.backgroundColor='transparent'">
+                li.innerHTML = `<span style="cursor:pointer; transition:color 0.1s;" onmouseover="this.style.color='var(--accent-blue)'" onmouseout="this.style.color=''" onclick="filterHistoryByBin(${b})" title="Click to view all items in Bin ${getBinName(b)}"><strong>Bin ${getBinName(b)}</strong> = ${binTotals[b]} QTY</span>
+                                <button onclick="deleteBin(${b})" style="background:transparent; border:none; cursor:pointer; color:var(--accent-red); padding:0 4px; border-radius:4px;" title="Delete Bin ${getBinName(b)}" onmouseover="this.style.backgroundColor='#fef2f2'" onmouseout="this.style.backgroundColor='transparent'">
                                     <svg viewBox="0 0 24 24" width="10" height="10" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
                                 </button>`;
                 summaryList.appendChild(li);
@@ -2850,7 +2884,7 @@
             
             if (hasScannedData) {
                 if (item.bins && item.bins.length > 0) {
-                    binHtml = item.bins.sort((a,b)=>a-b).map(b => `<a href="javascript:void(0)" onclick="filterHistoryBySkuAndBin('${item.sku}', ${b})" style="color:var(--accent-blue); text-decoration:none; font-weight:600; padding:2px; display:inline-block;" title="Click to view history for Bin ${b}">(${b})</a>`).join(' ');
+                    binHtml = item.bins.sort((a,b)=>a-b).map(b => `<a href="javascript:void(0)" onclick="filterHistoryBySkuAndBin('${item.sku}', ${b})" style="color:var(--accent-blue); text-decoration:none; font-weight:600; padding:2px; display:inline-block;" title="Click to view history for Bin ${getBinName(b)}">(${getBinName(b)})</a>`).join(' ');
                 } else {
                     binHtml = `<span style="color:var(--text-secondary); font-size: 10px;">--</span>`;
                 }
@@ -3001,7 +3035,7 @@
             if (hasSlocs) row.push(item.systemQty, (item.sysQty1000 || 0), (item.sysQty4000 || 0));
             else row.push(item.systemQty);
             
-            let binsStr = item.bins && item.bins.length > 0 ? item.bins.sort((a,b)=>a-b).map(b => `(${b})`).join(' ') : '';
+            let binsStr = item.bins && item.bins.length > 0 ? item.bins.sort((a,b)=>a-b).map(b => `(${getBinName(b)})`).join(' ') : '';
 
             row.push(item.scannedQty, binsStr);
 
