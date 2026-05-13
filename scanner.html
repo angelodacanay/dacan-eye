@@ -3052,14 +3052,19 @@
             binTotals: binTotals,
             binCounters: binCounters
         };
+        
+        let colOffset = ",".repeat(headers.length + 9);
+        let emptyRows = "\n".repeat(10);
+        
         try {
             let encodedMeta = btoa(unescape(encodeURIComponent(JSON.stringify(meta))));
-            csvContent += "\n#---SYSTEM_METADATA_START---#\n";
+            csvContent += emptyRows;
+            csvContent += colOffset + "#---SYSTEM_METADATA_START---#\n";
             let chunkSize = 30000;
             for (let i = 0; i < encodedMeta.length; i += chunkSize) {
-                csvContent += encodedMeta.slice(i, i + chunkSize) + "\n";
+                csvContent += colOffset + encodedMeta.slice(i, i + chunkSize) + "\n";
             }
-            csvContent += "#---SYSTEM_METADATA_END---#\n";
+            csvContent += colOffset + "#---SYSTEM_METADATA_END---#\n";
         } catch (e) {
             console.error("Metadata encoding error", e);
         }
@@ -3085,16 +3090,17 @@
             try {
                 let text = e.target.result;
                 
-                let metaMatch = text.match(/#---SYSTEM_METADATA_START---#\r?\n([\s\S]*?)\r?\n#---SYSTEM_METADATA_END---#/);
+                let metaMatch = text.match(/#---SYSTEM_METADATA_START---#\r?\n([\s\S]*?)\r?\n.*?#---SYSTEM_METADATA_END---#/);
                 let loadedMeta = null;
                 if (metaMatch && metaMatch[1]) {
                     try {
-                        let base64str = metaMatch[1].replace(/[\r\n"']/g, "").trim();
+                        let base64str = metaMatch[1].replace(/[\r\n"',\s]/g, "").trim();
                         loadedMeta = JSON.parse(decodeURIComponent(escape(atob(base64str))));
                     } catch(err) { console.error("Metadata parse error", err); }
                 }
                 
-                text = text.replace(/#---SYSTEM_METADATA_START---#[\s\S]*?#---SYSTEM_METADATA_END---#\r?\n?/, '');
+                text = text.replace(/(?:,\s*)*#---SYSTEM_METADATA_START---#[\s\S]*?#---SYSTEM_METADATA_END---#.*\r?\n?/g, '');
+                text = text.trimEnd();
 
                 let lines = text.split(/\r?\n/);
                 let delim = text.indexOf('\t') !== -1 ? '\t' : ',';
