@@ -63,7 +63,22 @@
         .drag-over { background-color: #f0f9ff !important; border: 2px dashed var(--accent-blue) !important; }
         
         .scan-input-wrapper { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; margin-bottom: 6px; }
-        input[type="text"].main-scan { flex: 1; max-width: 250px; min-width: 150px; font-size: 12px; }
+        input[type="text"].main-scan { flex: 1; max-width: 250px; min-width: 150px; font-size: 12px; transition: all 0.2s ease; }
+        
+        /* Subtle blinking animation when input loses focus but data is loaded */
+        @keyframes pulseFocus {
+            0% { box-shadow: 0 0 0 0 rgba(14, 165, 233, 0.4); border-color: var(--border-color); background-color: var(--bg-color); }
+            50% { box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.25); border-color: var(--accent-blue); background-color: #f0f9ff; }
+            100% { box-shadow: 0 0 0 0 rgba(14, 165, 233, 0); border-color: var(--border-color); background-color: var(--bg-color); }
+        }
+        .needs-focus-blink:not(:focus) {
+            animation: pulseFocus 2s infinite ease-in-out;
+        }
+        .needs-focus-blink:not(:focus)::placeholder {
+            color: var(--accent-blue);
+            opacity: 0.8;
+            font-weight: 500;
+        }
         
         .btn, .btn-secondary, .custom-modal-btn { padding: 4px 10px; height: 26px; border-radius: var(--radius-md); cursor: pointer; font-weight: 500; font-size: 11px; display: inline-flex; align-items: center; justify-content: center; gap: 4px; transition: all 0.1s; border: none; outline: none; white-space: nowrap; }
         .btn { background-color: var(--accent-blue); color: #fff; box-shadow: var(--shadow-sm); }
@@ -352,7 +367,7 @@
             </div>
 
             <div class="scan-input-wrapper">
-                <input type="text" id="scanInput" class="main-scan" placeholder="Type or Scan Barcode (Wired or Wireless)" autofocus title="Click here and use your scanner, or manually type a SKU and hit Enter">
+                <input type="text" id="scanInput" class="main-scan" placeholder="Click here to start scanning" autofocus title="Click here and use your scanner, or manually type a SKU and hit Enter">
                 
                 <button class="btn-secondary" onclick="openCamera()" title="Use your device's camera to scan barcodes">
                     <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
@@ -614,7 +629,6 @@
         let brand = "UNKNOWN";
         if (!desc) return { category, brand };
 
-        // Robust check: strip leading spaces, quotes, and tabs before evaluating prefix
         let cleanDesc = desc.replace(/^['"\s\t]+/, '').toUpperCase();
 
         if (cleanDesc.startsWith('S;')) category = 'SUN';
@@ -672,7 +686,6 @@
         let upperMerch = (merchRaw || "").replace(/['"]/g, '').toUpperCase().trim();
         let lowerRow = fullRowText.toLowerCase();
 
-        // Guaranteed to exempt S; and O; logic
         if (upperDesc.startsWith('S;') || upperDesc.startsWith('O;') || upperDesc.startsWith('OA;')) {
             return false;
         }
@@ -727,6 +740,7 @@
         await loadData(); 
         
         const pasteArea = document.getElementById('pasteArea');
+        const scanInp = document.getElementById('scanInput');
         
         pasteArea.addEventListener('dragover', (e) => {
             e.preventDefault();
@@ -751,7 +765,7 @@
             }
         });
 
-        document.getElementById('scanInput').addEventListener('keypress', function(e) {
+        scanInp.addEventListener('keypress', function(e) {
             if (e.key === 'Enter') {
                 let val = this.value;
                 this.value = '';
@@ -763,6 +777,13 @@
                     processScanLogic(val);
                 }
             }
+        });
+        
+        scanInp.addEventListener('blur', () => {
+            if (systemDataEncoded) scanInp.classList.add('needs-focus-blink');
+        });
+        scanInp.addEventListener('focus', () => {
+            scanInp.classList.remove('needs-focus-blink');
         });
     };
 
@@ -1280,6 +1301,12 @@
             btn.style.backgroundColor = "#fef2f2";
             btn.style.color = "var(--accent-red)";
             btn.style.borderColor = "#fecaca";
+        }
+
+        if (systemDataEncoded && document.activeElement !== document.getElementById('scanInput')) {
+            document.getElementById('scanInput').classList.add('needs-focus-blink');
+        } else {
+            document.getElementById('scanInput').classList.remove('needs-focus-blink');
         }
 
         if (!isInitialLoad) saveData();
@@ -2349,6 +2376,12 @@
         systemDataEncoded = (filteredCount > 0) || uploadedRawData.length > 0 || pendingRawData.length > 0;
         hasWarnedNoSystemData = systemDataEncoded;
 
+        if (systemDataEncoded && document.activeElement !== document.getElementById('scanInput')) {
+            document.getElementById('scanInput').classList.add('needs-focus-blink');
+        } else {
+            document.getElementById('scanInput').classList.remove('needs-focus-blink');
+        }
+
         saveData();
         renderTable();
     }
@@ -2671,6 +2704,8 @@
             
             const btn = document.getElementById('btnToggleLenses');
             btn.innerText = "Unhide CL & OL"; btn.style.backgroundColor = "var(--surface-color)"; btn.style.color = "var(--text-primary)"; btn.style.borderColor = "var(--border-color)";
+
+            document.getElementById('scanInput').classList.remove('needs-focus-blink');
 
             await clearData();
             renderAuditTrail(); renderFastScanTrail(); renderTable();
