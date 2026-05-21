@@ -47,7 +47,7 @@
                 </div>
             </div>
             
-            <button id="exportBtnTop" onclick="exportToExcel()" class="hidden mt-4 md:mt-0 bg-white border-2 border-[#3598dc] text-[#3598dc] hover:bg-[#3598dc] hover:text-white font-bold py-2 px-6 rounded transition-colors flex items-center text-sm shadow-sm">
+            <button id="exportBtnTop" onclick="window.exportToExcel()" class="hidden mt-4 md:mt-0 bg-white border-2 border-[#3598dc] text-[#3598dc] hover:bg-[#3598dc] hover:text-white font-bold py-2 px-6 rounded transition-colors flex items-center text-sm shadow-sm">
                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
                 Export Report
             </button>
@@ -66,37 +66,37 @@
 
                 <div class="p-4 border border-[#e4e7ea] rounded bg-white">
                     <label class="block font-bold mb-2 text-xs text-gray-700 uppercase tracking-tight">Sales Transaction Report</label>
-                    <input type="file" id="fileSalesTrans" accept=".csv, .xls, .xlsx" class="w-full text-[10px] text-gray-400" title="Date from last inventory date to today (upon store opening).&#10;&#10;DO NOT UPLOAD directly extracted excel sheets, please copy all the contents of the sheet and paste it a new excel file, save it and upload the newly created one.">
+                    <input type="file" id="fileSalesTrans" accept=".csv, .xls, .xlsx" class="w-full text-[10px] text-gray-400">
                 </div>
                 
                 <div class="p-4 border border-[#e4e7ea] rounded bg-white">
                     <label class="block font-bold mb-2 text-xs text-gray-700 uppercase tracking-tight">Sales Summary by Salesman</label>
-                    <input type="file" id="fileSalesSum" accept=".csv, .xls, .xlsx" class="w-full text-[10px] text-gray-400" title="Extract Date from earliest date with a deleted invoice included in the Sales Transaction Report until the date Today.&#10;&#10;DO NOT UPLOAD directly extracted excel sheets, please copy all the contents of the sheet and paste it a new excel file, save it and upload the newly created one.">
+                    <input type="file" id="fileSalesSum" accept=".csv, .xls, .xlsx" class="w-full text-[10px] text-gray-400">
                 </div>
                 
                 <div class="p-4 border border-[#e4e7ea] rounded bg-white">
                     <label class="block font-bold mb-2 text-xs text-gray-700 uppercase tracking-tight">Intransit</label>
-                    <input type="file" id="fileIntransit" accept=".csv, .xls, .xlsx" class="w-full text-[10px] text-gray-400" title="Extract Date from last inventory Date to today (upon store opening).&#10;&#10;DO NOT UPLOAD directly extracted excel sheets, please copy all the contents of the sheet and paste it a new excel file, save it and upload the newly created one.">
+                    <input type="file" id="fileIntransit" accept=".csv, .xls, .xlsx" class="w-full text-[10px] text-gray-400">
                 </div>
                 
                 <div class="p-4 border border-[#e4e7ea] rounded bg-white">
                     <label class="block font-bold mb-2 text-xs text-gray-700 uppercase tracking-tight">Stock (MB52)</label>
-                    <input type="file" id="fileStock" accept=".csv, .xls, .xlsx" class="w-full text-[10px] text-gray-400" title="Extract Today (upon store opening).&#10;&#10;DO NOT UPLOAD directly extracted excel sheets, please copy all the contents of the sheet and paste it a new excel file, save it and upload the newly created one.">
+                    <input type="file" id="fileStock" accept=".csv, .xls, .xlsx" class="w-full text-[10px] text-gray-400">
                 </div>
                 
                 <div class="p-4 border border-[#e4e7ea] rounded bg-white">
                     <label class="block font-bold mb-2 text-xs text-gray-700 uppercase tracking-tight">Items to Be Delivered Report</label>
-                    <input type="file" id="fileToBeDel" accept=".csv, .xls, .xlsx" class="w-full text-[10px] text-gray-400" title="Extract Date from last inventory date until today (upon store opening).&#10;&#10;DO NOT UPLOAD directly extracted excel sheets, please copy all the contents of the sheet and paste it a new excel file, save it and upload the newly created one.">
+                    <input type="file" id="fileToBeDel" accept=".csv, .xls, .xlsx" class="w-full text-[10px] text-gray-400">
                 </div>
                 
                 <div class="p-4 border border-[#e4e7ea] rounded bg-white">
                     <label class="block font-bold mb-2 text-xs text-gray-700 uppercase tracking-tight">Sales Delivery Report</label>
-                    <input type="file" id="fileDelivery" accept=".csv, .xls, .xlsx" class="w-full text-[10px] text-gray-400" title="Extract Date from earliest date with a deleted invoice included in the Sales Transaction Report until the date Today.&#10;&#10;DO NOT UPLOAD directly extracted excel sheets, please copy all the contents of the sheet and paste it a new excel file, save it and upload the newly created one.">
+                    <input type="file" id="fileDelivery" accept=".csv, .xls, .xlsx" class="w-full text-[10px] text-gray-400">
                 </div>
             </div>
 
             <div class="text-center mb-6 flex flex-col items-center">
-                <button onclick="runAudit()" id="runBtn" class="bg-[#3598dc] hover:bg-[#2f86c2] text-white font-bold py-3 px-16 rounded shadow-lg w-full max-w-md transition-colors uppercase tracking-widest text-xs">
+                <button onclick="window.runAudit()" id="runBtn" class="bg-[#3598dc] hover:bg-[#2f86c2] text-white font-bold py-3 px-16 rounded shadow-lg w-full max-w-md transition-colors uppercase tracking-widest text-xs">
                     Run Analysis
                 </button>
                 <p id="progressText" class="mt-3 text-xs font-bold text-[#3598dc] hidden uppercase tracking-widest"></p>
@@ -133,10 +133,15 @@
                     </table>
                 </div>
 
-                <div class="mt-8 text-center">
-                    <button onclick="exportToExcel()" class="bg-[#3598dc] hover:bg-[#2f86c2] text-white font-bold py-4 px-12 rounded shadow-xl transition-all inline-flex items-center text-sm uppercase tracking-widest">
+                <div class="mt-8 text-center flex flex-col md:flex-row justify-center items-center gap-4">
+                    <button onclick="window.exportToExcel()" class="bg-[#3598dc] hover:bg-[#2f86c2] text-white font-bold py-4 px-8 rounded shadow-xl transition-all inline-flex items-center text-sm uppercase tracking-widest w-full md:w-auto">
                         <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-                        Download Full Excel Audit Report
+                        Download Audit Report
+                    </button>
+                    
+                    <button onclick="window.generatePrepStockTake()" class="bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-4 px-8 rounded shadow-xl transition-all inline-flex items-center text-sm uppercase tracking-widest w-full md:w-auto">
+                        <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                        Pending Prep Stock Take
                     </button>
                 </div>
             </div>
@@ -152,13 +157,22 @@
         </div>
     </div>
 
-    <footer class="text-center pb-6">
-        <p class="text-[10px] text-gray-400 tracking-widest uppercase">For any comments and suggestions <a href="mailto:3393@magrabi.com" class="text-[#3598dc] hover:underline font-bold">email me</a>. -<a href="https://www.linkedin.com/in/angelodacan-eye/" target="_blank" class="text-[#3598dc] hover:underline font-bold">gelotools</a></p>
-    </footer>
-
     <script>
-        const db = { salesTrans: [], salesSum: [], intransit: [], stock: [], toBeDel: [], delivery: [], extractedOrderIds: new Set(), extractedPOs: new Set() };
+        // Global Error Safeguard Tracker Context
+        window.onerror = function(msg, url, line, col, error) {
+            logDebug(`[FATAL ERROR] ${msg} at line ${line}:${col}`);
+            alert(`Application Interrupted: ${msg} on line ${line}. Please inspect the Diagnostic Log panel at the bottom.`);
+            const btn = document.getElementById('runBtn');
+            if(btn) { btn.disabled = false; btn.innerText = "Run Analysis"; }
+            return false;
+        };
 
+        // 1. Data Reservoirs & Storage Maps
+        const db = { salesTrans: [], salesSum: [], intransit: [], stock: [], toBeDel: [], delivery: [], extractedOrderIds: new Set(), extractedPOs: new Set(), invoiceToPOs: {} };
+        const salesSumByInv = {};
+        const descToSkuMap = {};
+
+        // 2. Base Parsing Utilities
         function logDebug(msg) {
             const container = document.getElementById('debugContainer');
             const logPanel = document.getElementById('debugLog');
@@ -175,7 +189,9 @@
             return rawSKU.toString().trim().replace(/^0+/, ''); 
         }
 
+        // Expanded helper to scan deep headers across multiple sheet configurations
         function getVal(row, possibleKeys) {
+            if (!row) return null;
             const rowKeys = Object.keys(row);
             const clean = (s) => s.toString().toLowerCase().replace(/[^a-z0-9]/g, ''); 
             
@@ -195,6 +211,12 @@
                 if (foundKey) return row[foundKey];
             }
             return null;
+        }
+
+        function isContactLens(desc, category = "") {
+            const d = (desc || "").toString().trim().toLowerCase();
+            const c = (category || "").toString().trim().toLowerCase();
+            return c.includes('contact') || d.startsWith('cl;') || d.startsWith('clcp;');
         }
 
         function isOphthalmicLens(desc, category = "") {
@@ -239,11 +261,10 @@
         }
 
         function universalSAPParser(text) {
-            logDebug("[SAP PARSER] Analyzing raw file structure...");
+            logDebug("[SAP PARSER] Processing raw rows...");
             const cleanText = text.replace(/=\r?\n/g, ''); 
             
             if (cleanText.includes("<table") || cleanText.includes("<TABLE")) {
-                logDebug("[SAP PARSER] Disguised HTML Table detected. Extracting raw nodes...");
                 const parser = new DOMParser();
                 const doc = parser.parseFromString(cleanText, 'text/html');
                 const tables = doc.querySelectorAll('table');
@@ -267,7 +288,6 @@
                         });
                         if (row.length > 0) result.push(row);
                     });
-                    logDebug(`[SAP PARSER] Recovered ${result.length} rows from HTML.`);
                     return result;
                 }
             }
@@ -275,20 +295,43 @@
             const lines = cleanText.split(/\r?\n/);
             const tabCount = (lines[0].match(/\t/g) || []).length;
             if (tabCount > 2) {
-                logDebug("[SAP PARSER] Disguised TSV File detected.");
                 return lines.map(line => line.split('\t').map(c => c.trim()));
             }
             
-            logDebug("[SAP PARSER] Processing as standard Text/CSV.");
             return parseCSV(cleanText);
         }
 
+        // 3. Core Structural Data Repair & Healing Engine
+        function healSKU(sku, desc, inv = null) {
+            if (!sku) return sku;
+            const isBroken = sku.includes('+') || /^[\d\.]+E\+?\d+$/i.test(sku) || (sku.match(/^\d+$/) && sku.length >= 14 && sku.endsWith('000'));
+            if (!isBroken) return sku;
+
+            if (inv && salesSumByInv[inv]) {
+                const exactItem = salesSumByInv[inv].find(item => item.desc === desc && isOphthalmicLens(item.desc, item.category));
+                if (exactItem && !exactItem.sku.includes('+') && !exactItem.sku.endsWith('000')) return exactItem.sku;
+                
+                const fallbackItem = salesSumByInv[inv].find(item => isOphthalmicLens(item.desc, item.category));
+                if (fallbackItem && !fallbackItem.sku.includes('+') && !fallbackItem.sku.endsWith('000')) return fallbackItem.sku;
+            }
+
+            if (desc && descToSkuMap[desc]) {
+                return descToSkuMap[desc];
+            }
+
+            return sku;
+        }
+
+        // 4. File Input Parsing Logic (Asynchronous Block)
         function readFile(file, targetDbKey, headerKeywords) {
             return new Promise((resolve) => {
-                if (!file) { resolve(); return; }
+                if (!file) { 
+                    logDebug(`[OPTIONAL] No file selected for [${targetDbKey}]. Skip.`);
+                    resolve(); 
+                    return; 
+                }
 
                 logDebug(`Reading File: ${file.name} for [${targetDbKey}]...`);
-
                 const reader = new FileReader();
                 reader.onload = (e) => {
                     const buffer = e.target.result;
@@ -298,98 +341,162 @@
                     if (bytes[0] === 0x50 && bytes[1] === 0x4B) isBinary = true; 
                     if (bytes[0] === 0xD0 && bytes[1] === 0xCF && bytes[2] === 0x11 && bytes[3] === 0xE0) isBinary = true; 
 
-                    let rows = [];
+                    let allData = [];
 
                     try {
+                        let sheetsRawData = [];
+
                         if (isBinary) {
-                            logDebug(`[${targetDbKey}] Binary Excel signature detected.`);
                             const workbook = XLSX.read(buffer, { type: 'array' });
-                            const worksheet = workbook.Sheets[workbook.SheetNames[0]];
-                            rows = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: "", raw: false });
+                            workbook.SheetNames.forEach(sheetName => {
+                                const worksheet = workbook.Sheets[sheetName];
+                                const rows = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: "", raw: false });
+                                if (rows.length > 0) {
+                                    sheetsRawData.push({ name: sheetName, rows: rows });
+                                }
+                            });
                         } else {
-                            logDebug(`[${targetDbKey}] Text-based signature detected. Routing to Universal Parser.`);
                             const text = new TextDecoder("utf-8").decode(buffer);
-                            rows = universalSAPParser(text);
+                            sheetsRawData.push({ name: "CSV/TXT_Doc", rows: universalSAPParser(text) });
                         }
-                    } catch(err) {
-                        logDebug(`[${targetDbKey}] Parser error: ` + err.message);
-                    }
 
-                    let headerRowIndex = -1;
-                    for (let i = 0; i < Math.min(rows.length, 500); i++) {
-                        if (!rows[i] || !Array.isArray(rows[i])) continue;
-                        
-                        if (rows[i].length === 1 && typeof rows[i][0] === 'string' && rows[i][0].includes('\t')) {
-                            rows[i] = rows[i][0].split('\t');
-                        }
-                        
-                        const rowString = rows[i].join("").toLowerCase().replace(/[^a-z0-9]/g, '');
-                        if (headerKeywords.every(kw => rowString.includes(kw.toLowerCase().replace(/[^a-z0-9]/g, '')))) {
-                            if (rows[i].length > 1) {
-                                headerRowIndex = i;
-                                break;
+                        sheetsRawData.forEach(sheet => {
+                            const rows = sheet.rows;
+                            let headerRowIndex = -1;
+
+                            for (let i = 0; i < Math.min(rows.length, 500); i++) {
+                                if (!rows[i] || !Array.isArray(rows[i])) continue;
+                                
+                                if (rows[i].length === 1 && typeof rows[i][0] === 'string' && rows[i][0].includes('\t')) {
+                                    rows[i] = rows[i][0].split('\t');
+                                }
+                                
+                                const rowString = rows[i].join("").toLowerCase().replace(/[^a-z0-9]/g, '');
+                                if (headerKeywords.every(kw => rowString.includes(kw.toLowerCase().replace(/[^a-z0-9]/g, '')))) {
+                                    if (rows[i].length > 1) {
+                                        headerRowIndex = i;
+                                        break;
+                                    }
+                                }
                             }
-                        }
-                    }
 
-                    if (headerRowIndex === -1) {
-                        logDebug(`[ERROR] Headers not found for ${targetDbKey}. Keywords: [${headerKeywords.join(',')}]`);
-                        headerRowIndex = 0; 
-                    } else {
-                        logDebug(`[SUCCESS] Headers found for ${targetDbKey} at row ${headerRowIndex}. Columns: ${rows[headerRowIndex].length}`);
-                    }
+                            if (headerRowIndex === -1) {
+                                if (sheetsRawData.length === 1) {
+                                    headerRowIndex = 0; 
+                                } else {
+                                    return; 
+                                }
+                            }
 
-                    const headers = rows[headerRowIndex] || [];
-                    const data = [];
-                    for (let i = headerRowIndex + 1; i < rows.length; i++) {
-                        if (!rows[i] || !Array.isArray(rows[i]) || rows[i].length <= 1) continue; 
-                        const obj = {};
-                        headers.forEach((h, idx) => {
-                            obj[h] = rows[i][idx];
+                            const headers = rows[headerRowIndex] || [];
+                            for (let i = headerRowIndex + 1; i < rows.length; i++) {
+                                if (!rows[i] || !Array.isArray(rows[i]) || rows[i].length <= 1) continue; 
+                                const obj = {};
+                                headers.forEach((h, idx) => {
+                                    obj[h] = rows[i][idx];
+                                });
+                                allData.push(obj);
+                            }
                         });
-                        data.push(obj);
+
+                    } catch(err) {
+                        logDebug(`[${targetDbKey}] Error inside parsed data map block: ` + err.message);
                     }
                     
-                    db[targetDbKey] = data;
-                    logDebug(`[${targetDbKey}] Extracted ${data.length} data rows.`);
+                    db[targetDbKey] = allData;
+                    logDebug(`[${targetDbKey}] Combined Sheets Row Total: ${allData.length}`);
                     resolve();
                 };
                 reader.readAsArrayBuffer(file); 
             });
         }
 
+        // =========================================================
+        // FIXED: TEXT-BOUNDED PROXIMITY PDF EXTRACTION ENGINE
+        // =========================================================
         async function readMultiplePDFs(files) {
             db.extractedOrderIds.clear(); 
             db.extractedPOs.clear();
-            if (!files || files.length === 0) return;
+            db.invoiceToPOs = {}; 
+
+            if (!files || files.length === 0) {
+                logDebug("[PDF EXTRACTOR] No PDF files uploaded.");
+                return;
+            }
             const maxFiles = Math.min(files.length, 80);
+            logDebug(`[PDF EXTRACTOR] Scanning ${maxFiles} PDF document(s)...`);
+            
             for (let i = 0; i < maxFiles; i++) {
                 try {
                     const file = files[i];
                     const arrayBuffer = await file.arrayBuffer();
                     const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+                    
+                    let fileOrders = [];
+                    let filePOs = [];
+                    let currentGlobalChars = 0;
+
                     for (let j = 1; j <= pdf.numPages; j++) {
                         const page = await pdf.getPage(j);
                         const textContent = await page.getTextContent();
+                        
+                        // CRITICAL FIX: Retain native word spaces (" ") so that numbers do not collapse together!
                         const rawText = textContent.items.map(item => item.str).join(" ");
-                        const cleanText = rawText.replace(/\s/g, ''); 
                         
-                        const orderMatches = cleanText.match(/\d{4}-\d{5,7}-\d{1,2}/g) || [];
-                        orderMatches.forEach(m => db.extractedOrderIds.add(m));
+                        // Strict word-boundary formatting rules prevent picking up truncated numbers
+                        const orderRegex = /\b(\d{4}-\d{5,7}-\d{1,2})\b/g;
+                        const poRegex = /\b(8050\d{6}|6733\d{6})\b/g; 
                         
-                        const poMatches = cleanText.match(/(8050\d{6}|6733\d{6})/g) || [];
-                        poMatches.forEach(m => db.extractedPOs.add(m));
+                        let m;
+                        while ((m = orderRegex.exec(rawText)) !== null) {
+                            fileOrders.push({ val: m[1], globalIdx: currentGlobalChars + m.index });
+                            db.extractedOrderIds.add(m[1]);
+                        }
+                        while ((m = poRegex.exec(rawText)) !== null) {
+                            filePOs.push({ val: m[1], globalIdx: currentGlobalChars + m.index });
+                            db.extractedPOs.add(m[1]);
+                        }
+                        
+                        currentGlobalChars += rawText.length + 500; 
                     }
+
+                    // Map strict 10-digit PO coordinates to their mathematically closest row transaction
+                    filePOs.forEach(p => {
+                        let closestOrder = null;
+                        let minDiff = Infinity;
+                        
+                        fileOrders.forEach(o => {
+                            let diff = Math.abs(p.globalIdx - o.globalIdx);
+                            if (diff < minDiff) {
+                                minDiff = diff;
+                                closestOrder = o;
+                            }
+                        });
+                        
+                        // Confirm they share the same physical statement row proximity width limit
+                        if (closestOrder && minDiff < 350) {
+                            const parts = closestOrder.val.split('-');
+                            if (parts.length >= 2) {
+                                const inv = parts[1].replace(/^0+/, ''); 
+                                if (!db.invoiceToPOs[inv]) db.invoiceToPOs[inv] = new Set();
+                                db.invoiceToPOs[inv].add(p.val);
+                            }
+                        }
+                    });
+
                 } catch (err) {
-                    console.error("PDF Parsing Error:", err);
+                    logDebug("[PDF ERROR] Failed to process file index " + i + ": " + err.message);
                 }
             }
+            logDebug(`[PDF SUCCESS] Bounded cross-linking complete. Mapped groups: ${Object.keys(db.invoiceToPOs).length}`);
         }
 
-        async function runAudit() {
+        // 5. Global Action Executions (Explicitly Hooked to Global Context)
+        window.runAudit = async function() {
             const btn = document.getElementById('runBtn');
             const progressText = document.getElementById('progressText');
-            btn.disabled = true; progressText.classList.remove('hidden');
+            btn.disabled = true; 
+            progressText.classList.remove('hidden');
             progressText.innerText = "Scanning Excel Files & Mapping Headers...";
             document.getElementById('debugLog').innerHTML = ""; 
 
@@ -399,7 +506,7 @@
                 await Promise.all([
                     readFile(document.getElementById('fileSalesTrans').files[0], 'salesTrans', ['invoice', 'netamount']),
                     readFile(document.getElementById('fileSalesSum').files[0], 'salesSum', ['item', 'qty']), 
-                    readFile(document.getElementById('fileIntransit').files[0], 'intransit', ['sto', 'article']),
+                    readFile(document.getElementById('fileIntransit').files[0], 'intransit', ['article']),
                     readFile(document.getElementById('fileStock').files[0], 'stock', ['article', 'unrestricted']),
                     readFile(document.getElementById('fileToBeDel').files[0], 'toBeDel', ['itemnumber', 'quantity']),
                     readFile(document.getElementById('fileDelivery').files[0], 'delivery', ['invoice', 'item'])
@@ -417,15 +524,207 @@
                 logDebug("=== AUDIT COMPLETE ===");
 
             } catch (error) {
-                alert("Error reading files. Check console log.");
-                logDebug("ERROR: " + error.message);
+                alert("Error encountered during layout building. Review logs.");
+                logDebug("FATAL ERROR: " + error.message);
                 console.error(error);
             } finally {
                 btn.innerText = "Run Analysis";
                 btn.disabled = false;
             }
-        }
+        };
 
+        window.exportToExcel = function() {
+            logDebug("Exporting Stock Ledger and Flags Workbook...");
+            const wb = XLSX.utils.book_new();
+            
+            const reconData = [
+                ["Official Stock Reconciliation Report"],
+                ["Generated On:", new Date().toLocaleString()],
+                [],
+                ["Lens SKU / Article", "Description", "Good Stock (1000)", "Defect (4000)", "To Deliver Qty", "Valid Intransit Qty", "Variance"]
+            ];
+            
+            const tbody = document.getElementById('stockTableBody');
+            if (tbody) {
+                const rows = tbody.querySelectorAll('tr');
+                rows.forEach(row => {
+                    const cells = row.querySelectorAll('td');
+                    if (cells.length === 7) {
+                        reconData.push([
+                            String(cells[0].innerText), 
+                            cells[1].innerText, 
+                            parseInt(cells[2].innerText) || 0,
+                            parseInt(cells[3].innerText) || 0, 
+                            parseInt(cells[4].innerText) || 0,
+                            parseInt(cells[5].innerText) || 0, 
+                            cells[6].innerText
+                        ]);
+                    }
+                });
+            }
+
+            const wsRecon = XLSX.utils.aoa_to_sheet(reconData);
+            wsRecon['!cols'] = [{wch: 22}, {wch: 55}, {wch: 15}, {wch: 15}, {wch: 18}, {wch: 20}, {wch: 15}];
+            XLSX.utils.book_append_sheet(wb, wsRecon, "Stock Reconciliation");
+
+            const flagsData = [["Audit Flags & Alerts"], ["Generated On:", new Date().toLocaleString()], [], ["Alert Category", "Flag Details"]];
+            const extractFlags = (ulId, categoryName) => {
+                const ul = document.getElementById(ulId);
+                if (!ul) return;
+                const lis = ul.querySelectorAll('li');
+                lis.forEach(li => { 
+                    if (!li.innerText.includes("anomalies detected")) {
+                        flagsData.push([categoryName, li.innerText]); 
+                    }
+                });
+            };
+
+            extractFlags('flagOverOrders', 'Over-Ordered Lenses');
+            extractFlags('flagMissing', 'Missing Orders (Pending)');
+            extractFlags('flagDeletions', '24-Hour Deletions');
+            extractFlags('flagAccidentalDel', 'Accidental Delivery');
+            if (flagsData.length === 4) flagsData.push(["System Status", "Perfect! No anomalies detected across any category."]);
+
+            const wsFlags = XLSX.utils.aoa_to_sheet(flagsData);
+            wsFlags['!cols'] = [{wch: 30}, {wch: 100}];
+            XLSX.utils.book_append_sheet(wb, wsFlags, "Audit Warnings Log");
+            XLSX.writeFile(wb, `Ophthalmic_Lens_Audit_${new Date().toISOString().split('T')[0]}.xlsx`);
+            logDebug("Audit Excel Download Dispatched Successfully.");
+        };
+
+        window.generatePrepStockTake = function() {
+            logDebug("Generating Pending Preparation for Stock Take Report...");
+
+            const s1000 = {};
+            db.stock.forEach(row => {
+                let sku = cleanSKU(getVal(row, ['article', 'itemnumber']));
+                const sloc = (getVal(row, ['storagelocation', 'sloc']) || "").toString().trim();
+                const qty = parseInt(getVal(row, ['unrestricted'])) || 0;
+                const desc = getVal(row, ['articledescription', 'description', 'desc']) || "";
+                
+                sku = healSKU(sku, desc, null) || sku;
+                if (sku && sloc === "1000") {
+                    s1000[sku] = (s1000[sku] || 0) + qty;
+                }
+            });
+
+            const validIntransit = {};
+            const intransitPOs = new Set(); 
+            db.intransit.forEach(row => {
+                let sku = cleanSKU(getVal(row, ['article', 'itemnumber']));
+                const desc = getVal(row, ['articledescription', 'description', 'desc']) || "";
+                const qty = Math.round(parseFloat(getVal(row, ['poqty', 'poquantity', 'intransitqty', 'intransitquantity', 'quantity', 'qty']))) || 0;
+                
+                const rawPO = getVal(row, ['purchasingdocument', 'po', 'sto', 'purchaseorder', 'document']);
+                if (rawPO) {
+                    const poMatch = rawPO.toString().match(/(8050\d{6}|6733\d{6})/);
+                    if (poMatch) intransitPOs.add(poMatch[1]);
+                    else intransitPOs.add(rawPO.toString().trim());
+                }
+
+                sku = healSKU(sku, desc, null) || sku;
+                if (sku && qty > 0) {
+                    validIntransit[sku] = (validIntransit[sku] || 0) + qty;
+                }
+            });
+
+            const requiredQty = {};
+            db.toBeDel.forEach(row => {
+                let sku = cleanSKU(getVal(row, ['itemnumber', 'article']));
+                const desc = getVal(row, ['itemdescription', 'description', 'desc']) || "";
+                const invRaw = getVal(row, ['invoice']);
+                const inv = invRaw ? invRaw.toString().trim().replace(/^0+/, '') : "";
+                
+                sku = healSKU(sku, desc, inv) || sku;
+                const qty = parseInt(getVal(row, ['quantity', 'qty'])) || 0;
+                if (sku) {
+                    requiredQty[sku] = (requiredQty[sku] || 0) + qty;
+                }
+            });
+
+            const reportData = [
+                ["Pending Preparation for Stock Take"],
+                ["Generated On:", new Date().toLocaleString()],
+                [],
+                ["Invoice Number", "Invoice Date", "Category", "Article / SKU", "Description", "Quantity", "Status", "Related PO Number"]
+            ];
+
+            db.toBeDel.forEach(row => {
+                const invRaw = getVal(row, ['invoice']);
+                const inv = invRaw ? invRaw.toString().trim().replace(/^0+/, '') : "";
+                const invDate = getVal(row, ['date', 'invoicedate', 'createdon', 'docdate']) || "";
+                const category = getVal(row, ['category']) || "";
+                const desc = getVal(row, ['itemdescription', 'description', 'desc']) || "";
+                
+                let sku = cleanSKU(getVal(row, ['itemnumber', 'article']));
+                sku = healSKU(sku, desc, inv) || sku;
+                const qty = parseInt(getVal(row, ['quantity', 'qty'])) || 0;
+
+                const isContact = isContactLens(desc, category);
+                const isOphthalmic = isOphthalmicLens(desc, category);
+                
+                const stockAvail = s1000[sku] || 0;
+                const totalReq = requiredQty[sku] || 0;
+                const baseWarning = "Warning: Not enough Quantity in system stock for all rows sharing this article";
+                
+                let status = "";
+                
+                const invoicePOs = (db.invoiceToPOs && db.invoiceToPOs[inv]) ? Array.from(db.invoiceToPOs[inv]) : [];
+                let relatedPOs = invoicePOs.join(", ");
+
+                if (isContact) {
+                    status = "";
+                    relatedPOs = "";
+                } else if (isOphthalmic) {
+                    const orderedInWebshop = invoicePOs.length > 0;
+                    const poIsStillInTransit = invoicePOs.some(po => intransitPOs.has(po));
+                    const isPhysicallyInStock = (stockAvail >= totalReq && totalReq > 0);
+
+                    if (!orderedInWebshop) {
+                        if (isPhysicallyInStock) {
+                            status = "In Stock";
+                        } else {
+                            status = "Not in Stock - " + baseWarning;
+                        }
+                        relatedPOs = "";
+                    } else {
+                        if (poIsStillInTransit) {
+                            status = "In Transit - " + baseWarning;
+                        } else {
+                            status = "In Stock (Received)";
+                        }
+                    }
+                } else {
+                    if (stockAvail >= totalReq && totalReq > 0) {
+                        status = "In Stock";
+                    } else {
+                        status = baseWarning;
+                    }
+                    relatedPOs = ""; 
+                }
+
+                reportData.push([
+                    inv, 
+                    invDate,
+                    category,
+                    String(sku || ""), 
+                    desc,
+                    qty,
+                    status,
+                    relatedPOs
+                ]);
+            });
+
+            const wb = XLSX.utils.book_new();
+            const ws = XLSX.utils.aoa_to_sheet(reportData);
+            ws['!cols'] = [{wch: 15}, {wch: 15}, {wch: 20}, {wch: 20}, {wch: 50}, {wch: 10}, {wch: 80}, {wch: 25}];
+            
+            XLSX.utils.book_append_sheet(wb, ws, "Pending Prep Stock Take");
+            XLSX.writeFile(wb, `Pending_Preparation_Stock_Take_${new Date().toISOString().split('T')[0]}.xlsx`);
+            logDebug("Pending Preparation for Stock Take Report Generated Successfully.");
+        };
+
+        // 6. Secondary Reconciliation Ledger Matrix View Update
         function analyzeData() {
             let htmlDeletions = "", htmlMissing = "", htmlAccidental = "", htmlOverOrders = "", htmlStock = "";
 
@@ -434,24 +733,24 @@
             uniqueOrderIds.forEach(oid => {
                 const parts = oid.split('-');
                 if (parts.length >= 2) {
-                    const inv = parts[1];
+                    const inv = parts[1].replace(/^0+/, '');
                     invoiceOrderCount[inv] = (invoiceOrderCount[inv] || 0) + 1;
                 }
             });
 
             const invoicesWithOL = new Set();
-            const salesSumByInv = {};
-            const descToSkuMap = {};
+            
+            Object.keys(salesSumByInv).forEach(k => delete salesSumByInv[k]);
+            Object.keys(descToSkuMap).forEach(k => delete descToSkuMap[k]);
 
             db.salesSum.forEach(row => {
-                const inv = getVal(row, ['invoice']);
-                const invStr = inv ? inv.toString().trim() : null;
+                const invRaw = getVal(row, ['invoice']);
+                const invStr = invRaw ? invRaw.toString().trim().replace(/^0+/, '') : null;
                 let sku = cleanSKU(getVal(row, ['item', 'article', 'itemnumber']));
                 const desc = getVal(row, ['description', 'itemdescription', 'desc']) || "";
                 const cat = getVal(row, ['category', 'merchandisecategory']) || "";
                 
                 const isPristine = sku && !/^[\d\.]+E\+?\d+$/i.test(sku) && !sku.includes('+') && !(sku.match(/^\d+$/) && sku.length >= 14 && sku.endsWith('000'));
-                
                 if (isPristine && desc) {
                     descToSkuMap[desc] = sku;
                 }
@@ -463,46 +762,27 @@
                 }
             });
 
-            function healSKU(sku, desc, inv = null) {
-                if (!sku) return sku;
-                const isBroken = sku.includes('+') || /^[\d\.]+E\+?\d+$/i.test(sku) || (sku.match(/^\d+$/) && sku.length >= 14 && sku.endsWith('000'));
-                if (!isBroken) return sku;
-
-                if (inv && salesSumByInv[inv]) {
-                    const exactItem = salesSumByInv[inv].find(item => item.desc === desc && isOphthalmicLens(item.desc, item.category));
-                    if (exactItem && !exactItem.sku.includes('+') && !exactItem.sku.endsWith('000')) return exactItem.sku;
-                    
-                    const fallbackItem = salesSumByInv[inv].find(item => isOphthalmicLens(item.desc, item.category));
-                    if (fallbackItem && !fallbackItem.sku.includes('+') && !fallbackItem.sku.endsWith('000')) return fallbackItem.sku;
-                }
-
-                if (desc && descToSkuMap[desc]) {
-                    return descToSkuMap[desc];
-                }
-
-                return sku;
-            }
-
             db.delivery.forEach(row => {
-                const inv = getVal(row, ['invoice']);
+                const invRaw = getVal(row, ['invoice']);
+                const inv = invRaw ? invRaw.toString().trim().replace(/^0+/, '') : null;
                 if (inv && isOphthalmicLens(getVal(row, ['description', 'itemdescription', 'desc']), getVal(row, ['category']))) {
-                    invoicesWithOL.add(inv.toString().trim());
+                    invoicesWithOL.add(inv);
                 }
             });
 
             db.toBeDel.forEach(row => {
-                const inv = getVal(row, ['invoice']);
+                const invRaw = getVal(row, ['invoice']);
+                const inv = invRaw ? invRaw.toString().trim().replace(/^0+/, '') : null;
                 if (inv && isOphthalmicLens(getVal(row, ['itemdescription', 'description', 'desc']), getVal(row, ['category']))) {
-                    invoicesWithOL.add(inv.toString().trim());
+                    invoicesWithOL.add(inv);
                 }
             });
 
             const allSalesTransInvoices = new Set();
-            
             db.salesTrans.forEach(row => {
                 const net = parseFloat(getVal(row, ['net', 'return', 'netamount'])) || 0;
                 const invRaw = getVal(row, ['invoice']);
-                const inv = invRaw ? invRaw.toString().trim() : null;
+                const inv = invRaw ? invRaw.toString().trim().replace(/^0+/, '') : null;
                 
                 if (inv) {
                     allSalesTransInvoices.add(inv);
@@ -523,7 +803,7 @@
                 const category = getVal(row, ['category']) || "";
                 
                 const invRaw = getVal(row, ['invoice']);
-                const inv = invRaw ? invRaw.toString().trim() : "";
+                const inv = invRaw ? invRaw.toString().trim().replace(/^0+/, '') : "";
 
                 sku = healSKU(sku, desc, inv);
 
@@ -544,7 +824,7 @@
 
             db.delivery.forEach(row => {
                 const invRaw = getVal(row, ['invoice']);
-                const inv = invRaw ? invRaw.toString().trim() : null;
+                const inv = invRaw ? invRaw.toString().trim().replace(/^0+/, '') : null;
                 const desc = getVal(row, ['description', 'itemdescription', 'desc']) || "";
                 const category = getVal(row, ['category']) || "";
                 let sku = cleanSKU(getVal(row, ['item', 'article']));
@@ -599,7 +879,6 @@
             });
 
             const validIntransit = {};
-
             db.intransit.forEach(row => {
                 let sku = cleanSKU(getVal(row, ['article', 'itemnumber'])); 
                 const desc = getVal(row, ['articledescription', 'description', 'desc']) || "";
@@ -643,60 +922,11 @@
                 }
             });
 
-            document.getElementById('flagDeletions').innerHTML = htmlDeletions || "<li class='text-gray-400 italic text-[10px] uppercase tracking-wider'>No anomalies detected.</li>";
-            document.getElementById('flagMissing').innerHTML = htmlMissing || "<li class='text-gray-400 italic text-[10px] uppercase tracking-wider'>No anomalies detected.</li>";
-            document.getElementById('flagAccidentalDel').innerHTML = htmlAccidental || "<li class='text-gray-400 italic text-[10px] uppercase tracking-wider'>No anomalies detected.</li>";
-            document.getElementById('flagOverOrders').innerHTML = htmlOverOrders || "<li class='text-gray-400 italic text-[10px] uppercase tracking-wider'>No anomalies detected.</li>";
+            document.getElementById('flagDeletions').innerHTML = htmlDeletions || "<li>No anomalies detected.</li>";
+            document.getElementById('flagMissing').innerHTML = htmlMissing || "<li>No anomalies detected.</li>";
+            document.getElementById('flagAccidentalDel').innerHTML = htmlAccidental || "<li>No anomalies detected.</li>";
+            document.getElementById('flagOverOrders').innerHTML = htmlOverOrders || "<li>No anomalies detected.</li>";
             document.getElementById('stockTableBody').innerHTML = htmlStock;
-        }
-
-        function exportToExcel() {
-            const wb = XLSX.utils.book_new();
-            const reconData = [
-                ["Official Stock Reconciliation Report"],
-                ["Generated On:", new Date().toLocaleString()],
-                [],
-                ["Lens SKU / Article", "Description", "Good Stock (1000)", "Defect (4000)", "To Deliver Qty", "Valid Intransit Qty", "Variance"]
-            ];
-            const tbody = document.getElementById('stockTableBody');
-            const rows = tbody.querySelectorAll('tr');
-            rows.forEach(row => {
-                const cells = row.querySelectorAll('td');
-                if (cells.length === 7) {
-                    reconData.push([
-                        String(cells[0].innerText), // Explicitly cast the healed SKU as a string so Excel doesn't truncate it upon opening
-                        cells[1].innerText, 
-                        parseInt(cells[2].innerText) || 0,
-                        parseInt(cells[3].innerText) || 0, 
-                        parseInt(cells[4].innerText) || 0,
-                        parseInt(cells[5].innerText) || 0, 
-                        cells[6].innerText
-                    ]);
-                }
-            });
-
-            const wsRecon = XLSX.utils.aoa_to_sheet(reconData);
-            wsRecon['!cols'] = [{wch: 22}, {wch: 55}, {wch: 15}, {wch: 15}, {wch: 18}, {wch: 20}, {wch: 15}];
-            XLSX.utils.book_append_sheet(wb, wsRecon, "Stock Reconciliation");
-
-            const flagsData = [["Audit Flags & Alerts"], ["Generated On:", new Date().toLocaleString()], [], ["Alert Category", "Flag Details"]];
-            const extractFlags = (ulId, categoryName) => {
-                const ul = document.getElementById(ulId);
-                if (!ul) return;
-                const lis = ul.querySelectorAll('li');
-                lis.forEach(li => { if (!li.innerText.includes("anomalies detected")) flagsData.push([categoryName, li.innerText]); });
-            };
-
-            extractFlags('flagOverOrders', 'Over-Ordered Lenses');
-            extractFlags('flagMissing', 'Missing Orders (Pending)');
-            extractFlags('flagDeletions', '24-Hour Deletions');
-            extractFlags('flagAccidentalDel', 'Accidental Delivery');
-            if (flagsData.length === 4) flagsData.push(["System Status", "Perfect! No anomalies detected across any category."]);
-
-            const wsFlags = XLSX.utils.aoa_to_sheet(flagsData);
-            wsFlags['!cols'] = [{wch: 30}, {wch: 100}];
-            XLSX.utils.book_append_sheet(wb, wsFlags, "Audit Warnings Log");
-            XLSX.writeFile(wb, `Ophthalmic_Lens_Audit_${new Date().toISOString().split('T')[0]}.xlsx`);
         }
     </script>
 </body>
