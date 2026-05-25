@@ -10,60 +10,283 @@
     <style>
         /* base variables */
         :root {
-            --bg-color: #f9fafb; --surface-color: #ffffff; --text-primary: #111827; --text-secondary: #6b7280;
-            --border-color: #e5e7eb; --accent-blue: #0ea5e9; --accent-blue-hover: #0284c7;
-            --accent-pink: #ec4899; --accent-green: #10b981; --accent-red: #ef4444; --accent-orange: #f59e0b;
-            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05); --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --bg-color: #f9fafb; 
+            --surface-color: #ffffff; 
+            --text-primary: #111827; 
+            --text-secondary: #6b7280;
+            --border-color: #e5e7eb; 
+            --accent-blue: #0ea5e9; 
+            --accent-blue-hover: #0284c7;
+            --accent-pink: #ec4899; 
+            --accent-green: #10b981; 
+            --accent-red: #ef4444; 
+            --accent-orange: #f59e0b;
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05); 
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
             --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-            --radius-md: 4px; --radius-lg: 6px;
+            --radius-md: 4px; 
+            --radius-lg: 6px;
         }
 
         /* layout */
-        body { font-size: 11px; font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; background-color: var(--bg-color); margin: 0; padding: 0; display: flex; flex-direction: column; min-height: 100vh; padding-bottom: 70px; box-sizing: border-box; color: var(--text-primary); -webkit-font-smoothing: antialiased; }
+        body { 
+            font-size: 11px; 
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; 
+            background-color: var(--bg-color); 
+            margin: 0; 
+            padding: 0; 
+            display: flex; 
+            flex-direction: column; 
+            min-height: 100vh; 
+            padding-bottom: 70px; 
+            box-sizing: border-box; 
+            color: var(--text-primary); 
+            -webkit-font-smoothing: antialiased; 
+        }
         
-        .navbar { background-color: var(--surface-color); padding: 8px 16px; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; }
+        .navbar { 
+            background-color: var(--surface-color); 
+            padding: 8px 16px; 
+            border-bottom: 1px solid var(--border-color); 
+            display: flex; 
+            align-items: center; 
+            justify-content: space-between; 
+        }
         
-        .app-branding-container { display: flex; align-items: center; gap: 6px; }
-        .branding-title { font-size: 13px; font-weight: 700; letter-spacing: -0.5px; color: var(--text-primary); }
-        .branding-badge { background-color: var(--accent-blue); color: #ffffff; padding: 2px 6px; border-radius: 4px; font-size: 9px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; box-shadow: var(--shadow-sm); }
+        .app-branding-container { 
+            display: flex; 
+            align-items: center; 
+            gap: 6px; 
+        }
         
-        .user-info { font-size: 11px; color: var(--text-secondary); text-align: right; line-height: 1.4; display: flex; align-items: center; gap: 12px; }
-
-        .theme-switch-wrapper { display: flex; align-items: center; gap: 6px; }
-        .theme-switch { display: inline-block; height: 16px; position: relative; width: 30px; margin: 0; }
-        .theme-switch input { display: none; }
-        .slider { background-color: var(--border-color); bottom: 0; cursor: pointer; left: 0; position: absolute; right: 0; top: 0; transition: .1s; border-radius: 16px; }
-        .slider:before { background-color: #fff; bottom: 2px; content: ""; height: 12px; left: 2px; position: absolute; transition: .1s; width: 12px; border-radius: 50%; box-shadow: 0 1px 2px rgba(0,0,0,0.2); }
-        input:checked + .slider { background-color: var(--accent-blue); }
-        input:checked + .slider:before { transform: translateX(14px); }
-
-        .tutorial-tip { display: none; background-color: #f0f9ff; border-left: 3px solid var(--accent-blue); padding: 6px 10px; border-radius: 4px var(--radius-md) var(--radius-md) 4px; font-size: 11px; line-height: 1.3; color: #0369a1; margin-bottom: 8px; align-items: flex-start; gap: 6px; animation: fadeInDown 0.2s ease-out; box-shadow: var(--shadow-sm); }
-        body.tutorial-active .tutorial-tip { display: flex; }
-        .tutorial-icon { flex-shrink: 0; margin-top: 1px; color: var(--accent-blue); width: 12px; height: 12px; }
-        .tutorial-tip strong { color: #075985; font-weight: 600; }
-
-        @keyframes fadeInDown { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
-
-        .container { max-width: 1300px; margin: 12px auto; flex: 1; width: 96%; position: relative; }
+        .branding-title { 
+            font-size: 13px; 
+            font-weight: 700; 
+            letter-spacing: -0.5px; 
+            color: var(--text-primary); 
+        }
         
-        .content-panel, .sticky-group { background-color: var(--surface-color); padding: 10px; border-radius: var(--radius-lg); border: 1px solid var(--border-color); box-shadow: var(--shadow-sm); margin-bottom: 8px; }
-        .sticky-group { position: sticky; top: 8px; z-index: 1000; padding: 8px 0 0 0; box-shadow: var(--shadow-md); }
-        .sticky-padding { padding: 0 10px; padding-bottom: 6px; }
-
-        .step-title { color: var(--text-primary); font-size: 12px; font-weight: 600; margin-bottom: 6px; display: flex; align-items: center; gap: 6px; }
-        .step-title::before { content: ''; display: inline-block; width: 5px; height: 5px; background-color: var(--accent-blue); border-radius: 50%; }
-
-        textarea, input[type="text"], select { width: 100%; padding: 4px 8px; border: 1px solid var(--border-color); border-radius: var(--radius-md); box-sizing: border-box; font-family: 'Inter', sans-serif; font-size: 11px; background-color: var(--bg-color); transition: all 0.1s ease; outline: none; color: var(--text-primary); height: 26px; }
-        textarea { height: 100px; resize: vertical; font-family: monospace; line-height: 1.3; padding: 6px 8px; }
-        textarea:focus, input[type="text"]:focus, select:focus { background-color: var(--surface-color); border-color: var(--accent-blue); box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.15); }
+        .branding-badge { 
+            background-color: var(--accent-blue); 
+            color: #ffffff; 
+            padding: 2px 6px; 
+            border-radius: 4px; 
+            font-size: 9px; 
+            font-weight: 700; 
+            letter-spacing: 0.5px; 
+            text-transform: uppercase; 
+            box-shadow: var(--shadow-sm); 
+        }
         
-        textarea::placeholder { color: #cbd5e1; opacity: 1; font-weight: 400; }
-        input::placeholder { color: #9ca3af; opacity: 1; font-weight: 400; }
+        .user-info { 
+            font-size: 11px; 
+            color: var(--text-secondary); 
+            text-align: right; 
+            line-height: 1.4; 
+            display: flex; 
+            align-items: center; 
+            gap: 12px; 
+        }
 
-        .drag-over { background-color: #f0f9ff !important; border: 2px dashed var(--accent-blue) !important; }
+        .theme-switch-wrapper { 
+            display: flex; 
+            align-items: center; 
+            gap: 6px; 
+        }
         
-        .scan-input-wrapper { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; margin-bottom: 6px; }
-        input[type="text"].main-scan { flex: 1; max-width: 250px; min-width: 150px; font-size: 12px; transition: all 0.2s ease; }
+        .theme-switch { 
+            display: inline-block; 
+            height: 16px; 
+            position: relative; 
+            width: 30px; 
+            margin: 0; 
+        }
+        
+        .theme-switch input { 
+            display: none; 
+        }
+        
+        .slider { 
+            background-color: var(--border-color); 
+            bottom: 0; 
+            cursor: pointer; 
+            left: 0; 
+            position: absolute; 
+            right: 0; 
+            top: 0; 
+            transition: .1s; 
+            border-radius: 16px; 
+        }
+        
+        .slider:before { 
+            background-color: #fff; 
+            bottom: 2px; 
+            content: ""; 
+            height: 12px; 
+            left: 2px; 
+            position: absolute; 
+            transition: .1s; 
+            width: 12px; 
+            border-radius: 50%; 
+            box-shadow: 0 1px 2px rgba(0,0,0,0.2); 
+        }
+        
+        input:checked + .slider { 
+            background-color: var(--accent-blue); 
+        }
+        
+        input:checked + .slider:before { 
+            transform: translateX(14px); 
+        }
+
+        .tutorial-tip { 
+            display: none; 
+            background-color: #f0f9ff; 
+            border-left: 3px solid var(--accent-blue); 
+            padding: 6px 10px; 
+            border-radius: 4px var(--radius-md) var(--radius-md) 4px; 
+            font-size: 11px; 
+            line-height: 1.3; 
+            color: #0369a1; 
+            margin-bottom: 8px; 
+            align-items: flex-start; 
+            gap: 6px; 
+            animation: fadeInDown 0.2s ease-out; 
+            box-shadow: var(--shadow-sm); 
+        }
+        
+        body.tutorial-active .tutorial-tip { 
+            display: flex; 
+        }
+        
+        .tutorial-icon { 
+            flex-shrink: 0; 
+            margin-top: 1px; 
+            color: var(--accent-blue); 
+            width: 12px; 
+            height: 12px; 
+        }
+        
+        .tutorial-tip strong { 
+            color: #075985; 
+            font-weight: 600; 
+        }
+
+        @keyframes fadeInDown { 
+            from { opacity: 0; transform: translateY(-5px); } 
+            to { opacity: 1; transform: translateY(0); } 
+        }
+
+        .container { 
+            max-width: 1300px; 
+            margin: 12px auto; 
+            flex: 1; 
+            width: 96%; 
+            position: relative; 
+        }
+        
+        .content-panel, .sticky-group { 
+            background-color: var(--surface-color); 
+            padding: 10px; 
+            border-radius: var(--radius-lg); 
+            border: 1px solid var(--border-color); 
+            box-shadow: var(--shadow-sm); 
+            margin-bottom: 8px; 
+        }
+        
+        .sticky-group { 
+            position: sticky; 
+            top: 8px; 
+            z-index: 1000; 
+            padding: 8px 0 0 0; 
+            box-shadow: var(--shadow-md); 
+        }
+        
+        .sticky-padding { 
+            padding: 0 10px; 
+            padding-bottom: 6px; 
+        }
+
+        .step-title { 
+            color: var(--text-primary); 
+            font-size: 12px; 
+            font-weight: 600; 
+            margin-bottom: 6px; 
+            display: flex; 
+            align-items: center; 
+            gap: 6px; 
+        }
+        
+        .step-title::before { 
+            content: ''; 
+            display: inline-block; 
+            width: 5px; 
+            height: 5px; 
+            background-color: var(--accent-blue); 
+            border-radius: 50%; 
+        }
+
+        textarea, input[type="text"], select { 
+            width: 100%; 
+            padding: 4px 8px; 
+            border: 1px solid var(--border-color); 
+            border-radius: var(--radius-md); 
+            box-sizing: border-box; 
+            font-family: 'Inter', sans-serif; 
+            font-size: 11px; 
+            background-color: var(--bg-color); 
+            transition: all 0.1s ease; 
+            outline: none; 
+            color: var(--text-primary); 
+            height: 26px; 
+        }
+        
+        textarea { 
+            height: 100px; 
+            resize: vertical; 
+            font-family: monospace; 
+            line-height: 1.3; 
+            padding: 6px 8px; 
+        }
+        
+        textarea:focus, input[type="text"]:focus, select:focus { 
+            background-color: var(--surface-color); 
+            border-color: var(--accent-blue); 
+            box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.15); 
+        }
+        
+        textarea::placeholder { 
+            color: #cbd5e1; 
+            opacity: 1; 
+            font-weight: 400; 
+        }
+        
+        input::placeholder { 
+            color: #9ca3af; 
+            opacity: 1; 
+            font-weight: 400; 
+        }
+
+        .drag-over { 
+            background-color: #f0f9ff !important; 
+            border: 2px dashed var(--accent-blue) !important; 
+        }
+        
+        .scan-input-wrapper { 
+            display: flex; 
+            gap: 6px; 
+            align-items: center; 
+            flex-wrap: wrap; 
+            margin-bottom: 6px; 
+        }
+        
+        input[type="text"].main-scan { 
+            flex: 1; 
+            max-width: 250px; 
+            min-width: 150px; 
+            font-size: 12px; 
+            transition: all 0.2s ease; 
+        }
         
         /* input focus pulse */
         @keyframes pulseFocus {
@@ -71,9 +294,11 @@
             50% { box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.25); border-color: var(--accent-blue); background-color: #f0f9ff; }
             100% { box-shadow: 0 0 0 0 rgba(14, 165, 233, 0); border-color: var(--border-color); background-color: var(--bg-color); }
         }
+        
         .needs-focus-blink:not(:focus) {
             animation: pulseFocus 2s infinite ease-in-out;
         }
+        
         .needs-focus-blink:not(:focus)::placeholder {
             color: var(--accent-blue);
             opacity: 0.8;
@@ -81,123 +306,594 @@
         }
         
         /* buttons */
-        .btn, .btn-secondary, .custom-modal-btn { padding: 4px 10px; height: 26px; border-radius: var(--radius-md); cursor: pointer; font-weight: 500; font-size: 11px; display: inline-flex; align-items: center; justify-content: center; gap: 4px; transition: all 0.1s; border: none; outline: none; white-space: nowrap; }
-        .btn { background-color: var(--accent-blue); color: #fff; box-shadow: var(--shadow-sm); }
-        .btn:hover:not(:disabled) { background-color: var(--accent-blue-hover); transform: translateY(-1px); }
-        .btn:disabled { background-color: #e5e7eb; cursor: not-allowed; color: #9ca3af; box-shadow: none; }
+        .btn, .btn-secondary, .custom-modal-btn { 
+            padding: 4px 10px; 
+            height: 26px; 
+            border-radius: var(--radius-md); 
+            cursor: pointer; 
+            font-weight: 500; 
+            font-size: 11px; 
+            display: inline-flex; 
+            align-items: center; 
+            justify-content: center; 
+            gap: 4px; 
+            transition: all 0.1s; 
+            border: none; 
+            outline: none; 
+            white-space: nowrap; 
+        }
         
-        .btn-secondary { background-color: var(--surface-color); color: var(--text-primary); border: 1px solid var(--border-color); }
-        .btn-secondary:hover { background-color: var(--bg-color); border-color: #d1d5db; }
-        .btn-fast-scan.active { background-color: #fef3c7; border-color: #f59e0b; color: #b45309; }
-        .btn-fast-scan.active svg { stroke: #d97706; }
+        .btn { 
+            background-color: var(--accent-blue); 
+            color: #fff; 
+            box-shadow: var(--shadow-sm); 
+        }
         
-        .btn-compare { background-color: var(--accent-blue); color: #fff; border: none; height: 26px; border-radius: var(--radius-md); cursor: pointer; font-weight: 600; font-size: 11px; display: none; align-items: center; justify-content: center; gap: 4px; transition: background-color 0.1s; padding: 0 12px; }
-        .btn-compare:hover { background-color: var(--accent-blue-hover); }
+        .btn:hover:not(:disabled) { 
+            background-color: var(--accent-blue-hover); 
+            transform: translateY(-1px); 
+        }
+        
+        .btn:disabled { 
+            background-color: #e5e7eb; 
+            cursor: not-allowed; 
+            color: #9ca3af; 
+            box-shadow: none; 
+        }
+        
+        .btn-secondary { 
+            background-color: var(--surface-color); 
+            color: var(--text-primary); 
+            border: 1px solid var(--border-color); 
+        }
+        
+        .btn-secondary:hover { 
+            background-color: var(--bg-color); 
+            border-color: #d1d5db; 
+        }
+        
+        .btn-fast-scan.active { 
+            background-color: #fef3c7; 
+            border-color: #f59e0b; 
+            color: #b45309; 
+        }
+        
+        .btn-fast-scan.active svg { 
+            stroke: #d97706; 
+        }
+        
+        .btn-compare { 
+            background-color: var(--accent-blue); 
+            color: #fff; 
+            border: none; 
+            height: 26px; 
+            border-radius: var(--radius-md); 
+            cursor: pointer; 
+            font-weight: 600; 
+            font-size: 11px; 
+            display: none; 
+            align-items: center; 
+            justify-content: center; 
+            gap: 4px; 
+            transition: background-color 0.1s; 
+            padding: 0 12px; 
+        }
+        
+        .btn-compare:hover { 
+            background-color: var(--accent-blue-hover); 
+        }
 
         .btn-pdf { background-color: var(--surface-color); color: var(--accent-pink); border: 1px solid var(--border-color); }
         .btn-pdf:hover:not(:disabled) { border-color: var(--accent-pink); background-color: #fdf2f8; }
+        
         .btn-load { background-color: var(--surface-color); color: var(--text-primary); border: 1px solid var(--border-color); }
         .btn-load:hover:not(:disabled) { background-color: var(--bg-color); }
+        
         .btn-reset { background-color: var(--surface-color); color: var(--text-primary); border: 1px solid var(--border-color); }
         .btn-reset:hover:not(:disabled) { background-color: #fef2f2; border-color: var(--accent-red); }
+        
         .btn-history { background-color: var(--surface-color); color: var(--text-primary); border: 1px solid var(--border-color); }
         .btn-history:hover:not(:disabled) { background-color: var(--bg-color); }
 
-        .audit-trail-wrapper { margin-top: 6px; background-color: var(--bg-color); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 6px; font-family: 'Inter', monospace; font-size: 10px; color: var(--text-secondary); }
-        .fast-scan-trail { height: 60px; overflow-y: auto; background-color: #fffbeb; border: 1px solid #fde68a; }
-        .fast-scan-header { font-weight: 600; color: #b45309; margin-bottom: 2px; font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; }
-        .audit-trail-wrapper ul { list-style: none; padding: 0; margin: 0; }
-        .audit-trail-wrapper li { padding: 3px 0; border-bottom: 1px solid #f3f4f6; }
-        .audit-trail-wrapper li:last-child { border-bottom: none; }
-        .audit-time { color: #9ca3af; margin-right: 6px; font-family: monospace;}
+        .audit-trail-wrapper { 
+            margin-top: 6px; 
+            background-color: var(--bg-color); 
+            border: 1px solid var(--border-color); 
+            border-radius: var(--radius-md); 
+            padding: 6px; 
+            font-family: 'Inter', monospace; 
+            font-size: 10px; 
+            color: var(--text-secondary); 
+        }
+        
+        .fast-scan-trail { 
+            height: 60px; 
+            overflow-y: auto; 
+            background-color: #fffbeb; 
+            border: 1px solid #fde68a; 
+        }
+        
+        .fast-scan-header { 
+            font-weight: 600; 
+            color: #b45309; 
+            margin-bottom: 2px; 
+            font-size: 10px; 
+            text-transform: uppercase; 
+            letter-spacing: 0.5px; 
+        }
+        
+        .audit-trail-wrapper ul { 
+            list-style: none; 
+            padding: 0; 
+            margin: 0; 
+        }
+        
+        .audit-trail-wrapper li { 
+            padding: 3px 0; 
+            border-bottom: 1px solid #f3f4f6; 
+        }
+        
+        .audit-trail-wrapper li:last-child { 
+            border-bottom: none; 
+        }
+        
+        .audit-time { 
+            color: #9ca3af; 
+            margin-right: 6px; 
+            font-family: monospace;
+        }
+        
         .audit-success { color: var(--accent-green); font-weight: 500; }
         .audit-error { color: var(--accent-red); font-weight: 500; }
 
-        .action-buttons-wrapper { position: fixed; bottom: 0; left: 0; right: 0; background-color: rgba(255, 255, 255, 0.9); backdrop-filter: blur(8px); border-top: 1px solid var(--border-color); padding: 8px 16px; z-index: 2000; display: flex; justify-content: space-between; align-items: center; }
+        .action-buttons-wrapper { 
+            position: fixed; 
+            bottom: 0; 
+            left: 0; 
+            right: 0; 
+            background-color: rgba(255, 255, 255, 0.9); 
+            backdrop-filter: blur(8px); 
+            border-top: 1px solid var(--border-color); 
+            padding: 8px 16px; 
+            z-index: 2000; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+        }
+        
         .action-group { display: flex; gap: 6px; }
 
         /* modals */
-        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(17, 24, 39, 0.4); backdrop-filter: blur(2px); z-index: 4000; display: flex; align-items: center; justify-content: center; }
-        .custom-modal-box { background-color: var(--surface-color); width: 380px; max-width: 90%; border-radius: var(--radius-lg); box-shadow: var(--shadow-lg); display: flex; flex-direction: column; text-align: left; overflow: hidden; }
-        .custom-modal-header { padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); background-color: var(--surface-color); }
-        .custom-modal-header h3 { margin: 0; font-size: 13px; font-weight: 600; color: var(--text-primary); }
-        .custom-modal-close { color: var(--text-secondary); font-size: 14px; line-height: 1; cursor: pointer; border: none; background: transparent; padding: 4px; border-radius: 4px; transition: background 0.1s; }
-        .custom-modal-close:hover { background-color: var(--bg-color); color: var(--text-primary); }
-        .custom-modal-body { padding: 16px; color: var(--text-primary); font-size: 12px; line-height: 1.4; }
+        .modal-overlay { 
+            position: fixed; 
+            top: 0; 
+            left: 0; 
+            right: 0; 
+            bottom: 0; 
+            background-color: rgba(17, 24, 39, 0.4); 
+            backdrop-filter: blur(2px); 
+            z-index: 4000; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+        }
+        
+        .custom-modal-box { 
+            background-color: var(--surface-color); 
+            width: 380px; 
+            max-width: 90%; 
+            border-radius: var(--radius-lg); 
+            box-shadow: var(--shadow-lg); 
+            display: flex; 
+            flex-direction: column; 
+            text-align: left; 
+            overflow: hidden; 
+        }
+        
+        .custom-modal-header { 
+            padding: 12px 16px; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            border-bottom: 1px solid var(--border-color); 
+            background-color: var(--surface-color); 
+        }
+        
+        .custom-modal-header h3 { 
+            margin: 0; 
+            font-size: 13px; 
+            font-weight: 600; 
+            color: var(--text-primary); 
+        }
+        
+        .custom-modal-close { 
+            color: var(--text-secondary); 
+            font-size: 14px; 
+            line-height: 1; 
+            cursor: pointer; 
+            border: none; 
+            background: transparent; 
+            padding: 4px; 
+            border-radius: 4px; 
+            transition: background 0.1s; 
+        }
+        
+        .custom-modal-close:hover { 
+            background-color: var(--bg-color); 
+            color: var(--text-primary); 
+        }
+        
+        .custom-modal-body { 
+            padding: 16px; 
+            color: var(--text-primary); 
+            font-size: 12px; 
+            line-height: 1.4; 
+        }
+        
         .custom-modal-input { margin-top: 10px; }
-        .custom-modal-footer { padding: 10px 16px; display: flex; justify-content: flex-end; gap: 6px; background-color: var(--bg-color); border-top: 1px solid var(--border-color); }
+        
+        .custom-modal-footer { 
+            padding: 10px 16px; 
+            display: flex; 
+            justify-content: flex-end; 
+            gap: 6px; 
+            background-color: var(--bg-color); 
+            border-top: 1px solid var(--border-color); 
+        }
+        
         #slocModalBox .custom-modal-footer { flex-direction: column; gap: 6px; }
-        .sloc-btn-filter { background-color: var(--surface-color); color: var(--text-primary); border: 1px solid var(--border-color); }
+        
+        .sloc-btn-filter { 
+            background-color: var(--surface-color); 
+            color: var(--text-primary); 
+            border: 1px solid var(--border-color); 
+        }
+        
         .sloc-btn-filter:hover { background-color: var(--bg-color); }
-        .sloc-btn-cancel { background-color: transparent; color: var(--text-secondary); font-weight: 500; cursor: pointer; border: none; padding: 6px; font-size: 11px; }
+        
+        .sloc-btn-cancel { 
+            background-color: transparent; 
+            color: var(--text-secondary); 
+            font-weight: 500; 
+            cursor: pointer; 
+            border: none; 
+            padding: 6px; 
+            font-size: 11px; 
+        }
+        
         .sloc-btn-cancel:hover { color: var(--text-primary); }
 
         #cameraModalBox { width: 450px; }
-        #reader { width: 100%; margin-top: 6px; border-radius: var(--radius-md); overflow: hidden; }
+        #reader { 
+            width: 100%; 
+            margin-top: 6px; 
+            border-radius: var(--radius-md); 
+            overflow: hidden; 
+        }
 
         /* dash and tables */
-        .minimalist-dashboard { display: flex; flex-direction: row; justify-content: space-between; margin-top: 6px; padding-top: 6px; border-top: 1px solid var(--border-color); gap: 6px; }
-        .dash-card { flex: 1; padding: 4px 8px; border-radius: var(--radius-md); background-color: var(--bg-color); display: flex; flex-direction: row; align-items: baseline; justify-content: space-between; border: 1px solid var(--border-color); }
-        .dash-card h3 { margin: 0; font-size: 10px; color: var(--text-secondary); font-weight: 600; text-transform: uppercase; }
-        .dash-card p { margin: 0; font-size: 13px; font-weight: 700; color: var(--text-primary); }
+        .minimalist-dashboard { 
+            display: flex; 
+            flex-direction: row; 
+            justify-content: space-between; 
+            margin-top: 6px; 
+            padding-top: 6px; 
+            border-top: 1px solid var(--border-color); 
+            gap: 6px; 
+        }
+        
+        .dash-card { 
+            flex: 1; 
+            padding: 4px 8px; 
+            border-radius: var(--radius-md); 
+            background-color: var(--bg-color); 
+            display: flex; 
+            flex-direction: row; 
+            align-items: baseline; 
+            justify-content: space-between; 
+            border: 1px solid var(--border-color); 
+        }
+        
+        .dash-card h3 { 
+            margin: 0; 
+            font-size: 10px; 
+            color: var(--text-secondary); 
+            font-weight: 600; 
+            text-transform: uppercase; 
+        }
+        
+        .dash-card p { 
+            margin: 0; 
+            font-size: 13px; 
+            font-weight: 700; 
+            color: var(--text-primary); 
+        }
+        
         .dash-missing { background-color: #fef2f2; border-color: #fecaca; }
         .dash-missing p { color: var(--accent-red); }
+        
         .dash-extra { background-color: #f0f9ff; border-color: #bae6fd; }
         .dash-extra p { color: var(--accent-blue); }
+        
         .dash-pending-card { background-color: #fffbeb; border-color: #fde68a; }
         .dash-pending-card p { color: var(--accent-orange); }
 
-        .table-header-controls { display: flex; justify-content: space-between; align-items: center; background-color: var(--surface-color); padding: 6px 10px; border-bottom: 1px solid var(--border-color); border-radius: var(--radius-lg) var(--radius-lg) 0 0; flex-wrap: wrap; gap: 6px; }
-        .table-title { color: var(--text-primary); font-weight: 600; font-size: 12px; margin: 0; white-space: nowrap; flex: 1; }
+        .table-header-controls { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            background-color: var(--surface-color); 
+            padding: 6px 10px; 
+            border-bottom: 1px solid var(--border-color); 
+            border-radius: var(--radius-lg) var(--radius-lg) 0 0; 
+            flex-wrap: wrap; 
+            gap: 6px; 
+        }
         
-        .pagination-select { display: flex; align-items: center; justify-content: flex-end; gap: 4px; color: var(--text-secondary); font-size: 11px; white-space: nowrap; flex: 1; }
+        .table-title { 
+            color: var(--text-primary); 
+            font-weight: 600; 
+            font-size: 12px; 
+            margin: 0; 
+            white-space: nowrap; 
+            flex: 1; 
+        }
+        
+        .pagination-select { 
+            display: flex; 
+            align-items: center; 
+            justify-content: flex-end; 
+            gap: 4px; 
+            color: var(--text-secondary); 
+            font-size: 11px; 
+            white-space: nowrap; 
+            flex: 1; 
+        }
+        
         .pagination-select label { white-space: nowrap; margin: 0; }
-        .pagination-select select { padding: 2px 6px; border-radius: var(--radius-md); border: 1px solid var(--border-color); font-weight: 500; height: 22px; }
+        .pagination-select select { 
+            padding: 2px 6px; 
+            border-radius: var(--radius-md); 
+            border: 1px solid var(--border-color); 
+            font-weight: 500; 
+            height: 22px; 
+        }
 
-        .filter-bar { display: flex; align-items: center; background-color: var(--surface-color); border-bottom: 1px solid var(--border-color); padding: 0 8px; gap: 2px; }
-        .filter-btn { background: none; border: none; padding: 6px 8px; font-size: 11px; font-weight: 500; color: var(--text-secondary); cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.1s; white-space: nowrap; }
+        .filter-bar { 
+            display: flex; 
+            align-items: center; 
+            background-color: var(--surface-color); 
+            border-bottom: 1px solid var(--border-color); 
+            padding: 0 8px; 
+            gap: 2px; 
+        }
+        
+        .filter-btn { 
+            background: none; 
+            border: none; 
+            padding: 6px 8px; 
+            font-size: 11px; 
+            font-weight: 500; 
+            color: var(--text-secondary); 
+            cursor: pointer; 
+            border-bottom: 2px solid transparent; 
+            transition: all 0.1s; 
+            white-space: nowrap; 
+        }
+        
         .filter-btn:hover { color: var(--text-primary); }
-        .filter-btn.active { color: var(--accent-blue); border-bottom: 2px solid var(--accent-blue); font-weight: 600; }
+        .filter-btn.active { 
+            color: var(--accent-blue); 
+            border-bottom: 2px solid var(--accent-blue); 
+            font-weight: 600; 
+        }
 
-        .search-container { display: flex; align-items: center; margin-left: auto; gap: 6px; padding: 2px 0; }
-        .sloc-dropdown { padding: 2px 6px; font-size: 11px; border-radius: var(--radius-md); height: 24px; }
-        .search-box { min-width: 150px; padding: 2px 24px 2px 8px; height: 24px; border-radius: 20px; font-size: 11px; background: var(--bg-color) url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="%236b7280" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>') no-repeat right 8px center; }
+        .search-container { 
+            display: flex; 
+            align-items: center; 
+            margin-left: auto; 
+            gap: 6px; 
+            padding: 2px 0; 
+        }
+        
+        .sloc-dropdown { 
+            padding: 2px 6px; 
+            font-size: 11px; 
+            border-radius: var(--radius-md); 
+            height: 24px; 
+        }
+        
+        .search-box { 
+            min-width: 150px; 
+            padding: 2px 24px 2px 8px; 
+            height: 24px; 
+            border-radius: 20px; 
+            font-size: 11px; 
+            background: var(--bg-color) url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="%236b7280" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>') no-repeat right 8px center; 
+        }
 
-        table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 11px; background-color: var(--surface-color); }
-        th { position: sticky; z-index: 999; background-color: var(--bg-color); color: var(--text-secondary); padding: 4px 8px; text-align: left; border-bottom: 1px solid var(--border-color); font-weight: 600; text-transform: uppercase; font-size: 9px; letter-spacing: 0.5px; }
-        td { padding: 4px 8px; border-bottom: 1px solid var(--border-color); color: var(--text-primary); vertical-align: middle; height: 26px; } 
+        table { 
+            width: 100%; 
+            border-collapse: separate; 
+            border-spacing: 0; 
+            font-size: 11px; 
+            background-color: var(--surface-color); 
+        }
+        
+        th { 
+            position: sticky; 
+            z-index: 999; 
+            background-color: var(--bg-color); 
+            color: var(--text-secondary); 
+            padding: 4px 8px; 
+            text-align: left; 
+            border-bottom: 1px solid var(--border-color); 
+            font-weight: 600; 
+            text-transform: uppercase; 
+            font-size: 9px; 
+            letter-spacing: 0.5px; 
+        }
+        
+        td { 
+            padding: 4px 8px; 
+            border-bottom: 1px solid var(--border-color); 
+            color: var(--text-primary); 
+            vertical-align: middle; 
+            height: 26px; 
+        } 
+        
         tr:hover td { background-color: #f8fafc; }
         
         .highlight-flash td { animation: flashRow 0.4s ease-out; }
-        @keyframes flashRow { 0% { background-color: #bae6fd; } 100% { background-color: transparent; } }
+        @keyframes flashRow { 
+            0% { background-color: #bae6fd; } 
+            100% { background-color: transparent; } 
+        }
 
-        .qty-container { display: flex; align-items: center; gap: 6px; min-width: 50px; }
-        .btn-edit, .btn-delete { background-color: transparent; border: none; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; transition: all 0.1s; border-radius: 4px; padding: 2px; }
+        .qty-container { 
+            display: flex; 
+            align-items: center; 
+            gap: 6px; 
+            min-width: 50px; 
+        }
+        
+        .btn-edit, .btn-delete { 
+            background-color: transparent; 
+            border: none; 
+            cursor: pointer; 
+            display: inline-flex; 
+            align-items: center; 
+            justify-content: center; 
+            transition: all 0.1s; 
+            border-radius: 4px; 
+            padding: 2px; 
+        }
+        
         .btn-edit { color: var(--text-secondary); }
         .btn-edit:hover { background-color: var(--bg-color); color: var(--accent-blue); }
+        
         .btn-delete { color: var(--text-secondary); }
         .btn-delete:hover { background-color: #fef2f2; color: var(--accent-red); }
 
-        .pagination-nav { display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; background-color: var(--surface-color); border-radius: 0 0 var(--radius-lg) var(--radius-lg); }
-        .pagination-nav span { font-size: 11px; color: var(--text-secondary); font-weight: 500; }
-        .pagination-nav .btn { padding: 4px 10px; background-color: var(--surface-color); color: var(--text-primary); border: 1px solid var(--border-color); box-shadow: none; height: 24px; }
-        .pagination-nav .btn:hover:not(:disabled) { background-color: var(--bg-color); }
+        .pagination-nav { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            padding: 8px 12px; 
+            background-color: var(--surface-color); 
+            border-radius: 0 0 var(--radius-lg) var(--radius-lg); 
+        }
         
-        .clearfix::after { content: ""; clear: both; display: table; }
-        .footer { text-align: center; padding: 6px 16px; color: var(--text-secondary); font-size: 10px; margin-bottom: 0; }
-        .footer a { font-weight: 500; color: var(--text-primary); text-decoration: none; border-bottom: 1px solid transparent; transition: border 0.1s; }
-        .footer a:hover { border-color: var(--text-primary); }
+        .pagination-nav span { 
+            font-size: 11px; 
+            color: var(--text-secondary); 
+            font-weight: 500; 
+        }
+        
+        .pagination-nav .btn { 
+            padding: 4px 10px; 
+            background-color: var(--surface-color); 
+            color: var(--text-primary); 
+            border: 1px solid var(--border-color); 
+            box-shadow: none; 
+            height: 24px; 
+        }
+        
+        .pagination-nav .btn:hover:not(:disabled) { 
+            background-color: var(--bg-color); 
+        }
+        
+        .clearfix::after { 
+            content: ""; 
+            clear: both; 
+            display: table; 
+        }
+        
+        .footer { 
+            text-align: center; 
+            padding: 6px 16px; 
+            color: var(--text-secondary); 
+            font-size: 10px; 
+            margin-bottom: 0; 
+        }
+        
+        .footer a { 
+            font-weight: 500; 
+            color: var(--text-primary); 
+            text-decoration: none; 
+            border-bottom: 1px solid transparent; 
+            transition: border 0.1s; 
+        }
+        
+        .footer a:hover { 
+            border-color: var(--text-primary); 
+        }
 
-        #error-toast { visibility: hidden; min-width: 180px; background-color: var(--text-primary); color: #fff; text-align: center; border-radius: var(--radius-md); padding: 10px; position: fixed; z-index: 5000; left: 50%; top: 20px; transform: translateX(-50%); font-size: 11px; font-weight: 500; box-shadow: var(--shadow-lg); opacity: 0; transition: opacity 0.2s, top 0.2s; }
-        #error-toast.show { visibility: visible; opacity: 1; top: 40px; }
+        #error-toast { 
+            visibility: hidden; 
+            min-width: 180px; 
+            background-color: var(--text-primary); 
+            color: #fff; 
+            text-align: center; 
+            border-radius: var(--radius-md); 
+            padding: 10px; 
+            position: fixed; 
+            z-index: 5000; 
+            left: 50%; 
+            top: 20px; 
+            transform: translateX(-50%); 
+            font-size: 11px; 
+            font-weight: 500; 
+            box-shadow: var(--shadow-lg); 
+            opacity: 0; 
+            transition: opacity 0.2s, top 0.2s; 
+        }
+        
+        #error-toast.show { 
+            visibility: visible; 
+            opacity: 1; 
+            top: 40px; 
+        }
 
         /* dynamic filters */
-        #dynamicFilters { padding: 2px 6px; background: #f0f9ff; border: 1px solid #bae6fd; border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; gap: 6px; transition: all 0.1s ease; flex: 1; }
-        .df-layout { display: flex; align-items: center; gap: 4px; }
-        .compact-icon { display: inline-flex; font-size: 10px; font-weight: 600; color: var(--accent-blue); align-items: center; gap: 2px; }
-        #dynamicFilters select { padding: 2px 16px 2px 6px; height: 22px; font-size: 10px; border-color: #bae6fd; }
+        #dynamicFilters { 
+            padding: 2px 6px; 
+            background: #f0f9ff; 
+            border: 1px solid #bae6fd; 
+            border-radius: var(--radius-md); 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            gap: 6px; 
+            transition: all 0.1s ease; 
+            flex: 1; 
+        }
+        
+        .df-layout { 
+            display: flex; 
+            align-items: center; 
+            gap: 4px; 
+        }
+        
+        .compact-icon { 
+            display: inline-flex; 
+            font-size: 10px; 
+            font-weight: 600; 
+            color: var(--accent-blue); 
+            align-items: center; 
+            gap: 2px; 
+        }
+        
+        #dynamicFilters select { 
+            padding: 2px 16px 2px 6px; 
+            height: 22px; 
+            font-size: 10px; 
+            border-color: #bae6fd; 
+        }
 
-        #printHeader, #signatureBlock { display: none; }
+        #printHeader, #signatureBlock { 
+            display: none; 
+        }
         
         /* print layout */
         @media print {
@@ -642,6 +1338,7 @@
     function extractBrandAndCategory(desc) {
         let category = "OTHERS";
         let brand = "UNKNOWN";
+        
         if (!desc) return { category, brand };
 
         let cleanDesc = desc.replace(/^['"\s\t]+/, '').toUpperCase();
@@ -662,8 +1359,10 @@
 
     function normalizeDescription(desc) {
         if (!desc) return desc;
+        
         let cleanDesc = desc.replace(/^['"\s\t]+/, '');
         let parts = cleanDesc.split(';');
+        
         if (parts.length >= 2) {
             let prefix = parts[0].trim().toUpperCase();
             if (prefix === 'S' || prefix === 'O' || prefix === 'OA') {
@@ -768,13 +1467,22 @@
         let result = [];
         let inQuote = false;
         let val = "";
+        
         for (let i = 0; i < text.length; i++) {
             let char = text[i];
-            if (char === '"' && text[i+1] === '"') { val += '"'; i++; }
-            else if (char === '"') { inQuote = !inQuote; }
-            else if (char === delim && !inQuote) { result.push(val); val = ""; }
-            else { val += char; }
+            if (char === '"' && text[i+1] === '"') { 
+                val += '"'; 
+                i++; 
+            } else if (char === '"') { 
+                inQuote = !inQuote; 
+            } else if (char === delim && !inQuote) { 
+                result.push(val); 
+                val = ""; 
+            } else { 
+                val += char; 
+            }
         }
+        
         result.push(val);
         return result;
     }
@@ -824,18 +1532,25 @@
         });
         
         scanInp.addEventListener('blur', () => {
-            if (systemDataEncoded) scanInp.classList.add('needs-focus-blink');
+            if (systemDataEncoded) {
+                scanInp.classList.add('needs-focus-blink');
+            }
         });
+        
         scanInp.addEventListener('focus', () => {
             scanInp.classList.remove('needs-focus-blink');
         });
     };
 
-    const resizeObserver = new ResizeObserver(() => { updateStickyHeaders(); });
+    const resizeObserver = new ResizeObserver(() => { 
+        updateStickyHeaders(); 
+    });
 
     window.addEventListener('DOMContentLoaded', () => {
         const stickyGroup = document.getElementById('stickyGroup');
-        if (stickyGroup) { resizeObserver.observe(stickyGroup); }
+        if (stickyGroup) { 
+            resizeObserver.observe(stickyGroup); 
+        }
     });
 
     window.addEventListener('resize', updateStickyHeaders);
@@ -844,6 +1559,7 @@
     async function toggleTutorial() {
         const toggleBtn = document.getElementById('tutorialToggle');
         const isChecked = toggleBtn.checked;
+        
         if (isChecked) {
             const wantsVideo = await customConfirm("Would you like to view a tutorial video?", "Tutorial Video");
             if (wantsVideo) {
@@ -860,6 +1576,7 @@
     function toggleLenses() {
         isLensesFilterActive = !isLensesFilterActive;
         const btn = document.getElementById('btnToggleLenses');
+        
         if (isLensesFilterActive) {
             btn.innerText = "Unhide CL & OL";
             btn.style.backgroundColor = "var(--surface-color)";
@@ -920,6 +1637,7 @@
 
     function renderFastScanTrail() {
         const list = document.getElementById('fastScanList');
+        
         if (fastScanQueue.length === 0) {
             list.innerHTML = '<li style="color:var(--text-secondary); font-style:italic;">Fast scan items will appear here... Click Compare after scanning</li>';
             return;
@@ -969,6 +1687,7 @@
     function onScanSuccess(decodedText, decodedResult) {
         let now = Date.now();
         if (decodedText === lastScannedSku && (now - lastScanTime) < 1500) return; 
+        
         lastScannedSku = decodedText;
         lastScanTime = now;
         
@@ -992,12 +1711,14 @@
 
     async function submitManualEncode() {
         let text = document.getElementById('manualEncodeInput').value;
+        
         if (!text.trim()) {
             closeManualEncode();
             return;
         }
         
         saveState();
+        
         let lines = text.split(/\r?\n/);
         let addedCount = 0;
         let errorCount = 0;
@@ -1008,6 +1729,7 @@
             
             let parts = line.split(/[\t\s]+/);
             let skuRaw = parts[0].replace(/^0+/, '') || '0';
+            
             if (skuRaw === "" || skuRaw === "0") return;
 
             let qty = 1;
@@ -1053,6 +1775,7 @@
 
     async function promptPendingUpload() {
         const confirmed = await customConfirm("Do you want to add <b>Items to be Delivered</b> spreadsheet data as pending?", "Pending Items");
+        
         if (confirmed) {
             document.getElementById('pendingDataUpload').click();
         }
@@ -1088,6 +1811,7 @@
             btnNo.innerText = options.noText || 'No';
 
             overlay.style.display = 'flex';
+            
             if (options.type === 'prompt') {
                 inputEl.focus();
                 inputEl.select();
@@ -1120,9 +1844,17 @@
         });
     }
 
-    function customAlert(message, title = "Message") { return openCustomModal({ type: 'alert', title, message, yesText: 'OK' }); }
-    function customConfirm(message, title = "Confirmation message") { return openCustomModal({ type: 'confirm', title, message, yesText: 'Yes', noText: 'No' }); }
-    function customPrompt(message, defaultValue = "", title = "Input required") { return openCustomModal({ type: 'prompt', title, message, defaultValue, yesText: 'Submit', noText: 'Cancel' }); }
+    function customAlert(message, title = "Message") { 
+        return openCustomModal({ type: 'alert', title, message, yesText: 'OK' }); 
+    }
+    
+    function customConfirm(message, title = "Confirmation message") { 
+        return openCustomModal({ type: 'confirm', title, message, yesText: 'Yes', noText: 'No' }); 
+    }
+    
+    function customPrompt(message, defaultValue = "", title = "Input required") { 
+        return openCustomModal({ type: 'prompt', title, message, defaultValue, yesText: 'Submit', noText: 'Cancel' }); 
+    }
 
     // sloc conflict check prompt
     function askSlocAction() {
@@ -1171,11 +1903,14 @@
 
     function filterHistoryBySkuAndBin(sku, bin) {
         const auditBox = document.getElementById('auditTrailBox');
+        
         if (auditBox && auditBox.style.display === 'none') {
             toggleAuditTrail();
         }
+        
         const searchInput = document.getElementById('historySearchInput');
         searchInput.value = `bin:${getBinName(bin)} sku:${sku}`;
+        
         renderAuditTrail();
         window.scrollTo({ top: 0, behavior: "smooth" });
     }
@@ -1218,6 +1953,7 @@
         for (let sku in inventory) {
             inventory[sku].bins = [];
         }
+        
         auditLog.forEach(log => {
             if (inventory[log.sku]) {
                 if (!inventory[log.sku].bins) inventory[log.sku].bins = [];
@@ -1230,8 +1966,10 @@
 
     async function loadData() {
         let dataObj = null;
+        
         if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
             const result = await chrome.storage.local.get(['posInventoryState', 'legacyInventoryState', 'legacyInventoryData']);
+            
             if (result.posInventoryState) {
                 dataObj = result.posInventoryState;
             } else if (result.legacyInventoryState) {
@@ -1242,6 +1980,7 @@
             }
         } else {
             const state = localStorage.getItem('posInventoryState') || localStorage.getItem('legacyInventoryState');
+            
             if (state) {
                 dataObj = JSON.parse(state);
                 localStorage.setItem('posInventoryState', JSON.stringify(dataObj)); 
@@ -1252,7 +1991,11 @@
                 }
             }
         }
-        if (dataObj) applyState(dataObj, true); 
+        
+        if (dataObj) {
+            applyState(dataObj, true); 
+        }
+        
         updateUndoRedoButtons();
     }
 
@@ -1268,7 +2011,9 @@
 
     function saveState() {
         undoStack.push(JSON.stringify(getCurrentState()));
-        if (undoStack.length > MAX_HISTORY) { undoStack.shift(); }
+        if (undoStack.length > MAX_HISTORY) { 
+            undoStack.shift(); 
+        }
         redoStack = []; 
         updateUndoRedoButtons();
     }
@@ -1288,7 +2033,9 @@
         binCounters = state.binCounters || { 1: 0 };
 
         for (let sku in inventory) {
-            if (inventory[sku].pendingQty === undefined) inventory[sku].pendingQty = 0;
+            if (inventory[sku].pendingQty === undefined) {
+                inventory[sku].pendingQty = 0;
+            }
         }
 
         auditLog.forEach((log, i) => {
@@ -1327,10 +2074,12 @@
                 Array.from(uniqueSTOs).sort().forEach(sto => {
                     stoSelect.innerHTML += `<option value="${sto}">${sto}</option>`;
                 });
+                
                 if (state.smartFilters && state.smartFilters.sto) stoSelect.value = state.smartFilters.sto;
             } else {
                 document.getElementById('intransitFilters').style.display = 'none';
                 document.getElementById('mb52Filters').style.display = 'flex';
+                
                 if (state.smartFilters && state.smartFilters.cat) document.getElementById('categoryDropdown').value = state.smartFilters.cat;
                 updateBrandDropdown(); 
                 if (state.smartFilters && state.smartFilters.brand) document.getElementById('brandDropdown').value = state.smartFilters.brand;
@@ -1387,23 +2136,42 @@
     
     function playSound(type) {
         if (audioCtx.state === 'suspended') audioCtx.resume();
-        let oscillator = audioCtx.createOscillator(); let gainNode = audioCtx.createGain();
-        oscillator.connect(gainNode); gainNode.connect(audioCtx.destination);
+        
+        let oscillator = audioCtx.createOscillator(); 
+        let gainNode = audioCtx.createGain();
+        
+        oscillator.connect(gainNode); 
+        gainNode.connect(audioCtx.destination);
+        
         if (type === 'success') {
-            oscillator.type = 'sine'; oscillator.frequency.setValueAtTime(1000, audioCtx.currentTime); gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime); oscillator.start(); oscillator.stop(audioCtx.currentTime + 0.1); 
+            oscillator.type = 'sine'; 
+            oscillator.frequency.setValueAtTime(1000, audioCtx.currentTime); 
+            gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime); 
+            oscillator.start(); 
+            oscillator.stop(audioCtx.currentTime + 0.1); 
         } else if (type === 'error') {
-            oscillator.type = 'sawtooth'; oscillator.frequency.setValueAtTime(150, audioCtx.currentTime); gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime); oscillator.start(); oscillator.stop(audioCtx.currentTime + 0.4); 
+            oscillator.type = 'sawtooth'; 
+            oscillator.frequency.setValueAtTime(150, audioCtx.currentTime); 
+            gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime); 
+            oscillator.start(); 
+            oscillator.stop(audioCtx.currentTime + 0.4); 
         }
     }
 
     function showErrorToast(message) {
-        const toast = document.getElementById("error-toast"); toast.textContent = message; toast.className = "show";
+        const toast = document.getElementById("error-toast"); 
+        toast.textContent = message; 
+        toast.className = "show";
         setTimeout(() => toast.className = toast.className.replace("show", ""), 3000); 
     }
     
     function endCurrentBin() {
-        saveState(); currentBin++; binTotals[currentBin] = 0; binCounters[currentBin] = 0;
-        saveData(); renderAuditTrail();
+        saveState(); 
+        currentBin++; 
+        binTotals[currentBin] = 0; 
+        binCounters[currentBin] = 0;
+        saveData(); 
+        renderAuditTrail();
     }
 
     async function deleteBin(binNumber) {
@@ -1411,22 +2179,36 @@
         if (!confirmed) return;
         
         saveState();
+        
         let logsToKeep = [];
+        
         for (let i = 0; i < auditLog.length; i++) {
             let log = auditLog[i];
             if (log.bin === binNumber) {
                 if (inventory[log.sku]) {
                     inventory[log.sku].scannedQty -= log.qty;
-                    if (inventory[log.sku].scannedQty < 0) inventory[log.sku].scannedQty = 0;
-                    if (inventory[log.sku].systemQty === 0 && inventory[log.sku].scannedQty === 0 && (inventory[log.sku].pendingQty || 0) === 0) delete inventory[log.sku];
+                    if (inventory[log.sku].scannedQty < 0) {
+                        inventory[log.sku].scannedQty = 0;
+                    }
+                    if (inventory[log.sku].systemQty === 0 && inventory[log.sku].scannedQty === 0 && (inventory[log.sku].pendingQty || 0) === 0) {
+                        delete inventory[log.sku];
+                    }
                 }
-            } else { logsToKeep.push(log); }
+            } else { 
+                logsToKeep.push(log); 
+            }
         }
         
-        auditLog = logsToKeep; delete binTotals[binNumber];
-        if (!binTotals[currentBin]) binTotals[currentBin] = 0; if (!binCounters[currentBin]) binCounters[currentBin] = 0;
+        auditLog = logsToKeep; 
+        delete binTotals[binNumber];
         
-        rebuildSkuBins(); await saveData(); renderTable(); renderAuditTrail();
+        if (!binTotals[currentBin]) binTotals[currentBin] = 0; 
+        if (!binCounters[currentBin]) binCounters[currentBin] = 0;
+        
+        rebuildSkuBins(); 
+        await saveData(); 
+        renderTable(); 
+        renderAuditTrail();
     }
 
     async function deleteHistoryItem(logId) {
@@ -1434,68 +2216,135 @@
         if (!confirmed) return;
         
         saveState();
+        
         let logIndex = auditLog.findIndex(l => l.id === logId);
+        
         if (logIndex > -1) {
             let log = auditLog[logIndex];
             if (inventory[log.sku]) {
                 inventory[log.sku].scannedQty -= log.qty;
-                if (inventory[log.sku].scannedQty < 0) inventory[log.sku].scannedQty = 0;
-                if (inventory[log.sku].systemQty === 0 && inventory[log.sku].scannedQty === 0 && (inventory[log.sku].pendingQty || 0) === 0) delete inventory[log.sku];
+                if (inventory[log.sku].scannedQty < 0) {
+                    inventory[log.sku].scannedQty = 0;
+                }
+                if (inventory[log.sku].systemQty === 0 && inventory[log.sku].scannedQty === 0 && (inventory[log.sku].pendingQty || 0) === 0) {
+                    delete inventory[log.sku];
+                }
             }
-            if (binTotals[log.bin] !== undefined) { binTotals[log.bin] -= log.qty; if (binTotals[log.bin] < 0) binTotals[log.bin] = 0; }
+            if (binTotals[log.bin] !== undefined) { 
+                binTotals[log.bin] -= log.qty; 
+                if (binTotals[log.bin] < 0) {
+                    binTotals[log.bin] = 0; 
+                }
+            }
             auditLog.splice(logIndex, 1);
-            rebuildSkuBins(); await saveData(); renderTable(); renderAuditTrail();
+            
+            rebuildSkuBins(); 
+            await saveData(); 
+            renderTable(); 
+            renderAuditTrail();
         }
     }
 
     async function editHistorySku(logId) {
-        let logIndex = auditLog.findIndex(l => l.id === logId); if (logIndex === -1) return;
-        let log = auditLog[logIndex];
+        let logIndex = auditLog.findIndex(l => l.id === logId); 
+        if (logIndex === -1) return;
         
-        let newSku = await customPrompt(`Edit SKU for this scan:`, log.sku, "Edit SKU"); if (newSku === null) return; 
+        let log = auditLog[logIndex];
+        let newSku = await customPrompt(`Edit SKU for this scan:`, log.sku, "Edit SKU"); 
+        
+        if (newSku === null) return; 
+        
         newSku = newSku.trim().replace(/^0+/, '') || '0';
         if (newSku === "" || newSku === "0" || newSku === log.sku) return;
         
         saveState();
-        let oldSku = log.sku; let logQty = log.qty;
+        
+        let oldSku = log.sku; 
+        let logQty = log.qty;
         
         if (inventory[oldSku]) {
             inventory[oldSku].scannedQty -= logQty;
-            if (inventory[oldSku].scannedQty < 0) inventory[oldSku].scannedQty = 0;
-            if (inventory[oldSku].systemQty === 0 && inventory[oldSku].scannedQty === 0 && (inventory[oldSku].pendingQty || 0) === 0) delete inventory[oldSku];
+            if (inventory[oldSku].scannedQty < 0) {
+                inventory[oldSku].scannedQty = 0;
+            }
+            if (inventory[oldSku].systemQty === 0 && inventory[oldSku].scannedQty === 0 && (inventory[oldSku].pendingQty || 0) === 0) {
+                delete inventory[oldSku];
+            }
         }
         
         let isError = false;
         if (!inventory[newSku]) {
-            inventory[newSku] = { description: "Manually Edited", systemQty: 0, sysQty1000: 0, sysQty4000: 0, sysQtyOther: 0, scannedQty: 0, pendingQty: 0, sloc: 'Scanned', isLens: false, bins: [] };
-            isError = true; showErrorToast(`⚠️ SKU ${newSku} is NOT in the encoded list!`); playSound('error');
-        } else { playSound('success'); }
+            inventory[newSku] = { 
+                description: "Manually Edited", 
+                systemQty: 0, 
+                sysQty1000: 0, 
+                sysQty4000: 0, 
+                sysQtyOther: 0, 
+                scannedQty: 0, 
+                pendingQty: 0, 
+                sloc: 'Scanned', 
+                isLens: false, 
+                bins: [] 
+            };
+            isError = true; 
+            showErrorToast(`⚠️ SKU ${newSku} is NOT in the encoded list!`); 
+            playSound('error');
+        } else { 
+            playSound('success'); 
+        }
         
         inventory[newSku].scannedQty += logQty;
-        log.sku = newSku; log.isError = isError; log.desc = inventory[newSku].description;
+        log.sku = newSku; 
+        log.isError = isError; 
+        log.desc = inventory[newSku].description;
         
-        rebuildSkuBins(); await saveData(); renderTable(); renderAuditTrail();
+        rebuildSkuBins(); 
+        await saveData(); 
+        renderTable(); 
+        renderAuditTrail();
     }
 
     async function editHistoryQty(logId) {
-        let logIndex = auditLog.findIndex(l => l.id === logId); if (logIndex === -1) return;
-        let log = auditLog[logIndex];
+        let logIndex = auditLog.findIndex(l => l.id === logId); 
+        if (logIndex === -1) return;
         
-        let newQtyRaw = await customPrompt(`Edit Quantity for this scan (${log.sku}):`, log.qty, "Edit Quantity"); if (newQtyRaw === null) return;
+        let log = auditLog[logIndex];
+        let newQtyRaw = await customPrompt(`Edit Quantity for this scan (${log.sku}):`, log.qty, "Edit Quantity"); 
+        
+        if (newQtyRaw === null) return;
+        
         let newQty = parseInt(newQtyRaw.replace(/,/g, ''));
-        if (isNaN(newQty) || newQty < 0) { await customAlert("Invalid quantity. Must be 0 or greater.", "Error"); return; }
+        if (isNaN(newQty) || newQty < 0) { 
+            await customAlert("Invalid quantity. Must be 0 or greater.", "Error"); 
+            return; 
+        }
         if (newQty === log.qty) return;
         
         saveState();
+        
         let diff = newQty - log.qty;
         if (inventory[log.sku]) {
             inventory[log.sku].scannedQty += diff;
-            if (inventory[log.sku].scannedQty < 0) inventory[log.sku].scannedQty = 0;
-            if (inventory[log.sku].systemQty === 0 && inventory[log.sku].scannedQty === 0 && (inventory[log.sku].pendingQty || 0) === 0) delete inventory[log.sku];
+            if (inventory[log.sku].scannedQty < 0) {
+                inventory[log.sku].scannedQty = 0;
+            }
+            if (inventory[log.sku].systemQty === 0 && inventory[log.sku].scannedQty === 0 && (inventory[log.sku].pendingQty || 0) === 0) {
+                delete inventory[log.sku];
+            }
         }
-        if (binTotals[log.bin] !== undefined) { binTotals[log.bin] += diff; if (binTotals[log.bin] < 0) binTotals[log.bin] = 0; }
+        
+        if (binTotals[log.bin] !== undefined) { 
+            binTotals[log.bin] += diff; 
+            if (binTotals[log.bin] < 0) {
+                binTotals[log.bin] = 0; 
+            }
+        }
+        
         log.qty = newQty;
-        await saveData(); renderTable(); renderAuditTrail();
+        
+        await saveData(); 
+        renderTable(); 
+        renderAuditTrail();
     }
 
     function appendAuditLog(sku, isError, qty = 1) {
@@ -1503,26 +2352,49 @@
         let desc = inventory[sku] && inventory[sku].description ? inventory[sku].description : "Unknown Item";
         let logId = Date.now().toString() + Math.floor(Math.random() * 1000000).toString();
         
-        if (!binCounters[currentBin]) binCounters[currentBin] = 0;
+        if (!binCounters[currentBin]) {
+            binCounters[currentBin] = 0;
+        }
         binCounters[currentBin]++;
         
-        auditLog.unshift({ id: logId, time: timeStr, sku: sku, desc: desc, isError: isError, bin: currentBin, binLine: binCounters[currentBin], qty: qty });
-        if(auditLog.length > 50000) auditLog.pop(); 
+        auditLog.unshift({ 
+            id: logId, 
+            time: timeStr, 
+            sku: sku, 
+            desc: desc, 
+            isError: isError, 
+            bin: currentBin, 
+            binLine: binCounters[currentBin], 
+            qty: qty 
+        });
         
-        if (!binTotals[currentBin]) binTotals[currentBin] = 0;
+        if(auditLog.length > 50000) {
+            auditLog.pop(); 
+        }
+        
+        if (!binTotals[currentBin]) {
+            binTotals[currentBin] = 0;
+        }
         binTotals[currentBin] += qty;
 
         if (inventory[sku]) {
             if (!inventory[sku].bins) inventory[sku].bins = [];
-            if (!inventory[sku].bins.includes(currentBin)) inventory[sku].bins.push(currentBin);
+            if (!inventory[sku].bins.includes(currentBin)) {
+                inventory[sku].bins.push(currentBin);
+            }
         }
+        
         renderAuditTrail();
+        
         let auditBox = document.getElementById('auditTrailBox');
-        if (auditBox && auditBox.style.display === 'none' && !isFastScanMode) toggleAuditTrail();
+        if (auditBox && auditBox.style.display === 'none' && !isFastScanMode) {
+            toggleAuditTrail();
+        }
     }
 
     function renderAuditTrail() {
-        const list = document.getElementById('auditList'); const summaryList = document.getElementById('binSummaryList');
+        const list = document.getElementById('auditList'); 
+        const summaryList = document.getElementById('binSummaryList');
         document.getElementById('currentBinLabel').innerText = getBinName(currentBin);
         
         let searchQuery = (document.getElementById('historySearchInput') ? document.getElementById('historySearchInput').value.toLowerCase() : '');
@@ -1530,30 +2402,58 @@
         
         if (searchQuery) {
             let binTargetStr = null, skuTargetStr = null;
-            if (searchQuery.includes('bin:')) { let match = searchQuery.match(/bin:([a-z0-9]+)/i); if (match) binTargetStr = match[1].toLowerCase(); }
-            if (searchQuery.includes('sku:')) { let match = searchQuery.match(/sku:([\w\d-]+)/i); if (match) skuTargetStr = match[1].toLowerCase(); }
+            
+            if (searchQuery.includes('bin:')) { 
+                let match = searchQuery.match(/bin:([a-z0-9]+)/i); 
+                if (match) {
+                    binTargetStr = match[1].toLowerCase(); 
+                }
+            }
+            if (searchQuery.includes('sku:')) { 
+                let match = searchQuery.match(/sku:([\w\d-]+)/i); 
+                if (match) {
+                    skuTargetStr = match[1].toLowerCase(); 
+                }
+            }
 
             if (binTargetStr || skuTargetStr) {
                 filteredLog = auditLog.filter(log => {
-                    let binMatch = true; if (binTargetStr) binMatch = getBinName(log.bin).toLowerCase() === binTargetStr;
-                    let skuMatch = true; if (skuTargetStr) skuMatch = log.sku.toLowerCase() === skuTargetStr;
+                    let binMatch = true; 
+                    if (binTargetStr) {
+                        binMatch = getBinName(log.bin).toLowerCase() === binTargetStr;
+                    }
+                    let skuMatch = true; 
+                    if (skuTargetStr) {
+                        skuMatch = log.sku.toLowerCase() === skuTargetStr;
+                    }
                     return binMatch && skuMatch;
                 });
             } else {
-                filteredLog = auditLog.filter(log => log.sku.toLowerCase().includes(searchQuery) || log.desc.toLowerCase().includes(searchQuery) || getBinName(log.bin).toLowerCase() === searchQuery);
+                filteredLog = auditLog.filter(log => 
+                    log.sku.toLowerCase().includes(searchQuery) || 
+                    log.desc.toLowerCase().includes(searchQuery) || 
+                    getBinName(log.bin).toLowerCase() === searchQuery
+                );
             }
         }
 
-        let displayLimit = 300; let logsToRender = (!searchQuery && filteredLog.length > displayLimit) ? filteredLog.slice(0, displayLimit) : filteredLog;
+        let displayLimit = 300; 
+        let logsToRender = (!searchQuery && filteredLog.length > displayLimit) ? filteredLog.slice(0, displayLimit) : filteredLog;
 
         if(logsToRender.length === 0) {
             list.innerHTML = `<li style="color:var(--text-secondary); font-style:italic;">${searchQuery ? 'No results found...' : 'Scan history will appear here...'}</li>`;
         } else {
             list.innerHTML = '';
+            
             logsToRender.forEach(log => {
                 let li = document.createElement('li');
-                li.style.display = "flex"; li.style.alignItems = "center"; li.style.justifyContent = "space-between"; li.style.padding = "4px 0";
+                li.style.display = "flex"; 
+                li.style.alignItems = "center"; 
+                li.style.justifyContent = "space-between"; 
+                li.style.padding = "4px 0";
+                
                 let statusSpan = log.isError ? `<span class="audit-error">Not in System</span>` : `<span class="audit-success">Matched/Found</span>`;
+                
                 let actionBtns = `
                     <div style="display:inline-flex; gap: 4px; margin-left: 6px; flex-shrink: 0;">
                         <button onclick="editHistorySku('${log.id}')" style="background:transparent; border:none; cursor:pointer; color:var(--accent-blue);" title="Edit SKU">
@@ -1567,20 +2467,34 @@
                         </button>
                     </div>
                 `;
+                
                 li.innerHTML = `<div style="flex: 1; word-break: break-all;"><span style="display:inline-block; width:75px; font-weight:bold; color:var(--accent-blue);">Bin ${getBinName(log.bin)} L${log.binLine || 1}</span> <span class="audit-time">[${log.time}]</span> Scanned <strong style="color:var(--text-primary);">${log.sku}</strong> <strong style="color:var(--accent-orange); margin-left: 4px;">[${log.qty} QTY]</strong> - ${log.desc} - ${statusSpan}</div> ${actionBtns}`;
                 list.appendChild(li);
             });
+            
             if (!searchQuery && filteredLog.length > displayLimit) {
-                let moreLi = document.createElement('li'); moreLi.innerHTML = `<i style="color: var(--text-secondary); font-size: 10px;">...and ${filteredLog.length - displayLimit} older scans layout hidden</i>`; list.appendChild(moreLi);
+                let moreLi = document.createElement('li'); 
+                moreLi.innerHTML = `<i style="color: var(--text-secondary); font-size: 10px;">...and ${filteredLog.length - displayLimit} older scans layout hidden</i>`; 
+                list.appendChild(moreLi);
             }
         }
 
-        summaryList.innerHTML = ''; let binKeys = Object.keys(binTotals).map(Number).sort((a,b) => a - b);
-        if (binKeys.length === 0) { summaryList.innerHTML = `<li>Bin ${getBinName(currentBin)} = 0 QTY</li>`; } 
-        else {
+        summaryList.innerHTML = ''; 
+        let binKeys = Object.keys(binTotals).map(Number).sort((a,b) => a - b);
+        
+        if (binKeys.length === 0) { 
+            summaryList.innerHTML = `<li>Bin ${getBinName(currentBin)} = 0 QTY</li>`; 
+        } else {
             binKeys.forEach(b => {
-                let li = document.createElement('li'); li.style.padding = "3px 0"; li.style.borderBottom = "1px solid #f3f4f6"; li.style.display = "flex"; li.style.justifyContent = "space-between"; li.style.alignItems = "center";
-                li.style.fontWeight = b === currentBin ? "bold" : "normal"; li.style.color = b === currentBin ? "var(--accent-blue)" : "var(--text-secondary)";
+                let li = document.createElement('li'); 
+                li.style.padding = "3px 0"; 
+                li.style.borderBottom = "1px solid #f3f4f6"; 
+                li.style.display = "flex"; 
+                li.style.justifyContent = "space-between"; 
+                li.style.alignItems = "center";
+                li.style.fontWeight = b === currentBin ? "bold" : "normal"; 
+                li.style.color = b === currentBin ? "var(--accent-blue)" : "var(--text-secondary)";
+                
                 li.innerHTML = `<span style="cursor:pointer;" onclick="filterHistoryByBin(${b})"><strong>Bin ${getBinName(b)}</strong> = ${binTotals[b]} QTY</span>
                                 <button onclick="deleteBin(${b})" style="background:transparent; border:none; cursor:pointer; color:var(--accent-red); padding:0 4px; border-radius:4px;">
                                     <svg viewBox="0 0 24 24" width="10" height="10" stroke="currentColor" stroke-width="2" fill="none"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
@@ -1591,12 +2505,20 @@
     }
 
     function updateStickyHeaders() {
-        const stickyGroup = document.getElementById('stickyGroup'); if (!stickyGroup) return;
+        const stickyGroup = document.getElementById('stickyGroup'); 
+        if (!stickyGroup) return;
+        
         const height = stickyGroup.getBoundingClientRect().height; 
-        document.querySelectorAll('#resultsTable th').forEach(th => th.style.top = (height + 8) + 'px');
+        document.querySelectorAll('#resultsTable th').forEach(th => {
+            th.style.top = (height + 8) + 'px';
+        });
     }
 
-    function changePageSize() { itemsPerPage = document.getElementById('pageSize').value; currentPage = 1; renderTable(); }
+    function changePageSize() { 
+        itemsPerPage = document.getElementById('pageSize').value; 
+        currentPage = 1; 
+        renderTable(); 
+    }
     
     function prevPage() { 
         if (currentPage > 1) { 
@@ -1621,7 +2543,9 @@
             let rivBarcodeCol = -1, rivBrandCol = -1, rivSubBrandCol = -1, rivItemNoCol = -1, rivDescCol = -1;
 
             for (let i = 0; i < Math.min(aoa.length, 25); i++) {
-                let cols = aoa[i]; if (!cols || !cols.length) continue;
+                let cols = aoa[i]; 
+                if (!cols || !cols.length) continue;
+                
                 let rowHeaders = cols.map(c => String(c).trim().toLowerCase().replace(/['"]/g, ''));
                 
                 if (rowHeaders.includes('barcode') && rowHeaders.includes('qty. on hand') && rowHeaders.includes('sub brand code')) {
@@ -1639,6 +2563,7 @@
                 for (let j = 0; j < cols.length; j++) {
                     if (cols[j] == null) continue;
                     let h = String(cols[j]).trim().toLowerCase().replace(/['"]/g, '');
+                    
                     if (h === 'article' || h === 'article #' || h === 'sku' || h === 'material') skuCol = j;
                     if (h === 'unrestricted' || h === 'p.o. qty.' || h === 'p.o. qty' || h === 'qty' || h === 'quantity' || h === 'in-transit qty.') qtyCol = j;
                     if (h === 'storage location' || h === 'sloc') slocCol = j;
@@ -1646,41 +2571,62 @@
                     if (h === 's.t.o. #' || h === 's.t.o.') stoCol = j;
                     if (h.includes('merch') || h.includes('category')) merchCol = j;
                 }
-                if (skuCol !== -1 && qtyCol !== -1 && !isRivoli) { headerRowIndex = i; break; }
+                if (skuCol !== -1 && qtyCol !== -1 && !isRivoli) { 
+                    headerRowIndex = i; 
+                    break; 
+                }
             }
 
             let isFallbackMode = (!isRivoli && headerRowIndex === -1);
             let startIndex = isFallbackMode ? 0 : headerRowIndex + 1;
 
-            saveState(); uploadedRawData = []; currentFileType = (stoCol !== -1) ? 'INTRANSIT' : 'MB52';
-            let combineBrands = false; let looksLikeMB52 = currentFileType === 'MB52';
+            saveState(); 
+            uploadedRawData = []; 
+            currentFileType = (stoCol !== -1) ? 'INTRANSIT' : 'MB52';
+            let combineBrands = false; 
+            let looksLikeMB52 = currentFileType === 'MB52';
             
             if (isFallbackMode) {
                 for (let i = startIndex; i < Math.min(aoa.length, startIndex + 20); i++) {
                     if (!aoa[i]) continue;
                     let rowText = aoa[i].join(' ').toUpperCase();
-                    if (rowText.includes('S;') || rowText.includes('O;') || rowText.includes('OA;')) { looksLikeMB52 = true; break; }
+                    if (rowText.includes('S;') || rowText.includes('O;') || rowText.includes('OA;')) { 
+                        looksLikeMB52 = true; 
+                        break; 
+                    }
                 }
             }
 
-            if (looksLikeMB52 || isRivoli) combineBrands = await customConfirm("Do you want to combine similar brand names and fix misspellings?", "Combine Similar Brands");
+            if (looksLikeMB52 || isRivoli) {
+                combineBrands = await customConfirm("Do you want to combine similar brand names and fix misspellings?", "Combine Similar Brands");
+            }
             await new Promise(r => setTimeout(r, 50));
 
-            let uniqueSTOs = new Set(); let uniqueBrands = new Set(); let excludedCount = 0;
+            let uniqueSTOs = new Set(); 
+            let uniqueBrands = new Set(); 
+            let excludedCount = 0;
 
             for (let i = startIndex; i < aoa.length; i++) {
-                let cols = aoa[i]; if (!cols || cols.length < 2) continue;
+                let cols = aoa[i]; 
+                if (!cols || cols.length < 2) continue;
+                
                 let skuRaw = "", qtyRaw = "", descRaw = "", slocRaw = "", stoRaw = "", merchRaw = "";
 
                 if (isRivoli) {
                     skuRaw = cols[rivBarcodeCol] != null ? String(cols[rivBarcodeCol]).trim() : "";
                     qtyRaw = cols[qtyCol] != null ? String(cols[qtyCol]).trim() : "";
+                    
                     let bName = rivBrandCol !== -1 && cols[rivBrandCol] != null ? String(cols[rivBrandCol]).trim() : "";
                     let iNo = rivItemNoCol !== -1 && cols[rivItemNoCol] != null ? String(cols[rivItemNoCol]).trim() : "";
                     let iDesc = rivDescCol !== -1 && cols[rivDescCol] != null ? String(cols[rivDescCol]).trim() : "";
                     let subCode = rivSubBrandCol !== -1 && cols[rivSubBrandCol] != null ? String(cols[rivSubBrandCol]).trim().toUpperCase() : "";
-                    let prefix = "OA"; if (subCode === "E01") prefix = "S"; else if (subCode === "E02") prefix = "O";
-                    descRaw = `${prefix};${bName};${iNo} ${iDesc}`.trim(); merchRaw = prefix;
+                    
+                    let prefix = "OA"; 
+                    if (subCode === "E01") prefix = "S"; 
+                    else if (subCode === "E02") prefix = "O";
+                    
+                    descRaw = `${prefix};${bName};${iNo} ${iDesc}`.trim(); 
+                    merchRaw = prefix;
                 } else if (!isFallbackMode) {
                     skuRaw = cols[skuCol] != null ? String(cols[skuCol]).trim() : "";
                     qtyRaw = cols[qtyCol] != null ? String(cols[qtyCol]).trim() : "";
@@ -1689,85 +2635,160 @@
                     stoRaw = stoCol !== -1 && cols[stoCol] != null ? String(cols[stoCol]).trim() : "";
                     merchRaw = merchCol !== -1 && cols[merchCol] != null ? String(cols[merchCol]).trim() : "";
                 } else {
-                    let possibleSkus = []; let possibleSlocs = []; let uomIndex = -1; let uomKeywords = ['PAK', 'EA', 'PC', 'ST', 'PR'];
+                    let possibleSkus = []; 
+                    let possibleSlocs = []; 
+                    let uomIndex = -1; 
+                    let uomKeywords = ['PAK', 'EA', 'PC', 'ST', 'PR'];
+                    
                     for (let j = 0; j < cols.length; j++) {
                         if (cols[j] == null) continue;
-                        let val = String(cols[j]).trim(); if (!val) continue;
-                        if (uomKeywords.includes(val.toUpperCase())) uomIndex = j;
+                        let val = String(cols[j]).trim(); 
+                        if (!val) continue;
+                        
+                        if (uomKeywords.includes(val.toUpperCase())) {
+                            uomIndex = j;
+                        }
+                        
                         let valNoCommas = val.replace(/,/g, '');
                         if (/^\d+$/.test(valNoCommas)) {
-                            if (["1000", "2000", "3000", "4000", "5000"].includes(valNoCommas)) possibleSlocs.push({val: valNoCommas, index: j});
-                            else if (valNoCommas.length >= 5) possibleSkus.push({val: valNoCommas, index: j});
+                            if (["1000", "2000", "3000", "4000", "5000"].includes(valNoCommas)) {
+                                possibleSlocs.push({val: valNoCommas, index: j});
+                            } else if (valNoCommas.length >= 5) {
+                                possibleSkus.push({val: valNoCommas, index: j});
+                            }
                         }
                     }
-                    if (possibleSlocs.length > 0) slocRaw = possibleSlocs[0].val;
+                    
+                    if (possibleSlocs.length > 0) {
+                        slocRaw = possibleSlocs[0].val;
+                    }
+                    
                     possibleSkus = possibleSkus.filter(s => s.val.length !== 4 && s.val !== slocRaw); 
                     possibleSkus.sort((a, b) => b.val.length - a.val.length);
-                    if (possibleSkus.length > 0) skuRaw = possibleSkus[0].val;
+                    
+                    if (possibleSkus.length > 0) {
+                        skuRaw = possibleSkus[0].val;
+                    }
 
-                    let foundQtyIndex = -1; let skuIndex = possibleSkus.length > 0 ? possibleSkus[0].index : -1; let slocIndex = possibleSlocs.length > 0 ? possibleSlocs[0].index : -1;
+                    let foundQtyIndex = -1; 
+                    let skuIndex = possibleSkus.length > 0 ? possibleSkus[0].index : -1; 
+                    let slocIndex = possibleSlocs.length > 0 ? possibleSlocs[0].index : -1;
+                    
                     if (uomIndex !== -1) {
                         for (let j = uomIndex + 1; j < cols.length; j++) {
                             if (cols[j] == null) continue;
                             let val = String(cols[j]).trim().replace(/,/g, '');
-                            if (val !== "" && !isNaN(val)) { qtyRaw = val; foundQtyIndex = j; break; }
+                            if (val !== "" && !isNaN(val)) { 
+                                qtyRaw = val; 
+                                foundQtyIndex = j; 
+                                break; 
+                            }
                         }
                     }
+                    
                     if (foundQtyIndex === -1 && skuIndex !== -1) {
                         let potentialQtys = [];
                         for(let j = skuIndex + 1; j < cols.length; j++) {
                             if(cols[j] == null) continue;
-                            let val = String(cols[j]).trim(); let valNoCommas = val.replace(/,/g, '');
+                            let val = String(cols[j]).trim(); 
+                            let valNoCommas = val.replace(/,/g, '');
                             let numCheck = valNoCommas.endsWith('-') ? '-' + valNoCommas.slice(0, -1) : valNoCommas;
+                            
                             if (numCheck !== "" && !isNaN(numCheck)) {
                                 let isVendorShape = /^\d+$/.test(numCheck) && numCheck.length >= 7 && numCheck.length <= 10 && val.startsWith("000");
                                 let isStoreShape = /^\d+$/.test(numCheck) && numCheck.length === 4;
                                 let isSlocShape = ["1000", "2000", "3000", "4000", "5000"].includes(numCheck);
-                                if (!isVendorShape && !isStoreShape && !isSlocShape && j !== slocIndex) potentialQtys.push({ val: numCheck, index: j, isFloat: numCheck.includes('.') });
+                                
+                                if (!isVendorShape && !isStoreShape && !isSlocShape && j !== slocIndex) {
+                                    potentialQtys.push({ val: numCheck, index: j, isFloat: numCheck.includes('.') });
+                                }
                             }
                         }
                         if (potentialQtys.length > 0) {
                             let floatMatch = potentialQtys.find(q => q.isFloat);
-                            if (floatMatch) { qtyRaw = floatMatch.val; foundQtyIndex = floatMatch.index; } 
-                            else { qtyRaw = potentialQtys[0].val; foundQtyIndex = potentialQtys[0].index; }
+                            if (floatMatch) { 
+                                qtyRaw = floatMatch.val; 
+                                foundQtyIndex = floatMatch.index; 
+                            } else { 
+                                qtyRaw = potentialQtys[0].val; 
+                                foundQtyIndex = potentialQtys[0].index; 
+                            }
                         }
                     }
+                    
                     let descParts = [];
                     if (skuIndex !== -1) {
                         let endIndex = uomIndex !== -1 ? uomIndex : (foundQtyIndex !== -1 ? foundQtyIndex : cols.length);
                         for (let j = skuIndex + 1; j < endIndex; j++) {
                             if (cols[j] == null || j === foundQtyIndex || j === slocIndex) continue;
-                            let val = String(cols[j]).trim(); let valNoCommas = val.replace(/,/g, '');
+                            let val = String(cols[j]).trim(); 
+                            let valNoCommas = val.replace(/,/g, '');
                             if(val === "" || (!isNaN(valNoCommas) && !val.includes(';'))) continue; 
                             descParts.push(val);
                         }
                         descRaw = descParts.join(' ');
                     }
+                    
                     if (!descRaw) {
-                        for (let j = 0; j < cols.length; j++) { if (cols[j] && String(cols[j]).includes(';')) { descRaw = String(cols[j]).trim(); break; } }
+                        for (let j = 0; j < cols.length; j++) { 
+                            if (cols[j] && String(cols[j]).includes(';')) { 
+                                descRaw = String(cols[j]).trim(); 
+                                break; 
+                            } 
+                        }
                     }
                 }
 
-                let fullRowText = cols.join(' '); let sku = skuRaw.replace(/^0+/, '') || '0';
-                let sysQty = Math.round(parseFloat(qtyRaw.replace(/,/g, ''))); if (sysQty < 0) sysQty = Math.abs(sysQty); 
+                let fullRowText = cols.join(' '); 
+                let sku = skuRaw.replace(/^0+/, '') || '0';
+                let sysQty = Math.round(parseFloat(qtyRaw.replace(/,/g, ''))); 
+                
+                if (sysQty < 0) {
+                    sysQty = Math.abs(sysQty); 
+                }
+                
                 if (sku === "" || sku === "0" || isNaN(sysQty) || sysQty === 0) continue;
 
-                let isLens = isExcludedItem(fullRowText, descRaw, merchRaw); if (isLens) excludedCount++;
-                if (combineBrands) descRaw = normalizeDescription(descRaw);
+                let isLens = isExcludedItem(fullRowText, descRaw, merchRaw); 
+                if (isLens) {
+                    excludedCount++;
+                }
+                
+                if (combineBrands) {
+                    descRaw = normalizeDescription(descRaw);
+                }
 
                 let extracted = extractBrandAndCategory(descRaw);
-                let category = extracted.category; let brand = extracted.brand;
+                let category = extracted.category; 
+                let brand = extracted.brand;
 
-                if (stoRaw) uniqueSTOs.add(stoRaw);
-                if (brand !== "UNKNOWN") uniqueBrands.add(brand);
+                if (stoRaw) {
+                    uniqueSTOs.add(stoRaw);
+                }
+                if (brand !== "UNKNOWN") {
+                    uniqueBrands.add(brand);
+                }
 
-                uploadedRawData.push({ sku, qty: sysQty, desc: descRaw, sloc: slocRaw, sto: stoRaw, category, brand, isLens });
+                uploadedRawData.push({ 
+                    sku, 
+                    qty: sysQty, 
+                    desc: descRaw, 
+                    sloc: slocRaw, 
+                    sto: stoRaw, 
+                    category, 
+                    brand, 
+                    isLens 
+                });
             }
 
             if (uploadedRawData.length === 0) {
                 await customAlert(`No valid rows found to encode.`, "Load Result");
-                undoStack.pop(); updateUndoRedoButtons();
-                if(event && event.target) event.target.value = ''; return;
+                undoStack.pop(); 
+                updateUndoRedoButtons();
+                if(event && event.target) {
+                    event.target.value = ''; 
+                }
+                return;
             }
 
             // check for mixed slocs
@@ -1778,8 +2799,11 @@
                 let action = await askSlocAction();
                 if (action === 'CANCEL') {
                     uploadedRawData = [];
-                    undoStack.pop(); updateUndoRedoButtons();
-                    if(event && event.target) event.target.value = '';
+                    undoStack.pop(); 
+                    updateUndoRedoButtons();
+                    if(event && event.target) {
+                        event.target.value = '';
+                    }
                     return;
                 }
                 if (action === 'REMOVE_4000') {
@@ -1790,59 +2814,94 @@
             }
 
             document.getElementById('dynamicFilters').style.display = 'flex'; 
-            itemsPerPage = '100'; document.getElementById('pageSize').value = '100';
+            itemsPerPage = '100'; 
+            document.getElementById('pageSize').value = '100';
 
             if (currentFileType === 'INTRANSIT') {
-                document.getElementById('intransitFilters').style.display = 'flex'; document.getElementById('mb52Filters').style.display = 'none';
-                let stoSelect = document.getElementById('stoDropdown'); stoSelect.innerHTML = '<option value="ALL">ALL S.T.O.</option>';
-                Array.from(uniqueSTOs).sort().forEach(sto => stoSelect.innerHTML += `<option value="${sto}">${sto}</option>`);
+                document.getElementById('intransitFilters').style.display = 'flex'; 
+                document.getElementById('mb52Filters').style.display = 'none';
+                
+                let stoSelect = document.getElementById('stoDropdown'); 
+                stoSelect.innerHTML = '<option value="ALL">ALL S.T.O.</option>';
+                Array.from(uniqueSTOs).sort().forEach(sto => {
+                    stoSelect.innerHTML += `<option value="${sto}">${sto}</option>`;
+                });
             } else {
-                document.getElementById('intransitFilters').style.display = 'none'; document.getElementById('mb52Filters').style.display = 'flex';
+                document.getElementById('intransitFilters').style.display = 'none'; 
+                document.getElementById('mb52Filters').style.display = 'flex';
                 updateBrandDropdown(); 
             }
+            
             applyDynamicFilters();
+            
             let msg = `Successfully loaded and parsed ${uploadedRawData.length} items.`;
-            if (excludedCount > 0) msg += `<br><br><span style="color:var(--accent-pink); font-weight:bold;">Automatically hid ${excludedCount} Ophthalmic, Contact Lens, and Spare Part items!</span>`;
+            if (excludedCount > 0) {
+                msg += `<br><br><span style="color:var(--accent-pink); font-weight:bold;">Automatically hid ${excludedCount} Ophthalmic, Contact Lens, and Spare Part items!</span>`;
+            }
+            
             await customAlert(msg, "Load Success");
-            if(event && event.target) event.target.value = '';
+            
+            if(event && event.target) {
+                event.target.value = '';
+            }
+            
         } catch (error) {
-            console.error(error); undoStack.pop(); updateUndoRedoButtons();
+            console.error(error); 
+            undoStack.pop(); 
+            updateUndoRedoButtons();
             await customAlert("A critical error occurred while parsing the data: " + error.message, "Parsing Error");
-            if(event && event.target) event.target.value = '';
+            if(event && event.target) {
+                event.target.value = '';
+            }
         }
     }
 
     async function handleFileUpload(event) {
-        const file = event.target.files ? event.target.files[0] : null; if (!file) return;
+        const file = event.target.files ? event.target.files[0] : null; 
+        if (!file) return;
+        
         const fileName = file.name.toLowerCase();
 
         if (fileName.endsWith('.csv') || fileName.endsWith('.txt') || fileName.endsWith('.tsv')) {
             const reader = new FileReader();
             reader.onload = async function(e) {
                 try {
-                    let text = e.target.result; let aoa = []; let lines = text.split(/\r?\n/);
+                    let text = e.target.result; 
+                    let aoa = []; 
+                    let lines = text.split(/\r?\n/);
                     let delim = text.indexOf('\t') !== -1 ? '\t' : ',';
+                    
                     for(let i=0; i<lines.length; i++) {
-                        if(!lines[i].trim()) continue; aoa.push(parseCSVLine(lines[i], delim));
+                        if(!lines[i].trim()) continue; 
+                        aoa.push(parseCSVLine(lines[i], delim));
                     }
+                    
                     await processArrayOfArrays(aoa, event);
                 } catch(err) {
-                    console.error(err); await customAlert("There was an error reading the CSV text.", "File Error");
-                    if(event && event.target) event.target.value = '';
+                    console.error(err); 
+                    await customAlert("There was an error reading the CSV text.", "File Error");
+                    if(event && event.target) {
+                        event.target.value = '';
+                    }
                 }
             };
-            reader.readAsText(file); return;
+            reader.readAsText(file); 
+            return;
         }
 
         if (typeof XLSX === 'undefined') {
             await customAlert("The Excel parser library couldn't load. Please load a .CSV instead.", "Library Blocked");
-            if(event && event.target) event.target.value = ''; return;
+            if(event && event.target) {
+                event.target.value = '';
+            }
+            return;
         }
 
         const reader = new FileReader();
         reader.onload = async function(e) {
             try {
-                const data = new Uint8Array(e.target.result); const workbook = XLSX.read(data, {type: 'array'});
+                const data = new Uint8Array(e.target.result); 
+                const workbook = XLSX.read(data, {type: 'array'});
                 const aoa = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], {header: 1, defval: ""}); 
                 await processArrayOfArrays(aoa, event);
             } catch (err) {
@@ -1851,11 +2910,18 @@
                     if(text.includes('<table') || text.includes('\t') || text.includes(',')) {
                          const workbook = XLSX.read(text, {type: 'string'});
                          const aoa = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], {header: 1, defval: ""});
-                         await processArrayOfArrays(aoa, event); return;
+                         await processArrayOfArrays(aoa, event); 
+                         return;
                     }
-                } catch(e2) { console.error(e2); }
+                } catch(e2) { 
+                    console.error(e2); 
+                }
+                
                 await customAlert("There was an error parsing the spreadsheet. Ensure the file is not corrupted.", "File Error");
-                if(event && event.target) event.target.value = '';
+                
+                if(event && event.target) {
+                    event.target.value = '';
+                }
             }
         };
         reader.readAsArrayBuffer(file);
@@ -1870,7 +2936,9 @@
             let rivBarcodeCol = -1, rivBrandCol = -1, rivSubBrandCol = -1, rivItemNoCol = -1, rivDescCol = -1;
 
             for (let i = 0; i < Math.min(aoa.length, 25); i++) {
-                let cols = aoa[i]; if (!cols || !cols.length) continue;
+                let cols = aoa[i]; 
+                if (!cols || !cols.length) continue;
+                
                 let rowHeaders = cols.map(c => String(c).trim().toLowerCase().replace(/['"]/g, ''));
                 if (rowHeaders.includes('barcode') && rowHeaders.includes('qty. on hand') && rowHeaders.includes('sub brand code')) {
                     isRivoli = true;
@@ -1887,23 +2955,30 @@
                 for (let j = 0; j < cols.length; j++) {
                     if (cols[j] == null) continue;
                     let h = String(cols[j]).trim().toLowerCase().replace(/['"]/g, '');
+                    
                     if (h === 'article' || h === 'article #' || h === 'sku' || h === 'material') skuCol = j;
                     if (h === 'unrestricted' || h === 'p.o. qty.' || h === 'p.o. qty' || h === 'qty' || h === 'quantity' || h === 'in-transit qty.') qtyCol = j;
                     if (h === 'storage location' || h === 'sloc') slocCol = j;
                     if (h.includes('description') || h === 'desc' || h === 'article description') descCol = j;
                     if (h.includes('merch') || h.includes('category')) merchCol = j;
                 }
-                if (skuCol !== -1 && qtyCol !== -1 && !isRivoli) { headerRowIndex = i; break; }
+                if (skuCol !== -1 && qtyCol !== -1 && !isRivoli) { 
+                    headerRowIndex = i; 
+                    break; 
+                }
             }
 
             let isFallbackMode = (!isRivoli && headerRowIndex === -1);
             let startIndex = isFallbackMode ? 0 : headerRowIndex + 1;
 
-            saveState(); await new Promise(r => setTimeout(r, 50));
+            saveState(); 
+            await new Promise(r => setTimeout(r, 50));
             let addedCount = 0;
 
             for (let i = startIndex; i < aoa.length; i++) {
-                let cols = aoa[i]; if (!cols || cols.length < 2) continue;
+                let cols = aoa[i]; 
+                if (!cols || cols.length < 2) continue;
+                
                 let skuRaw = "", qtyRaw = "", descRaw = "", slocRaw = "", merchRaw = "";
 
                 if (isRivoli) {
@@ -1913,8 +2988,13 @@
                     let iNo = rivItemNoCol !== -1 && cols[rivItemNoCol] != null ? String(cols[rivItemNoCol]).trim() : "";
                     let iDesc = rivDescCol !== -1 && cols[rivDescCol] != null ? String(cols[rivDescCol]).trim() : "";
                     let subCode = rivSubBrandCol !== -1 && cols[rivSubBrandCol] != null ? String(cols[rivSubBrandCol]).trim().toUpperCase() : "";
-                    let prefix = "OA"; if (subCode === "E01") prefix = "S"; else if (subCode === "E02") prefix = "O";
-                    descRaw = `${prefix};${bName};${iNo} ${iDesc}`.trim(); merchRaw = prefix;
+                    
+                    let prefix = "OA"; 
+                    if (subCode === "E01") prefix = "S"; 
+                    else if (subCode === "E02") prefix = "O";
+                    
+                    descRaw = `${prefix};${bName};${iNo} ${iDesc}`.trim(); 
+                    merchRaw = prefix;
                 } else if (!isFallbackMode) {
                     skuRaw = cols[skuCol] != null ? String(cols[skuCol]).trim() : "";
                     qtyRaw = cols[qtyCol] != null ? String(cols[qtyCol]).trim() : "";
@@ -1922,129 +3002,218 @@
                     slocRaw = slocCol !== -1 && cols[slocCol] != null ? String(cols[slocCol]).trim() : "";
                     merchRaw = merchCol !== -1 && cols[merchCol] != null ? String(cols[merchCol]).trim() : "";
                 } else {
-                    let possibleSkus = []; let possibleSlocs = []; let uomIndex = -1; let uomKeywords = ['PAK', 'EA', 'PC', 'ST', 'PR'];
+                    let possibleSkus = []; 
+                    let possibleSlocs = []; 
+                    let uomIndex = -1; 
+                    let uomKeywords = ['PAK', 'EA', 'PC', 'ST', 'PR'];
+                    
                     for (let j = 0; j < cols.length; j++) {
                         if (cols[j] == null) continue;
-                        let val = String(cols[j]).trim(); if (!val) continue;
-                        if (uomKeywords.includes(val.toUpperCase())) uomIndex = j;
+                        let val = String(cols[j]).trim(); 
+                        if (!val) continue;
+                        
+                        if (uomKeywords.includes(val.toUpperCase())) {
+                            uomIndex = j;
+                        }
+                        
                         let valNoCommas = val.replace(/,/g, '');
                         if (/^\d+$/.test(valNoCommas)) {
-                            if (["1000", "2000", "3000", "4000", "5000"].includes(valNoCommas)) possibleSlocs.push({val: valNoCommas, index: j});
-                            else if (valNoCommas.length >= 5) possibleSkus.push({val: valNoCommas, index: j});
+                            if (["1000", "2000", "3000", "4000", "5000"].includes(valNoCommas)) {
+                                possibleSlocs.push({val: valNoCommas, index: j});
+                            } else if (valNoCommas.length >= 5) {
+                                possibleSkus.push({val: valNoCommas, index: j});
+                            }
                         }
                     }
-                    if (possibleSlocs.length > 0) slocRaw = possibleSlocs[0].val;
+                    
+                    if (possibleSlocs.length > 0) {
+                        slocRaw = possibleSlocs[0].val;
+                    }
+                    
                     possibleSkus = possibleSkus.filter(s => s.val.length !== 4 && s.val !== slocRaw); 
                     possibleSkus.sort((a, b) => b.val.length - a.val.length);
-                    if (possibleSkus.length > 0) skuRaw = possibleSkus[0].val;
+                    
+                    if (possibleSkus.length > 0) {
+                        skuRaw = possibleSkus[0].val;
+                    }
 
-                    let foundQtyIndex = -1; let skuIndex = possibleSkus.length > 0 ? possibleSkus[0].index : -1; let slocIndex = possibleSlocs.length > 0 ? possibleSlocs[0].index : -1;
+                    let foundQtyIndex = -1; 
+                    let skuIndex = possibleSkus.length > 0 ? possibleSkus[0].index : -1; 
+                    let slocIndex = possibleSlocs.length > 0 ? possibleSlocs[0].index : -1;
+                    
                     if (uomIndex !== -1) {
                         for (let j = uomIndex + 1; j < cols.length; j++) {
                             if (cols[j] == null) continue;
                             let val = String(cols[j]).trim().replace(/,/g, '');
-                            if (val !== "" && !isNaN(val)) { qtyRaw = val; foundQtyIndex = j; break; }
+                            if (val !== "" && !isNaN(val)) { 
+                                qtyRaw = val; 
+                                foundQtyIndex = j; 
+                                break; 
+                            }
                         }
                     }
+                    
                     if (foundQtyIndex === -1 && skuIndex !== -1) {
                         let potentialQtys = [];
                         for(let j = skuIndex + 1; j < cols.length; j++) {
                             if(cols[j] == null) continue;
-                            let val = String(cols[j]).trim(); let valNoCommas = val.replace(/,/g, '');
+                            let val = String(cols[j]).trim(); 
+                            let valNoCommas = val.replace(/,/g, '');
                             let numCheck = valNoCommas.endsWith('-') ? '-' + valNoCommas.slice(0, -1) : valNoCommas;
+                            
                             if (numCheck !== "" && !isNaN(numCheck)) {
                                 let isVendorShape = /^\d+$/.test(numCheck) && numCheck.length >= 7 && numCheck.length <= 10 && val.startsWith("000");
                                 let isStoreShape = /^\d+$/.test(numCheck) && numCheck.length === 4;
                                 let isSlocShape = ["1000", "2000", "3000", "4000", "5000"].includes(numCheck);
-                                if (!isVendorShape && !isStoreShape && !isSlocShape && j !== slocIndex) potentialQtys.push({ val: numCheck, index: j, isFloat: numCheck.includes('.') });
+                                
+                                if (!isVendorShape && !isStoreShape && !isSlocShape && j !== slocIndex) {
+                                    potentialQtys.push({ val: numCheck, index: j, isFloat: numCheck.includes('.') });
+                                }
                             }
                         }
                         if (potentialQtys.length > 0) {
                             let floatMatch = potentialQtys.find(q => q.isFloat);
-                            if (floatMatch) { qtyRaw = floatMatch.val; foundQtyIndex = floatMatch.index; } 
-                            else { qtyRaw = potentialQtys[0].val; foundQtyIndex = potentialQtys[0].index; }
+                            if (floatMatch) { 
+                                qtyRaw = floatMatch.val; 
+                                foundQtyIndex = floatMatch.index; 
+                            } else { 
+                                qtyRaw = potentialQtys[0].val; 
+                                foundQtyIndex = potentialQtys[0].index; 
+                            }
                         }
                     }
+                    
                     let descParts = [];
                     if (skuIndex !== -1) {
                         let endIndex = uomIndex !== -1 ? uomIndex : (foundQtyIndex !== -1 ? foundQtyIndex : cols.length);
                         for (let j = skuIndex + 1; j < endIndex; j++) {
                             if (cols[j] == null || j === foundQtyIndex || j === slocIndex) continue;
-                            let val = String(cols[j]).trim(); let valNoCommas = val.replace(/,/g, '');
+                            let val = String(cols[j]).trim(); 
+                            let valNoCommas = val.replace(/,/g, '');
                             if(val === "" || (!isNaN(valNoCommas) && !val.includes(';'))) continue; 
                             descParts.push(val);
                         }
                         descRaw = descParts.join(' ');
                     }
+                    
                     if (!descRaw) {
-                        for (let j = 0; j < cols.length; j++) { if (cols[j] && String(cols[j]).includes(';')) { descRaw = String(cols[j]).trim(); break; } }
+                        for (let j = 0; j < cols.length; j++) { 
+                            if (cols[j] && String(cols[j]).includes(';')) { 
+                                descRaw = String(cols[j]).trim(); 
+                                break; 
+                            } 
+                        }
                     }
                 }
 
-                let fullRowText = cols.join(' '); let sku = skuRaw.replace(/^0+/, '') || '0';
-                let penQty = Math.round(parseFloat(qtyRaw.replace(/,/g, ''))); if (penQty < 0) penQty = Math.abs(penQty); 
+                let fullRowText = cols.join(' '); 
+                let sku = skuRaw.replace(/^0+/, '') || '0';
+                let penQty = Math.round(parseFloat(qtyRaw.replace(/,/g, ''))); 
+                
+                if (penQty < 0) {
+                    penQty = Math.abs(penQty); 
+                }
+                
                 if (sku === "" || sku === "0" || isNaN(penQty) || penQty === 0) continue;
 
                 descRaw = normalizeDescription(descRaw);
                 let isLens = isExcludedItem(fullRowText, descRaw, merchRaw);
                 let extracted = extractBrandAndCategory(descRaw);
-                let category = extracted.category; let brand = extracted.brand;
+                let category = extracted.category; 
+                let brand = extracted.brand;
 
-                pendingRawData.push({ sku: sku, qty: penQty, desc: descRaw, sloc: slocRaw, category: category, brand: brand, isLens: isLens });
+                pendingRawData.push({ 
+                    sku: sku, 
+                    qty: penQty, 
+                    desc: descRaw, 
+                    sloc: slocRaw, 
+                    category: category, 
+                    brand: brand, 
+                    isLens: isLens 
+                });
+                
                 addedCount++;
             }
 
             if (addedCount === 0) {
                 await customAlert(`No valid rows found to load as Pending Items.`, "Load Result");
-                undoStack.pop(); updateUndoRedoButtons();
-                if(event && event.target) event.target.value = ''; return;
+                undoStack.pop(); 
+                updateUndoRedoButtons();
+                if(event && event.target) {
+                    event.target.value = ''; 
+                }
+                return;
             }
 
             document.getElementById('dynamicFilters').style.display = 'flex'; 
             if (currentFileType !== 'INTRANSIT') {
-                document.getElementById('mb52Filters').style.display = 'flex'; updateBrandDropdown();
+                document.getElementById('mb52Filters').style.display = 'flex'; 
+                updateBrandDropdown();
             }
+            
             applyDynamicFilters();
             await customAlert(`Successfully added pending quantities for ${addedCount} items.`, "Pending Load Success");
-            if(event && event.target) event.target.value = '';
+            
+            if(event && event.target) {
+                event.target.value = '';
+            }
         } catch (error) {
-            console.error(error); undoStack.pop(); updateUndoRedoButtons();
+            console.error(error); 
+            undoStack.pop(); 
+            updateUndoRedoButtons();
             await customAlert("An error occurred while parsing the pending data: " + error.message, "Parsing Error");
-            if(event && event.target) event.target.value = '';
+            if(event && event.target) {
+                event.target.value = '';
+            }
         }
     }
 
     async function handlePendingUpload(event) {
-        const file = event.target.files ? event.target.files[0] : null; if (!file) return;
+        const file = event.target.files ? event.target.files[0] : null; 
+        if (!file) return;
+        
         const fileName = file.name.toLowerCase();
 
         if (fileName.endsWith('.csv') || fileName.endsWith('.txt') || fileName.endsWith('.tsv')) {
             const reader = new FileReader();
             reader.onload = async function(e) {
                 try {
-                    let text = e.target.result; let aoa = []; let lines = text.split(/\r?\n/);
+                    let text = e.target.result; 
+                    let aoa = []; 
+                    let lines = text.split(/\r?\n/);
                     let delim = text.indexOf('\t') !== -1 ? '\t' : ',';
+                    
                     for(let i=0; i<lines.length; i++) {
-                        if(!lines[i].trim()) continue; aoa.push(parseCSVLine(lines[i], delim));
+                        if(!lines[i].trim()) continue; 
+                        aoa.push(parseCSVLine(lines[i], delim));
                     }
+                    
                     await processPendingArrayOfArrays(aoa, event);
                 } catch(err) {
-                    console.error(err); await customAlert("There was an error reading the CSV text.", "File Error");
-                    if(event && event.target) event.target.value = '';
+                    console.error(err); 
+                    await customAlert("There was an error reading the CSV text.", "File Error");
+                    if(event && event.target) {
+                        event.target.value = '';
+                    }
                 }
             };
-            reader.readAsText(file); return;
+            reader.readAsText(file); 
+            return;
         }
 
         if (typeof XLSX === 'undefined') {
             await customAlert("The Excel parser library couldn't load. Please save it as a .CSV and try loading.", "Library Blocked");
-            if(event && event.target) event.target.value = ''; return;
+            if(event && event.target) {
+                event.target.value = '';
+            }
+            return;
         }
 
         const reader = new FileReader();
         reader.onload = async function(e) {
             try {
-                const data = new Uint8Array(e.target.result); const workbook = XLSX.read(data, {type: 'array'});
+                const data = new Uint8Array(e.target.result); 
+                const workbook = XLSX.read(data, {type: 'array'});
                 const aoa = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], {header: 1, defval: ""}); 
                 await processPendingArrayOfArrays(aoa, event);
             } catch (err) {
@@ -2053,11 +3222,18 @@
                     if(text.includes('<table') || text.includes('\t') || text.includes(',')) {
                          const workbook = XLSX.read(text, {type: 'string'});
                          const aoa = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], {header: 1, defval: ""});
-                         await processPendingArrayOfArrays(aoa, event); return;
+                         await processPendingArrayOfArrays(aoa, event); 
+                         return;
                     }
-                } catch(e2) { console.error(e2); }
+                } catch(e2) { 
+                    console.error(e2); 
+                }
+                
                 await customAlert("There was an error parsing the spreadsheet. Ensure the file is not corrupted.", "File Error");
-                if(event && event.target) event.target.value = '';
+                
+                if(event && event.target) {
+                    event.target.value = '';
+                }
             }
         };
         reader.readAsArrayBuffer(file);
@@ -2071,21 +3247,34 @@
         
         const processBrand = (row) => {
             if (isLensesFilterActive && row.isLens) return;
-            if (cat === 'ALL' || row.category === cat) { if (row.brand !== "UNKNOWN") validBrands.add(row.brand); }
+            if (cat === 'ALL' || row.category === cat) { 
+                if (row.brand !== "UNKNOWN") {
+                    validBrands.add(row.brand); 
+                }
+            }
         };
 
         uploadedRawData.forEach(processBrand);
         pendingRawData.forEach(processBrand);
 
         brandSelect.innerHTML = '<option value="ALL">ALL BRANDS</option>';
-        Array.from(validBrands).sort().forEach(b => brandSelect.innerHTML += `<option value="${b}">${b}</option>`);
-        if (validBrands.has(currentBrand)) brandSelect.value = currentBrand;
+        Array.from(validBrands).sort().forEach(b => {
+            brandSelect.innerHTML += `<option value="${b}">${b}</option>`;
+        });
+        
+        if (validBrands.has(currentBrand)) {
+            brandSelect.value = currentBrand;
+        }
     }
 
     function applyDynamicFilters() {
         for (let sku in inventory) {
-            inventory[sku].systemQty = 0; inventory[sku].sysQty1000 = 0; inventory[sku].sysQty4000 = 0;
-            inventory[sku].sysQtyOther = 0; inventory[sku].pendingQty = 0; inventory[sku].sloc = ""; 
+            inventory[sku].systemQty = 0; 
+            inventory[sku].sysQty1000 = 0; 
+            inventory[sku].sysQty4000 = 0;
+            inventory[sku].sysQtyOther = 0; 
+            inventory[sku].pendingQty = 0; 
+            inventory[sku].sloc = ""; 
         }
 
         let isIntransit = (currentFileType === 'INTRANSIT');
@@ -2095,17 +3284,31 @@
         let filteredCount = 0;
         
         uploadedRawData.forEach(row => {
-            if (isIntransit) { if (selectedSTO !== 'ALL' && row.sto !== selectedSTO) return; } 
-            else {
+            if (isIntransit) { 
+                if (selectedSTO !== 'ALL' && row.sto !== selectedSTO) return; 
+            } else {
                 if (selectedCat !== 'ALL' && row.category !== selectedCat) return;
                 if (selectedBrand !== 'ALL' && row.brand !== selectedBrand) return;
             }
 
             if (!inventory[row.sku]) {
-                inventory[row.sku] = { description: row.desc, systemQty: 0, sysQty1000: 0, sysQty4000: 0, sysQtyOther: 0, scannedQty: 0, pendingQty: 0, sloc: row.sloc, isLens: row.isLens, bins: [] };
+                inventory[row.sku] = { 
+                    description: row.desc, 
+                    systemQty: 0, 
+                    sysQty1000: 0, 
+                    sysQty4000: 0, 
+                    sysQtyOther: 0, 
+                    scannedQty: 0, 
+                    pendingQty: 0, 
+                    sloc: row.sloc, 
+                    isLens: row.isLens, 
+                    bins: [] 
+                };
             } else {
                 inventory[row.sku].isLens = inventory[row.sku].isLens || row.isLens;
-                if (!inventory[row.sku].description && row.desc) inventory[row.sku].description = row.desc;
+                if (!inventory[row.sku].description && row.desc) {
+                    inventory[row.sku].description = row.desc;
+                }
                 
                 if (row.sloc && inventory[row.sku].sloc.indexOf(row.sloc) === -1) {
                     if (inventory[row.sku].sloc && inventory[row.sku].sloc !== "Scanned" && inventory[row.sku].sloc !== "Pending") {
@@ -2117,12 +3320,19 @@
             }
 
             inventory[row.sku].systemQty += row.qty;
+            
             let rSloc = (row.sloc || "").trim();
-            if (rSloc === '1000') inventory[row.sku].sysQty1000 += row.qty;
-            else if (rSloc === '4000') inventory[row.sku].sysQty4000 += row.qty;
-            else inventory[row.sku].sysQtyOther += row.qty;
+            if (rSloc === '1000') {
+                inventory[row.sku].sysQty1000 += row.qty;
+            } else if (rSloc === '4000') {
+                inventory[row.sku].sysQty4000 += row.qty;
+            } else {
+                inventory[row.sku].sysQtyOther += row.qty;
+            }
 
-            if (!(isLensesFilterActive && row.isLens)) filteredCount++;
+            if (!(isLensesFilterActive && row.isLens)) {
+                filteredCount++;
+            }
         });
 
         pendingRawData.forEach(row => {
@@ -2132,14 +3342,30 @@
             }
 
             if (!inventory[row.sku]) {
-                inventory[row.sku] = { description: row.desc, systemQty: 0, sysQty1000: 0, sysQty4000: 0, sysQtyOther: 0, scannedQty: 0, pendingQty: 0, sloc: row.sloc, isLens: row.isLens, bins: [] };
+                inventory[row.sku] = { 
+                    description: row.desc, 
+                    systemQty: 0, 
+                    sysQty1000: 0, 
+                    sysQty4000: 0, 
+                    sysQtyOther: 0, 
+                    scannedQty: 0, 
+                    pendingQty: 0, 
+                    sloc: row.sloc, 
+                    isLens: row.isLens, 
+                    bins: [] 
+                };
             } else {
                 inventory[row.sku].isLens = inventory[row.sku].isLens || row.isLens;
-                if (!inventory[row.sku].description && row.desc) inventory[row.sku].description = row.desc;
+                if (!inventory[row.sku].description && row.desc) {
+                    inventory[row.sku].description = row.desc;
+                }
             }
 
             inventory[row.sku].pendingQty += row.qty;
-            if (!(isLensesFilterActive && row.isLens)) filteredCount++;
+            
+            if (!(isLensesFilterActive && row.isLens)) {
+                filteredCount++;
+            }
         });
 
         // cleanup empty states
@@ -2147,90 +3373,200 @@
             if (inventory[sku].systemQty === 0 && inventory[sku].scannedQty === 0 && (inventory[sku].pendingQty === 0 || !inventory[sku].pendingQty)) {
                 delete inventory[sku];
             } else if (inventory[sku].systemQty === 0 && (inventory[sku].pendingQty === 0 || !inventory[sku].pendingQty)) {
-                if (inventory[sku].sloc === "") inventory[sku].sloc = "Scanned";
+                if (inventory[sku].sloc === "") {
+                    inventory[sku].sloc = "Scanned";
+                }
             } else if (inventory[sku].systemQty === 0 && inventory[sku].pendingQty > 0) {
-                if (inventory[sku].sloc === "") inventory[sku].sloc = "Pending";
+                if (inventory[sku].sloc === "") {
+                    inventory[sku].sloc = "Pending";
+                }
             }
         }
 
         systemDataEncoded = (filteredCount > 0) || uploadedRawData.length > 0 || pendingRawData.length > 0;
         hasWarnedNoSystemData = systemDataEncoded;
 
-        if (systemDataEncoded && document.activeElement !== document.getElementById('scanInput')) document.getElementById('scanInput').classList.add('needs-focus-blink');
-        else document.getElementById('scanInput').classList.remove('needs-focus-blink');
+        if (systemDataEncoded && document.activeElement !== document.getElementById('scanInput')) {
+            document.getElementById('scanInput').classList.add('needs-focus-blink');
+        } else {
+            document.getElementById('scanInput').classList.remove('needs-focus-blink');
+        }
 
-        saveData(); renderTable();
+        saveData(); 
+        renderTable();
     }
 
     async function loadPastedData() {
         try {
-            const text = document.getElementById('pasteArea').value; if (!text.trim()) { await customAlert("Please paste data first.", "Input required"); return; }
-            const lines = text.split(/\r?\n/); let aoa = []; let delim = text.indexOf('\t') !== -1 ? '\t' : ',';
-            for(let i=0; i<lines.length; i++) { if(!lines[i].trim()) continue; aoa.push(parseCSVLine(lines[i], delim)); }
+            const text = document.getElementById('pasteArea').value; 
+            
+            if (!text.trim()) { 
+                await customAlert("Please paste data first.", "Input required"); 
+                return; 
+            }
+            
+            const lines = text.split(/\r?\n/); 
+            let aoa = []; 
+            
+            // Check if the pasted text has native tab characters
+            let hasTabs = text.indexOf('\t') !== -1;
+            
+            for(let i=0; i<lines.length; i++) { 
+                let line = lines[i].trim();
+                if(!line) continue; 
+                
+                if (hasTabs) {
+                    aoa.push(parseCSVLine(line, '\t'));
+                } else if (text.indexOf(',') !== -1 && text.indexOf(';') === -1) {
+                    // Fallback for strictly comma separated content
+                    aoa.push(parseCSVLine(line, ','));
+                } else {
+                    // Fallback for space-delimited shattered data 
+                    // This engages the powerful text piecing fallback engine in processArrayOfArrays
+                    aoa.push(line.split(/\s+/));
+                }
+            }
+            
             await processArrayOfArrays(aoa, null);
-        } catch (error) { console.error(error); await customAlert("An unexpected error occurred: " + error.message, "Error"); }
+        } catch (error) { 
+            console.error(error); 
+            await customAlert("An unexpected error occurred: " + error.message, "Error"); 
+        }
     }
 
-    function closeSlocModal() { document.getElementById('slocModal').style.display = 'none'; }
-    async function finalizeEncoding(filterType) { document.getElementById('slocModal').style.display = 'none'; }
+    function closeSlocModal() { 
+        document.getElementById('slocModal').style.display = 'none'; 
+    }
+    
+    async function finalizeEncoding(filterType) { 
+        document.getElementById('slocModal').style.display = 'none'; 
+    }
 
     async function queueFastScan(skuRawInput) {
         if (!systemDataEncoded && !hasWarnedNoSystemData) {
-            const proceed = await customConfirm("There is no encoded system quantity. Proceed?", "Warning"); if (!proceed) return;
+            const proceed = await customConfirm("There is no encoded system quantity. Proceed?", "Warning"); 
+            if (!proceed) return;
             hasWarnedNoSystemData = true;
         }
-        let skuRaw = skuRawInput.trim(); let sku = skuRaw.replace(/^0+/, '') || '0';
+        
+        let skuRaw = skuRawInput.trim(); 
+        let sku = skuRaw.replace(/^0+/, '') || '0';
+        
         if (sku !== "" && sku !== "0") {
-            fastScanQueue.push(sku); document.getElementById('queueCount').innerText = fastScanQueue.length;
-            renderFastScanTrail(); playSound('success'); 
+            fastScanQueue.push(sku); 
+            document.getElementById('queueCount').innerText = fastScanQueue.length;
+            renderFastScanTrail(); 
+            playSound('success'); 
         }
     }
 
     async function processFastScanQueue() {
-        if (fastScanQueue.length === 0) { await customAlert("No items in the fast scan queue.", "Empty Queue"); return; }
-        saveState(); let errorCount = 0; let successCount = 0;
-        resetFilterUI(); document.getElementById('slocFilterUI').value = 'ALL'; 
+        if (fastScanQueue.length === 0) { 
+            await customAlert("No items in the fast scan queue.", "Empty Queue"); 
+            return; 
+        }
+        
+        saveState(); 
+        let errorCount = 0; 
+        let successCount = 0;
+        resetFilterUI(); 
+        document.getElementById('slocFilterUI').value = 'ALL'; 
 
         fastScanQueue.forEach(sku => {
             let isError = false;
+            
             if (!inventory[sku]) {
-                inventory[sku] = { description: "Manually Scanned", systemQty: 0, sysQty1000: 0, sysQty4000: 0, sysQtyOther: 0, scannedQty: 0, pendingQty: 0, sloc: 'Scanned', isLens: false, bins: [] };
-                isError = true; errorCount++;
-            } else { successCount++; }
-            inventory[sku].scannedQty += 1; appendAuditLog(sku, isError, 1);
+                inventory[sku] = { 
+                    description: "Manually Scanned", 
+                    systemQty: 0, 
+                    sysQty1000: 0, 
+                    sysQty4000: 0, 
+                    sysQtyOther: 0, 
+                    scannedQty: 0, 
+                    pendingQty: 0, 
+                    sloc: 'Scanned', 
+                    isLens: false, 
+                    bins: [] 
+                };
+                isError = true; 
+                errorCount++;
+            } else { 
+                successCount++; 
+            }
+            
+            inventory[sku].scannedQty += 1; 
+            appendAuditLog(sku, isError, 1);
         });
 
-        let totalProcessed = fastScanQueue.length; fastScanQueue = [];
-        document.getElementById('queueCount').innerText = "0"; document.getElementById('fastScanTrailBox').style.display = 'none';
-        renderFastScanTrail(); isFastScanMode = false;
+        let totalProcessed = fastScanQueue.length; 
+        fastScanQueue = [];
+        document.getElementById('queueCount').innerText = "0"; 
+        document.getElementById('fastScanTrailBox').style.display = 'none';
         
-        const btnToggle = document.getElementById('btnFastScanToggle'); const compareBtn = document.getElementById('btnCompare');
+        renderFastScanTrail(); 
+        isFastScanMode = false;
+        
+        const btnToggle = document.getElementById('btnFastScanToggle'); 
+        const compareBtn = document.getElementById('btnCompare');
+        
         btnToggle.innerHTML = `<svg viewBox="0 0 24 24" width="12" height="12" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: text-bottom; margin-right: 4px;"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg> Fast Scan: OFF`;
-        btnToggle.classList.remove('active'); compareBtn.style.display = 'none';
+        btnToggle.classList.remove('active'); 
+        compareBtn.style.display = 'none';
         
-        await saveData(); renderTable();
-        if (errorCount > 0) { playSound('error'); await customAlert(`Processed: ${totalProcessed} items.<br><br><span style="color:var(--accent-red);font-weight:bold;">${errorCount} items were NOT in system.</span>`, "Scan Results"); } 
-        else { playSound('success'); await customAlert(`Successfully processed ${totalProcessed} items.`, "Scan Results"); }
-        setTimeout(updateStickyHeaders, 10); document.getElementById('scanInput').focus();
+        await saveData(); 
+        renderTable();
+        
+        if (errorCount > 0) { 
+            playSound('error'); 
+            await customAlert(`Processed: ${totalProcessed} items.<br><br><span style="color:var(--accent-red);font-weight:bold;">${errorCount} items were NOT in system.</span>`, "Scan Results"); 
+        } else { 
+            playSound('success'); 
+            await customAlert(`Successfully processed ${totalProcessed} items.`, "Scan Results"); 
+        }
+        
+        setTimeout(updateStickyHeaders, 10); 
+        document.getElementById('scanInput').focus();
     }
 
     async function processScanLogic(skuRawInput) {
         if (!systemDataEncoded && !hasWarnedNoSystemData) {
-            const proceed = await customConfirm("There is no encoded system quantity. Do you want to scan anyway?", "Warning"); if (!proceed) return;
+            const proceed = await customConfirm("There is no encoded system quantity. Do you want to scan anyway?", "Warning"); 
+            if (!proceed) return;
             hasWarnedNoSystemData = true;
         }
-        let skuRaw = skuRawInput.trim(); let sku = skuRaw.replace(/^0+/, '') || '0';
+        
+        let skuRaw = skuRawInput.trim(); 
+        let sku = skuRaw.replace(/^0+/, '') || '0';
+        
         if (sku !== "" && sku !== "0") {
-            let isVisible = true; let slocDropdownVal = document.getElementById('slocFilterUI').value;
-            let hasSloc = false; for (let k in inventory) { if (inventory[k].sloc && inventory[k].sloc !== "" && inventory[k].sloc !== "Scanned" && inventory[k].sloc !== "Pending") { hasSloc = true; break; } }
-            if (!hasSloc) slocDropdownVal = 'ALL';
+            let isVisible = true; 
+            let slocDropdownVal = document.getElementById('slocFilterUI').value;
+            let hasSloc = false; 
+            
+            for (let k in inventory) { 
+                if (inventory[k].sloc && inventory[k].sloc !== "" && inventory[k].sloc !== "Scanned" && inventory[k].sloc !== "Pending") { 
+                    hasSloc = true; 
+                    break; 
+                } 
+            }
+            
+            if (!hasSloc) {
+                slocDropdownVal = 'ALL';
+            }
 
             if (currentFilter !== 'ALL' || currentSearchQuery !== '' || slocDropdownVal !== 'ALL') {
                 let item = inventory[sku];
-                if (isLensesFilterActive && item && item.isLens) isVisible = false;
-                else {
-                    let currentScannedQty = item ? item.scannedQty : 0; let currentPendingQty = item ? (item.pendingQty || 0) : 0; let sysQty = item ? item.systemQty : 0;
-                    let currentDiff = (currentScannedQty + currentPendingQty) - sysQty; let sloc = item ? item.sloc || "" : "Scanned"; let desc = item ? (item.description || "").toLowerCase() : "manually scanned";
+                
+                if (isLensesFilterActive && item && item.isLens) {
+                    isVisible = false;
+                } else {
+                    let currentScannedQty = item ? item.scannedQty : 0; 
+                    let currentPendingQty = item ? (item.pendingQty || 0) : 0; 
+                    let sysQty = item ? item.systemQty : 0;
+                    let currentDiff = (currentScannedQty + currentPendingQty) - sysQty; 
+                    let sloc = item ? item.sloc || "" : "Scanned"; 
+                    let desc = item ? (item.description || "").toLowerCase() : "manually scanned";
+                    
                     if (slocDropdownVal !== 'ALL' && sloc !== "Scanned" && sloc !== "Pending" && !sloc.includes(slocDropdownVal)) isVisible = false;
                     if (currentFilter === 'DISCREPANCIES' && currentDiff === 0) isVisible = false;
                     if (currentFilter === 'MISSING' && currentDiff >= 0) isVisible = false;
@@ -2242,45 +3578,93 @@
 
             if (!isVisible) {
                 const proceed = await customConfirm(`Since the scanned item (<b>${sku}</b>) is hidden or filtered, should we search the whole list?`, "Search Whole System?");
-                if (proceed) { resetFilterUI(); document.getElementById('slocFilterUI').value = 'ALL'; } else return; 
+                if (proceed) { 
+                    resetFilterUI(); 
+                    document.getElementById('slocFilterUI').value = 'ALL'; 
+                } else {
+                    return; 
+                }
             }
 
-            saveState(); let isError = false;
-            if (!inventory[sku]) {
-                playSound('error'); showErrorToast(`⚠️ Alert: SKU ${sku} is NOT in the encoded list!`);
-                inventory[sku] = { description: "Manually Scanned", systemQty: 0, sysQty1000: 0, sysQty4000: 0, sysQtyOther: 0, scannedQty: 0, pendingQty: 0, sloc: 'Scanned', isLens: false, bins: [] };
-                isError = true;
-            } else { playSound('success'); }
+            saveState(); 
+            let isError = false;
             
-            inventory[sku].scannedQty += 1; appendAuditLog(sku, isError, 1); await saveData(); 
+            if (!inventory[sku]) {
+                playSound('error'); 
+                showErrorToast(`⚠️ Alert: SKU ${sku} is NOT in the encoded list!`);
+                inventory[sku] = { 
+                    description: "Manually Scanned", 
+                    systemQty: 0, 
+                    sysQty1000: 0, 
+                    sysQty4000: 0, 
+                    sysQtyOther: 0, 
+                    scannedQty: 0, 
+                    pendingQty: 0, 
+                    sloc: 'Scanned', 
+                    isLens: false, 
+                    bins: [] 
+                };
+                isError = true;
+            } else { 
+                playSound('success'); 
+            }
+            
+            inventory[sku].scannedQty += 1; 
+            appendAuditLog(sku, isError, 1); 
+            await saveData(); 
 
-            let tempFiltered = []; let sVal = document.getElementById('slocFilterUI').value; if (!hasSloc) sVal = 'ALL';
+            let tempFiltered = []; 
+            let sVal = document.getElementById('slocFilterUI').value; 
+            if (!hasSloc) {
+                sVal = 'ALL';
+            }
+            
             for (let k in inventory) {
-                let itm = inventory[k]; if (isLensesFilterActive && itm.isLens) continue; 
+                let itm = inventory[k]; 
+                
+                if (isLensesFilterActive && itm.isLens) continue; 
+                
                 let df = (itm.scannedQty + (itm.pendingQty || 0)) - itm.systemQty;
-                if (sVal !== 'ALL') { let itemSloc = itm.sloc || ""; if (itemSloc !== "Scanned" && itemSloc !== "Pending" && !itemSloc.includes(sVal)) continue; }
+                
+                if (sVal !== 'ALL') { 
+                    let itemSloc = itm.sloc || ""; 
+                    if (itemSloc !== "Scanned" && itemSloc !== "Pending" && !itemSloc.includes(sVal)) continue; 
+                }
+                
                 if (currentFilter === 'DISCREPANCIES' && df === 0) continue;
                 if (currentFilter === 'MISSING' && df >= 0) continue;
                 if (currentFilter === 'EXTRA' && df <= 0) continue;
                 if (currentFilter === 'NOT_IN_SYSTEM' && itm.systemQty > 0) continue;
+                
                 if (currentSearchQuery !== '') {
-                    let skuStr = k.toLowerCase(); let descStr = (itm.description || '').toLowerCase();
+                    let skuStr = k.toLowerCase(); 
+                    let descStr = (itm.description || '').toLowerCase();
                     if (!skuStr.includes(currentSearchQuery) && !descStr.includes(currentSearchQuery)) continue;
                 }
                 tempFiltered.push(k);
             }
             
             let itemIndex = tempFiltered.indexOf(sku);
-            if (itemIndex !== -1 && itemsPerPage !== 'All') { let limit = parseInt(itemsPerPage); currentPage = Math.floor(itemIndex / limit) + 1; }
+            if (itemIndex !== -1 && itemsPerPage !== 'All') { 
+                let limit = parseInt(itemsPerPage); 
+                currentPage = Math.floor(itemIndex / limit) + 1; 
+            }
+            
             renderTable();
 
             requestAnimationFrame(() => {
                 let row = document.getElementById('row-' + sku);
                 if (row) {
-                    const stickyGroup = document.getElementById('stickyGroup'); const offset = stickyGroup ? stickyGroup.getBoundingClientRect().height + 50 : 200;
+                    const stickyGroup = document.getElementById('stickyGroup'); 
+                    const offset = stickyGroup ? stickyGroup.getBoundingClientRect().height + 50 : 200;
                     const rowPosition = row.getBoundingClientRect().top - document.body.getBoundingClientRect().top;
-                    window.scrollTo({ top: rowPosition - offset, behavior: "auto" }); row.classList.add('highlight-flash');
-                    setTimeout(() => { row.classList.remove('highlight-flash'); }, 400); 
+                    
+                    window.scrollTo({ top: rowPosition - offset, behavior: "auto" }); 
+                    row.classList.add('highlight-flash');
+                    
+                    setTimeout(() => { 
+                        row.classList.remove('highlight-flash'); 
+                    }, 400); 
                 }
             }); 
         }
@@ -2292,11 +3676,18 @@
 
         if (type === 'systemQty') {
             if (item.sloc && item.sloc.includes('1000') && item.sloc.includes('4000')) {
-                const confirmed = await customConfirm(`This item is split between 1000 and 4000. Edit to keep breakdown accurate?`); if (!confirmed) return;
-                let new1000 = await customPrompt(`Enter the new SLOC 1000 QTY for SKU ${sku}:`, item.sysQty1000, "Edit 1000 QTY"); if (new1000 === null) return;
-                let new4000 = await customPrompt(`Enter the new SLOC 4000 QTY for SKU ${sku}:`, item.sysQty4000, "Edit 4000 QTY"); if (new4000 === null) return;
+                const confirmed = await customConfirm(`This item is split between 1000 and 4000. Edit to keep breakdown accurate?`); 
+                if (!confirmed) return;
+                
+                let new1000 = await customPrompt(`Enter the new SLOC 1000 QTY for SKU ${sku}:`, item.sysQty1000, "Edit 1000 QTY"); 
+                if (new1000 === null) return;
+                
+                let new4000 = await customPrompt(`Enter the new SLOC 4000 QTY for SKU ${sku}:`, item.sysQty4000, "Edit 4000 QTY"); 
+                if (new4000 === null) return;
 
-                let q1 = Math.round(parseFloat(new1000.replace(/,/g, ''))) || 0; let q4 = Math.round(parseFloat(new4000.replace(/,/g, ''))) || 0;
+                let q1 = Math.round(parseFloat(new1000.replace(/,/g, ''))) || 0; 
+                let q4 = Math.round(parseFloat(new4000.replace(/,/g, ''))) || 0;
+                
                 if (q1 >= 0 && q4 >= 0) {
                     saveState(); 
                     
@@ -2305,29 +3696,42 @@
                     
                     uploadedRawData = uploadedRawData.filter(r => r.sku !== sku);
                     let ext = extractBrandAndCategory(item.description);
-                    if (q1 > 0) uploadedRawData.push({ sku, qty: q1, desc: item.description, sloc: '1000', sto: preservedSto, category: ext.category, brand: ext.brand, isLens: item.isLens });
-                    if (q4 > 0) uploadedRawData.push({ sku, qty: q4, desc: item.description, sloc: '4000', sto: preservedSto, category: ext.category, brand: ext.brand, isLens: item.isLens });
+                    
+                    if (q1 > 0) {
+                        uploadedRawData.push({ sku, qty: q1, desc: item.description, sloc: '1000', sto: preservedSto, category: ext.category, brand: ext.brand, isLens: item.isLens });
+                    }
+                    if (q4 > 0) {
+                        uploadedRawData.push({ sku, qty: q4, desc: item.description, sloc: '4000', sto: preservedSto, category: ext.category, brand: ext.brand, isLens: item.isLens });
+                    }
                     
                     applyDynamicFilters();
-                } else { await customAlert("Invalid quantity entered.", "Error"); }
+                } else { 
+                    await customAlert("Invalid quantity entered.", "Error"); 
+                }
                 return;
             }
         }
         
-        let currentQty = item[type] || 0; const confirmed = await customConfirm(`Are you sure you want to manually edit the ${typeName} for SKU ${sku}?`);
+        let currentQty = item[type] || 0; 
+        const confirmed = await customConfirm(`Are you sure you want to manually edit the ${typeName} for SKU ${sku}?`);
+        
         if (confirmed) {
             let newQtyRaw = await customPrompt(`Enter the new ${typeName} for SKU ${sku}:`, currentQty, "Edit Quantity");
             if (newQtyRaw !== null && newQtyRaw.trim() !== "") {
-                let qClean = newQtyRaw.replace(/,/g, ''); let newQty = Math.round(parseFloat(qClean));
+                let qClean = newQtyRaw.replace(/,/g, ''); 
+                let newQty = Math.round(parseFloat(qClean));
+                
                 if (!isNaN(newQty) && newQty >= 0) {
                     saveState(); 
                     let ext = extractBrandAndCategory(item.description);
+                    
                     if (type === 'systemQty') {
                         let existingItem = uploadedRawData.find(r => r.sku === sku);
                         let preservedSto = existingItem && existingItem.sto ? existingItem.sto : "";
 
                         uploadedRawData = uploadedRawData.filter(r => r.sku !== sku);
                         let singleSloc = item.sloc === '4000' ? '4000' : (item.sloc === '1000' ? '1000' : item.sloc);
+                        
                         if (newQty > 0) {
                             uploadedRawData.push({ sku, qty: newQty, desc: item.description, sloc: singleSloc, sto: preservedSto, category: ext.category, brand: ext.brand, isLens: item.isLens });
                         }
@@ -2338,15 +3742,19 @@
                         }
                     }
                     applyDynamicFilters();
-                } else { await customAlert("Invalid quantity.", "Invalid Input"); }
+                } else { 
+                    await customAlert("Invalid quantity.", "Invalid Input"); 
+                }
             }
         }
     }
 
     async function deleteRow(sku) {
         const confirmed = await customConfirm(`Are you sure you want to completely remove SKU ${sku} from the list?`);
+        
         if (confirmed) {
             saveState(); 
+            
             if (inventory[sku] && inventory[sku].scannedQty > 0) { 
                 let logsToKeep = [];
                 for (let i = 0; i < auditLog.length; i++) {
@@ -2354,7 +3762,9 @@
                     if (log.sku === sku) {
                         if (binTotals[log.bin] !== undefined) { 
                             binTotals[log.bin] -= log.qty; 
-                            if (binTotals[log.bin] < 0) binTotals[log.bin] = 0; 
+                            if (binTotals[log.bin] < 0) {
+                                binTotals[log.bin] = 0; 
+                            }
                         }
                     } else {
                         logsToKeep.push(log);
@@ -2374,120 +3784,282 @@
 
     async function resetSession() {
         const confirmed = await customConfirm("Are you sure you want to completely reset the session? ALL scanned data and encoded lists will be permanently deleted.");
+        
         if (confirmed) {
-            saveState(); inventory = {}; systemDataEncoded = false; hasWarnedNoSystemData = false; auditLog = []; fastScanQueue = []; uploadedRawData = []; pendingRawData = []; currentFileType = null; isLensesFilterActive = true;
-            document.getElementById('queueCount').innerText = "0"; document.getElementById('fastScanTrailBox').style.display = 'none'; document.getElementById('dynamicFilters').style.display = 'none';
-            currentBin = 1; binTotals = { 1: 0 }; binCounters = { 1: 0 }; itemsPerPage = '100'; document.getElementById('pageSize').value = '100';
-            currentTotalPages = 1; currentPage = 1;
-            document.getElementById('pasteArea').value = ''; document.getElementById('sysDataUpload').value = ''; document.getElementById('pendingDataUpload').value = '';
-            resetFilterUI(); document.getElementById('slocFilterUI').value = '1000'; 
-            const btn = document.getElementById('btnToggleLenses'); btn.innerText = "Unhide CL & OL"; btn.style.backgroundColor = "var(--surface-color)"; btn.style.color = "var(--text-primary)"; btn.style.borderColor = "var(--border-color)";
+            saveState(); 
+            
+            inventory = {}; 
+            systemDataEncoded = false; 
+            hasWarnedNoSystemData = false; 
+            auditLog = []; 
+            fastScanQueue = []; 
+            uploadedRawData = []; 
+            pendingRawData = []; 
+            currentFileType = null; 
+            isLensesFilterActive = true;
+            
+            document.getElementById('queueCount').innerText = "0"; 
+            document.getElementById('fastScanTrailBox').style.display = 'none'; 
+            document.getElementById('dynamicFilters').style.display = 'none';
+            
+            currentBin = 1; 
+            binTotals = { 1: 0 }; 
+            binCounters = { 1: 0 }; 
+            itemsPerPage = '100'; 
+            document.getElementById('pageSize').value = '100';
+            currentTotalPages = 1; 
+            currentPage = 1;
+            
+            document.getElementById('pasteArea').value = ''; 
+            document.getElementById('sysDataUpload').value = ''; 
+            document.getElementById('pendingDataUpload').value = '';
+            
+            resetFilterUI(); 
+            document.getElementById('slocFilterUI').value = '1000'; 
+            
+            const btn = document.getElementById('btnToggleLenses'); 
+            btn.innerText = "Unhide CL & OL"; 
+            btn.style.backgroundColor = "var(--surface-color)"; 
+            btn.style.color = "var(--text-primary)"; 
+            btn.style.borderColor = "var(--border-color)";
+            
             document.getElementById('scanInput').classList.remove('needs-focus-blink');
-            await clearData(); renderAuditTrail(); renderFastScanTrail(); renderTable(); document.getElementById('scanInput').focus();
+            
+            await clearData(); 
+            renderAuditTrail(); 
+            renderFastScanTrail(); 
+            renderTable(); 
+            document.getElementById('scanInput').focus();
         }
     }
 
     function exportPDF() {
-        if (Object.keys(inventory).length === 0) { customAlert("There is no data to print yet.", "Print Error"); return; }
-        let oldSize = itemsPerPage; itemsPerPage = 'All'; renderTable(); 
+        if (Object.keys(inventory).length === 0) { 
+            customAlert("There is no data to print yet.", "Print Error"); 
+            return; 
+        }
+        
+        let oldSize = itemsPerPage; 
+        itemsPerPage = 'All'; 
+        renderTable(); 
+        
         document.getElementById('printDate').innerText = new Date().toLocaleDateString();
         document.getElementById('printTime').innerText = new Date().toLocaleTimeString();
-        setTimeout(() => { window.print(); itemsPerPage = oldSize; renderTable(); }, 300);
+        
+        setTimeout(() => { 
+            window.print(); 
+            itemsPerPage = oldSize; 
+            renderTable(); 
+        }, 300);
     }
 
     async function exportToCSV() {
-        if (Object.keys(inventory).length === 0) { await customAlert("No data to save!", "Export Error"); return; }
+        if (Object.keys(inventory).length === 0) { 
+            await customAlert("No data to save!", "Export Error"); 
+            return; 
+        }
+        
         let defaultName = `SavedSession_${new Date().toISOString().split('T')[0]}`;
         let fileName = await customPrompt("Enter a name for your save file:", defaultName, "Save File");
-        if (!fileName) return; if (!fileName.toLowerCase().endsWith('.csv')) fileName += '.csv';
+        
+        if (!fileName) return; 
+        if (!fileName.toLowerCase().endsWith('.csv')) {
+            fileName += '.csv';
+        }
 
-        let hasDescriptions = false; let hasSlocs = false; let hasPending = false;
+        let hasDescriptions = false; 
+        let hasSlocs = false; 
+        let hasPending = false;
         let exportData = [];
+        
         for (let sku in inventory) {
-            let item = inventory[sku]; if (item.description && item.description.trim() !== "") hasDescriptions = true;
-            if (item.sloc && item.sloc.trim() !== "" && item.sloc !== "Scanned" && item.sloc !== "Pending") hasSlocs = true;
-            if (item.pendingQty && item.pendingQty > 0) hasPending = true;
+            let item = inventory[sku]; 
+            if (item.description && item.description.trim() !== "") {
+                hasDescriptions = true;
+            }
+            if (item.sloc && item.sloc.trim() !== "" && item.sloc !== "Scanned" && item.sloc !== "Pending") {
+                hasSlocs = true;
+            }
+            if (item.pendingQty && item.pendingQty > 0) {
+                hasPending = true;
+            }
             exportData.push({ sku: sku, ...item });
         }
 
         exportData.sort((a, b) => {
             let getSortKeys = (item) => {
-                let descRaw = item.description || ""; let upperDesc = descRaw.toUpperCase(); let catRank = 3; 
+                let descRaw = item.description || ""; 
+                let upperDesc = descRaw.toUpperCase(); 
+                let catRank = 3; 
                 let { category, brand } = extractBrandAndCategory(descRaw);
-                if (category === 'SPX') catRank = 1; else if (category === 'SUN') catRank = 2;
-                else if (item.isLens) {
+                
+                if (category === 'SPX') {
+                    catRank = 1; 
+                } else if (category === 'SUN') {
+                    catRank = 2;
+                } else if (item.isLens) {
                     let clKeywords = ['CL;', 'CLCP', 'CLSP', 'CONTACT LENS', 'DAILIES', 'ACUVUE', 'BELLA', 'FRESHLOOK', 'ALCON', 'SOFLENS', 'JOHNSON', 'TRUEYE', 'OASYS', 'BIOTRUE', 'CLARITI', 'MYDAY', 'BIOFINITY', 'CS;', 'SP;'];
-                    if (clKeywords.some(kw => upperDesc.includes(kw))) catRank = 5; else catRank = 4;
+                    if (clKeywords.some(kw => upperDesc.includes(kw))) {
+                        catRank = 5; 
+                    } else {
+                        catRank = 4;
+                    }
                 }
                 return { catRank, brand };
             };
-            let catA = getSortKeys(a); let catB = getSortKeys(b);
+            
+            let catA = getSortKeys(a); 
+            let catB = getSortKeys(b);
+            
             if (catA.catRank !== catB.catRank) return catA.catRank - catB.catRank;
-            let brandA = catA.brand.toLowerCase(); let brandB = catB.brand.toLowerCase();
+            
+            let brandA = catA.brand.toLowerCase(); 
+            let brandB = catB.brand.toLowerCase();
+            
             if (brandA !== brandB) return brandA.localeCompare(brandB);
+            
             return a.sku.localeCompare(b.sku);
         });
 
-        let csvContent = ""; let headers = ["Item # (SKU)"];
-        if (hasDescriptions) headers.push("Description"); if (hasSlocs) headers.push("SLOC", "System QTY (Total)", "Sys QTY 1000", "Sys QTY 4000"); else headers.push("System QTY");
-        headers.push("Scanned QTY", "Bins"); if (hasPending) headers.push("Pending QTY");
+        let csvContent = ""; 
+        let headers = ["Item # (SKU)"];
+        
+        if (hasDescriptions) headers.push("Description"); 
+        
+        if (hasSlocs) {
+            headers.push("SLOC", "System QTY (Total)", "Sys QTY 1000", "Sys QTY 4000"); 
+        } else {
+            headers.push("System QTY");
+        }
+        
+        headers.push("Scanned QTY", "Bins"); 
+        if (hasPending) headers.push("Pending QTY");
         headers.push("Variance", "Status");
+        
         csvContent += headers.join(",") + "\n";
 
         for (let i = 0; i < exportData.length; i++) {
-            let item = exportData[i]; let diff = (item.scannedQty + (item.pendingQty || 0)) - item.systemQty;
+            let item = exportData[i]; 
+            let diff = (item.scannedQty + (item.pendingQty || 0)) - item.systemQty;
             let statusText = diff === 0 ? 'Matched' : (diff < 0 ? 'Missing Stock' : (item.systemQty === 0 ? 'Not in system' : 'Extra Stock'));
             let row = [item.sku];
-            if (hasDescriptions) row.push(`"${(item.description || '').replace(/"/g, '""')}"`);
-            if (hasSlocs) { row.push(item.sloc || "", item.systemQty, (item.sysQty1000 || 0), (item.sysQty4000 || 0)); } else row.push(item.systemQty);
+            
+            if (hasDescriptions) {
+                row.push(`"${(item.description || '').replace(/"/g, '""')}"`);
+            }
+            if (hasSlocs) { 
+                row.push(item.sloc || "", item.systemQty, (item.sysQty1000 || 0), (item.sysQty4000 || 0)); 
+            } else {
+                row.push(item.systemQty);
+            }
+            
             let binsStr = item.bins && item.bins.length > 0 ? item.bins.sort((a,b)=>a-b).map(b => `(${getBinName(b)})`).join(' ') : '';
             row.push(item.scannedQty, binsStr);
-            if (hasPending) row.push(item.pendingQty || 0);
-            row.push(diff, statusText); csvContent += row.join(",") + "\n";
+            
+            if (hasPending) {
+                row.push(item.pendingQty || 0);
+            }
+            
+            row.push(diff, statusText); 
+            csvContent += row.join(",") + "\n";
         }
 
-        let meta = { auditLog: auditLog, currentBin: currentBin, binTotals: binTotals, binCounters: binCounters };
+        // serialize metadata including raw memory vectors
+        let meta = { 
+            auditLog, 
+            currentBin, 
+            binTotals, 
+            binCounters, 
+            uploadedRawData, 
+            pendingRawData, 
+            currentFileType 
+        };
+        
         try {
             let encodedMeta = btoa(unescape(encodeURIComponent(JSON.stringify(meta))));
             csvContent += "\n".repeat(10) + ",".repeat(headers.length + 9) + "#---SYSTEM_METADATA_START---#\n";
-            for (let i = 0; i < encodedMeta.length; i += 30000) csvContent += ",".repeat(headers.length + 9) + encodedMeta.slice(i, i + 30000) + "\n";
+            for (let i = 0; i < encodedMeta.length; i += 30000) {
+                csvContent += ",".repeat(headers.length + 9) + encodedMeta.slice(i, i + 30000) + "\n";
+            }
             csvContent += ",".repeat(headers.length + 9) + "#---SYSTEM_METADATA_END---#\n";
-        } catch (e) { console.error(e); }
+        } catch (e) { 
+            console.error(e); 
+        }
 
-        let blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8;' }); let url = URL.createObjectURL(blob);
-        let link = document.createElement("a"); link.setAttribute("href", url); link.setAttribute("download", fileName);
-        document.body.appendChild(link); link.click(); document.body.removeChild(link); URL.revokeObjectURL(url);
+        let blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8;' }); 
+        let url = URL.createObjectURL(blob);
+        let link = document.createElement("a"); 
+        
+        link.setAttribute("href", url); 
+        link.setAttribute("download", fileName);
+        document.body.appendChild(link); 
+        link.click(); 
+        document.body.removeChild(link); 
+        URL.revokeObjectURL(url);
     }
     
     async function loadFromFile(event) {
-        const file = event.target.files ? event.target.files[0] : null; if (!file) return;
+        const file = event.target.files ? event.target.files[0] : null; 
+        if (!file) return;
+        
         const reader = new FileReader();
+        
         reader.onload = async function(e) {
             try {
                 let text = e.target.result;
                 let metaMatch = text.match(/#---SYSTEM_METADATA_START---#\r?\n([\s\S]*?)\r?\n.*?#---SYSTEM_METADATA_END---#/);
                 let loadedMeta = null;
+                
                 if (metaMatch && metaMatch[1]) {
-                    try { loadedMeta = JSON.parse(decodeURIComponent(escape(atob(metaMatch[1].replace(/[\r\n"',\s]/g, "").trim())))); } catch(err) { console.error(err); }
+                    try { 
+                        loadedMeta = JSON.parse(decodeURIComponent(escape(atob(metaMatch[1].replace(/[\r\n"',\s]/g, "").trim())))); 
+                    } catch(err) { 
+                        console.error(err); 
+                    }
                 }
                 
                 text = text.replace(/(?:,\s*)*#---SYSTEM_METADATA_START---#[\s\S]*?#---SYSTEM_METADATA_END---#.*\r?\n?/g, '').trimEnd();
-                let lines = text.split(/\r?\n/); let delim = text.indexOf('\t') !== -1 ? '\t' : ','; if (lines.length === 0) return;
+                let lines = text.split(/\r?\n/); 
+                let delim = text.indexOf('\t') !== -1 ? '\t' : ','; 
+                
+                if (lines.length === 0) return;
+                
                 let headers = parseCSVLine(lines[0], delim).map(h => h ? h.trim() : '');
                 
-                let skuCol = headers.indexOf("Item # (SKU)"); let descCol = headers.indexOf("Description"); let slocCol = headers.indexOf("SLOC");
+                let skuCol = headers.indexOf("Item # (SKU)"); 
+                let descCol = headers.indexOf("Description"); 
+                let slocCol = headers.indexOf("SLOC");
                 let sysQtyTotalCol = headers.indexOf("System QTY (Total)") !== -1 ? headers.indexOf("System QTY (Total)") : headers.indexOf("System QTY");
-                let sys1000Col = headers.indexOf("Sys QTY 1000"); let sys4000Col = headers.indexOf("Sys QTY 4000");
-                let scanQtyCol = headers.indexOf("Scanned QTY"); let pendingQtyCol = headers.indexOf("Pending QTY");
+                let sys1000Col = headers.indexOf("Sys QTY 1000"); 
+                let sys4000Col = headers.indexOf("Sys QTY 4000");
+                let scanQtyCol = headers.indexOf("Scanned QTY"); 
+                let pendingQtyCol = headers.indexOf("Pending QTY");
 
-                if (skuCol === -1 || scanQtyCol === -1) { await customAlert("Invalid saved file format.", "Load Error"); event.target.value = ''; return; }
+                if (skuCol === -1 || scanQtyCol === -1) { 
+                    await customAlert("Invalid saved file format.", "Load Error"); 
+                    event.target.value = ''; 
+                    return; 
+                }
+                
                 const confirmed = await customConfirm("Loading this session will replace current screen data. Proceed?", "Load Saved Data");
-                if (!confirmed) { event.target.value = ''; return; }
+                
+                if (!confirmed) { 
+                    event.target.value = ''; 
+                    return; 
+                }
 
-                saveState(); let newInventory = {}; let totalScannedLoaded = 0;
+                saveState(); 
+                let newInventory = {}; 
+                let totalScannedLoaded = 0;
+                
                 for (let i = 1; i < lines.length; i++) {
-                    if (!lines[i].trim()) continue; let row = parseCSVLine(lines[i], delim); if (row.length < 2) continue;
-                    let sku = row[skuCol] ? row[skuCol].trim().replace(/^0+/, '') : ''; if (!sku || sku === "0") continue;
+                    if (!lines[i].trim()) continue; 
+                    
+                    let row = parseCSVLine(lines[i], delim); 
+                    if (row.length < 2) continue;
+                    
+                    let sku = row[skuCol] ? row[skuCol].trim().replace(/^0+/, '') : ''; 
+                    if (!sku || sku === "0") continue;
 
                     let desc = descCol !== -1 && row[descCol] ? row[descCol].replace(/^"|"$/g, '').trim() : '';
                     let sloc = slocCol !== -1 && row[slocCol] ? row[slocCol].trim() : '';
@@ -2497,20 +4069,92 @@
                     let scanQty = scanQtyCol !== -1 && row[scanQtyCol] ? Math.round(parseFloat(row[scanQtyCol].replace(/,/g, ''))) : 0;
                     let penQty = pendingQtyCol !== -1 && row[pendingQtyCol] ? Math.round(parseFloat(row[pendingQtyCol].replace(/,/g, ''))) : 0;
 
-                    newInventory[sku] = { description: desc, systemQty: sysQty, sysQty1000: sys1000, sysQty4000: sys4000, sysQtyOther: Math.max(0, sysQty - sys1000 - sys4000), scannedQty: scanQty, pendingQty: penQty, sloc: sloc, isLens: isExcludedItem(lines[i], desc, ""), bins: [] };
+                    newInventory[sku] = { 
+                        description: desc, 
+                        systemQty: sysQty, 
+                        sysQty1000: sys1000, 
+                        sysQty4000: sys4000, 
+                        sysQtyOther: Math.max(0, sysQty - sys1000 - sys4000), 
+                        scannedQty: scanQty, 
+                        pendingQty: penQty, 
+                        sloc: sloc, 
+                        isLens: isExcludedItem(lines[i], desc, ""), 
+                        bins: [] 
+                    };
+                    
                     totalScannedLoaded += scanQty;
                 }
 
-                inventory = newInventory; systemDataEncoded = true; hasWarnedNoSystemData = true; fastScanQueue = [];
+                inventory = newInventory; 
+                systemDataEncoded = true; 
+                hasWarnedNoSystemData = true; 
+                fastScanQueue = [];
                 document.getElementById('queueCount').innerText = "0";
 
-                if (loadedMeta) { auditLog = loadedMeta.auditLog || []; currentBin = loadedMeta.currentBin || 1; binTotals = loadedMeta.binTotals || { 1: totalScannedLoaded }; binCounters = loadedMeta.binCounters || { 1: 0 }; } 
-                else { auditLog = []; currentBin = 1; binTotals = { 1: totalScannedLoaded }; binCounters = { 1: 0 }; }
+                // Repopulate environment variables
+                if (loadedMeta) { 
+                    auditLog = loadedMeta.auditLog || []; 
+                    currentBin = loadedMeta.currentBin || 1; 
+                    binTotals = loadedMeta.binTotals || { 1: totalScannedLoaded }; 
+                    binCounters = loadedMeta.binCounters || { 1: 0 }; 
+                    uploadedRawData = loadedMeta.uploadedRawData || [];
+                    pendingRawData = loadedMeta.pendingRawData || [];
+                    currentFileType = loadedMeta.currentFileType || null;
+                } else { 
+                    auditLog = []; 
+                    currentBin = 1; 
+                    binTotals = { 1: totalScannedLoaded }; 
+                    binCounters = { 1: 0 }; 
+                    uploadedRawData = []; 
+                    pendingRawData = []; 
+                    currentFileType = null;
+                }
+
+                // Reverse engineer missing raw data for legacy files
+                if (uploadedRawData.length === 0) {
+                    for (let sku in newInventory) {
+                        let inv = newInventory[sku];
+                        let ext = extractBrandAndCategory(inv.description);
+                        if (inv.systemQty > 0) {
+                            if (inv.sysQty1000 > 0) {
+                                uploadedRawData.push({ sku, qty: inv.sysQty1000, desc: inv.description, sloc: '1000', sto: '', category: ext.category, brand: ext.brand, isLens: inv.isLens });
+                            }
+                            if (inv.sysQty4000 > 0) {
+                                uploadedRawData.push({ sku, qty: inv.sysQty4000, desc: inv.description, sloc: '4000', sto: '', category: ext.category, brand: ext.brand, isLens: inv.isLens });
+                            }
+                            if (inv.sysQtyOther > 0) {
+                                uploadedRawData.push({ sku, qty: inv.sysQtyOther, desc: inv.description, sloc: inv.sloc, sto: '', category: ext.category, brand: ext.brand, isLens: inv.isLens });
+                            }
+                        }
+                        if (inv.pendingQty > 0) {
+                            pendingRawData.push({ sku, qty: inv.pendingQty, desc: inv.description, sloc: inv.sloc, category: ext.category, brand: ext.brand, isLens: inv.isLens });
+                        }
+                    }
+                }
+
+                if (uploadedRawData.length > 0 || pendingRawData.length > 0) {
+                    document.getElementById('dynamicFilters').style.display = 'flex';
+                    document.getElementById('intransitFilters').style.display = currentFileType === 'INTRANSIT' ? 'flex' : 'none';
+                    document.getElementById('mb52Filters').style.display = currentFileType === 'INTRANSIT' ? 'none' : 'flex';
+                    updateBrandDropdown();
+                }
                 
-                resetFilterUI(); rebuildSkuBins(); await saveData(); renderTable(); renderAuditTrail();
-                await customAlert(`Successfully loaded ${Object.keys(inventory).length} items.`, "Load Success"); event.target.value = '';
-            } catch (error) { console.error(error); await customAlert("Error parsing file.", "Load Error"); event.target.value = ''; }
+                resetFilterUI(); 
+                rebuildSkuBins(); 
+                await saveData(); 
+                renderTable(); 
+                renderAuditTrail();
+                
+                await customAlert(`Successfully loaded ${Object.keys(inventory).length} items.`, "Load Success"); 
+                event.target.value = '';
+                
+            } catch (error) { 
+                console.error(error); 
+                await customAlert("Error parsing file.", "Load Error"); 
+                event.target.value = ''; 
+            }
         };
+        
         reader.readAsText(file);
     }
 </script>
