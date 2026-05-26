@@ -1321,7 +1321,7 @@
 
     let undoStack = [];
     let redoStack = [];
-    const MAX_HISTORY = 50;
+    const MAX_HISTORY = 15;
 
     // convert bin number to letter format
     function getBinName(num) {
@@ -1432,7 +1432,7 @@
             return false;
         }
 
-        if (upperMerch.startsWith('LL') || upperMerch.startsWith('CL')) {
+        if (upperMerch.startsWith('LL') || upperMerch.startsWith('CL') || upperMerch.includes('CONTACT') || upperMerch.includes('LENS')) {
             return true;
         }
 
@@ -1678,7 +1678,7 @@
 
     function closeCamera() {
         if(html5QrcodeScanner) {
-            html5QrcodeScanner.clear();
+            html5QrcodeScanner.clear().catch(error => console.warn("Camera closure cleanup sequence handled."));
         }
         document.getElementById('cameraModal').style.display = 'none';
     }
@@ -1726,7 +1726,7 @@
             line = line.trim();
             if (!line) return;
             
-            let parts = line.split(/[\t\s]+/);
+            let parts = line.split(/[\t\s,]+/);
             let skuRaw = parts[0].replace(/^0+/, '') || '0';
             
             if (skuRaw === "" || skuRaw === "0") return;
@@ -1892,8 +1892,10 @@
         document.querySelector('.filter-btn[onclick*="ALL"]').classList.add('active');
         currentSearchQuery = '';
         document.getElementById('tableSearchInput').value = '';
+        currentPage = 1;
     }
 
+    // history filter triggers
     function filterHistoryByBin(binId) {
         const searchInput = document.getElementById('historySearchInput');
         searchInput.value = `bin:${getBinName(binId)}`;
@@ -1944,11 +1946,13 @@
         if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
             await chrome.storage.local.set({ 'posInventoryState': payload });
         } else {
-            // Keep local state lightweight to protect the browser's strict 5MB LocalStorage quota limit
             let structuralState = {
                 inventory: payload.inventory,
                 systemDataEncoded: payload.systemDataEncoded,
                 hasWarnedNoSystemData: payload.hasWarnedNoSystemData,
+                auditLog: payload.auditLog.slice(0, 5000), 
+                uploadedRawData: payload.uploadedRawData,
+                pendingRawData: payload.pendingRawData,
                 currentFileType: payload.currentFileType,
                 isLensesFilterActive: payload.isLensesFilterActive,
                 currentBin: payload.currentBin,
@@ -1959,7 +1963,12 @@
                 currentFilter: payload.currentFilter,
                 currentSearchQuery: payload.currentSearchQuery
             };
-            localStorage.setItem('posInventoryState', JSON.stringify(structuralState));
+            
+            try {
+                localStorage.setItem('posInventoryState', JSON.stringify(structuralState));
+            } catch (e) {
+                console.warn("Local storage quota exceeded. Session will not persist after refresh, but current session remains active.");
+            }
         }
     }
 
@@ -2306,6 +2315,8 @@
         }
         
         let isError = false;
+        
+        // Resurrection Logic if target SKU doesn't exist
         if (!inventory[newSku]) {
             inventory[newSku] = { 
                 description: "Manually Edited", 
@@ -2356,6 +2367,23 @@
         saveState();
         
         let diff = newQty - log.qty;
+        
+        // Resurrection Logic: If the item was deleted entirely from the system table, bring it back
+        if (!inventory[log.sku]) {
+            inventory[log.sku] = { 
+                description: log.desc, 
+                systemQty: 0, 
+                sysQty1000: 0, 
+                sysQty4000: 0, 
+                sysQtyOther: 0, 
+                scannedQty: 0, 
+                pendingQty: 0, 
+                sloc: 'Scanned', 
+                isLens: false, 
+                bins: [] 
+            };
+        }
+        
         if (inventory[log.sku]) {
             inventory[log.sku].scannedQty += diff;
             if (inventory[log.sku].scannedQty < 0) {
@@ -2401,7 +2429,7 @@
             qty: qty 
         });
         
-        if(auditLog.length > 50000) {
+        if(auditLog.length > 5000) {
             auditLog.pop(); 
         }
         
@@ -2417,11 +2445,12 @@
             }
         }
         
-        renderAuditTrail();
-        
-        let auditBox = document.getElementById('auditTrailBox');
-        if (auditBox && auditBox.style.display === 'none' && !isFastScanMode) {
-            toggleAuditTrail();
+        if (!isFastScanMode) {
+            renderAuditTrail();
+            let auditBox = document.getElementById('auditTrailBox');
+            if (auditBox && auditBox.style.display === 'none') {
+                toggleAuditTrail();
+            }
         }
     }
 
@@ -2597,10 +2626,10 @@
                     if (cols[j] == null) continue;
                     let h = String(cols[j]).trim().toLowerCase().replace(/['"]/g, '');
                     
-                    if (h === 'article' || h === 'article #' || h === 'sku' || h === 'material') skuCol = j;
+                    if (h === 'article' || h === 'article #' || h === 'sku' || h === 'material' || h === 'item number') skuCol = j;
                     if (h === 'unrestricted' || h === 'p.o. qty.' || h === 'p.o. qty' || h === 'qty' || h === 'quantity' || h === 'in-transit qty.') qtyCol = j;
                     if (h === 'storage location' || h === 'sloc') slocCol = j;
-                    if (h.includes('description') || h === 'desc' || h === 'article description') descCol = j;
+                    if (h.includes('description') || h === 'desc' || h === 'article description' || h === 'item description') descCol = j;
                     if (h === 's.t.o. #' || h === 's.t.o.') stoCol = j;
                     if (h.includes('merch') || h.includes('category')) merchCol = j;
                 }
@@ -2665,13 +2694,13 @@
                     qtyRaw = cols[qtyCol] != null ? String(cols[qtyCol]).trim() : "";
                     descRaw = descCol !== -1 && cols[descCol] != null ? String(cols[descCol]).trim() : "";
                     slocRaw = slocCol !== -1 && cols[slocCol] != null ? String(cols[slocCol]).trim() : "";
-                    stoRaw = stoCol !== -1 && cols[stoCol] != null ? String(stoRaw) ? String(stoRaw).trim() : "" : "";
+                    stoRaw = stoCol !== -1 && cols[stoCol] != null ? String(cols[stoCol]).trim() : "";
                     merchRaw = merchCol !== -1 && cols[merchCol] != null ? String(cols[merchCol]).trim() : "";
                 } else {
                     let possibleSkus = []; 
                     let possibleSlocs = []; 
                     let uomIndex = -1; 
-                    let uomKeywords = ['PAK', 'EA', 'PC', 'ST', 'PR'];
+                    let uomKeywords = ['PAK', 'EA', 'PC', 'ST', 'PR', 'PAC', 'BOX'];
                     
                     for (let j = 0; j < cols.length; j++) {
                         if (cols[j] == null) continue;
@@ -2774,7 +2803,13 @@
 
                 let fullRowText = cols.join(' '); 
                 let sku = skuRaw.replace(/^0+/, '') || '0';
-                let sysQty = Math.round(parseFloat(qtyRaw.replace(/,/g, ''))); 
+                let sysQty = 0;
+                
+                try {
+                    if (qtyRaw.trim() !== "") {
+                        sysQty = Math.round(parseFloat(qtyRaw.replace(/,/g, ''))); 
+                    }
+                } catch (e) {}
                 
                 if (sysQty < 0) {
                     sysQty = Math.abs(sysQty); 
@@ -2849,6 +2884,7 @@
             document.getElementById('dynamicFilters').style.display = 'flex'; 
             itemsPerPage = '100'; 
             document.getElementById('pageSize').value = '100';
+            currentPage = 1;
 
             if (currentFileType === 'INTRANSIT') {
                 document.getElementById('intransitFilters').style.display = 'flex'; 
@@ -2923,7 +2959,7 @@
         }
 
         if (typeof XLSX === 'undefined') {
-            await customAlert("The Excel parser library couldn't load. Please load a .CSV instead.", "Library Blocked");
+            await customAlert("The Excel parser library couldn't load. Please save it as a .CSV and try loading.", "Library Blocked");
             if(event && event.target) {
                 event.target.value = '';
             }
@@ -2989,10 +3025,10 @@
                     if (cols[j] == null) continue;
                     let h = String(cols[j]).trim().toLowerCase().replace(/['"]/g, '');
                     
-                    if (h === 'article' || h === 'article #' || h === 'sku' || h === 'material') skuCol = j;
+                    if (h === 'article' || h === 'article #' || h === 'sku' || h === 'material' || h === 'item number') skuCol = j;
                     if (h === 'unrestricted' || h === 'p.o. qty.' || h === 'p.o. qty' || h === 'qty' || h === 'quantity' || h === 'in-transit qty.') qtyCol = j;
                     if (h === 'storage location' || h === 'sloc') slocCol = j;
-                    if (h.includes('description') || h === 'desc' || h === 'article description') descCol = j;
+                    if (h.includes('description') || h === 'desc' || h === 'article description' || h === 'item description') descCol = j;
                     if (h.includes('merch') || h.includes('category')) merchCol = j;
                 }
                 if (skuCol !== -1 && qtyCol !== -1 && !isRivoli) { 
@@ -3038,7 +3074,7 @@
                     let possibleSkus = []; 
                     let possibleSlocs = []; 
                     let uomIndex = -1; 
-                    let uomKeywords = ['PAK', 'EA', 'PC', 'ST', 'PR'];
+                    let uomKeywords = ['PAK', 'EA', 'PC', 'ST', 'PR', 'PAC', 'BOX'];
                     
                     for (let j = 0; j < cols.length; j++) {
                         if (cols[j] == null) continue;
@@ -3126,7 +3162,7 @@
                             if(val === "" || (!isNaN(valNoCommas) && !val.includes(';'))) continue; 
                             descParts.push(val);
                         }
-                        descRaw = descParts.join(' ');
+                        descRaw = ' '.join(descParts);
                     }
                     
                     if (!descRaw) {
@@ -3141,7 +3177,13 @@
 
                 let fullRowText = cols.join(' '); 
                 let sku = skuRaw.replace(/^0+/, '') || '0';
-                let penQty = Math.round(parseFloat(qtyRaw.replace(/,/g, ''))); 
+                let penQty = 0;
+                
+                try {
+                    if (qtyRaw.trim() !== "") {
+                        penQty = Math.round(parseFloat(qtyRaw.replace(/,/g, ''))); 
+                    }
+                } catch (e) {}
                 
                 if (penQty < 0) {
                     penQty = Math.abs(penQty); 
@@ -3155,11 +3197,17 @@
                 let category = extracted.category; 
                 let brand = extracted.brand;
 
+                // Scrub stray sloc tags
+                let safeSlocRaw = slocRaw;
+                if (safeSlocRaw === "Scanned" || safeSlocRaw === "Pending") {
+                    safeSlocRaw = "";
+                }
+
                 pendingRawData.push({ 
                     sku: sku, 
                     qty: penQty, 
                     desc: descRaw, 
-                    sloc: slocRaw, 
+                    sloc: safeSlocRaw, 
                     category: category, 
                     brand: brand, 
                     isLens: isLens 
@@ -3343,7 +3391,7 @@
                     inventory[row.sku].description = row.desc;
                 }
                 
-                if (row.sloc && inventory[row.sku].sloc.indexOf(row.sloc) === -1) {
+                if (row.sloc && !inventory[row.sku].sloc.split(', ').includes(row.sloc)) {
                     if (inventory[row.sku].sloc && inventory[row.sku].sloc !== "Scanned" && inventory[row.sku].sloc !== "Pending") {
                         inventory[row.sku].sloc += ", " + row.sloc;
                     } else {
@@ -3429,443 +3477,6 @@
         renderTable();
     }
 
-    async function loadPastedData() {
-        try {
-            const text = document.getElementById('pasteArea').value; 
-            
-            if (!text.trim()) { 
-                await customAlert("Please paste data first.", "Input required"); 
-                return; 
-            }
-            
-            const lines = text.split(/\r?\n/); 
-            let aoa = []; 
-            
-            // Check if the pasted text has native tab characters
-            let hasTabs = text.indexOf('\t') !== -1;
-            
-            for(let i=0; i<lines.length; i++) { 
-                let line = lines[i].trim();
-                if(!line) continue; 
-                
-                if (hasTabs) {
-                    aoa.push(parseCSVLine(line, '\t'));
-                } else if (text.indexOf(',') !== -1 && text.indexOf(';') === -1) {
-                    // Fallback for strictly comma separated content
-                    aoa.push(parseCSVLine(line, ','));
-                } else {
-                    // Fallback for space-delimited shattered data 
-                    // This engages the powerful text piecing fallback engine in processArrayOfArrays
-                    aoa.push(line.split(/\s+/));
-                }
-            }
-            
-            await processArrayOfArrays(aoa, null);
-        } catch (error) { 
-            console.error(error); 
-            await customAlert("An unexpected error occurred: " + error.message, "Error"); 
-        }
-    }
-
-    function closeSlocModal() { 
-        document.getElementById('slocModal').style.display = 'none'; 
-    }
-    
-    async function finalizeEncoding(filterType) { 
-        document.getElementById('slocModal').style.display = 'none'; 
-    }
-
-    async function queueFastScan(skuRawInput) {
-        if (!systemDataEncoded && !hasWarnedNoSystemData) {
-            const proceed = await customConfirm("There is no encoded system quantity. Proceed?", "Warning"); 
-            if (!proceed) return;
-            hasWarnedNoSystemData = true;
-        }
-        
-        let skuRaw = skuRawInput.trim(); 
-        let sku = skuRaw.replace(/^0+/, '') || '0';
-        
-        if (sku !== "" && sku !== "0") {
-            fastScanQueue.push(sku); 
-            document.getElementById('queueCount').innerText = fastScanQueue.length;
-            renderFastScanTrail(); 
-            playSound('success'); 
-        }
-    }
-
-    async function processFastScanQueue() {
-        if (fastScanQueue.length === 0) { 
-            await customAlert("No items in the fast scan queue.", "Empty Queue"); 
-            return; 
-        }
-        
-        saveState(); 
-        let errorCount = 0; 
-        let successCount = 0;
-        resetFilterUI(); 
-        document.getElementById('slocFilterUI').value = 'ALL'; 
-
-        fastScanQueue.forEach(sku => {
-            let isError = false;
-            
-            if (!inventory[sku]) {
-                inventory[sku] = { 
-                    description: "Manually Scanned", 
-                    systemQty: 0, 
-                    sysQty1000: 0, 
-                    sysQty4000: 0, 
-                    sysQtyOther: 0, 
-                    scannedQty: 0, 
-                    pendingQty: 0, 
-                    sloc: 'Scanned', 
-                    isLens: false, 
-                    bins: [] 
-                };
-                isError = true; 
-                errorCount++;
-            } else { 
-                successCount++; 
-            }
-            
-            inventory[sku].scannedQty += 1; 
-            appendAuditLog(sku, isError, 1);
-        });
-
-        let totalProcessed = fastScanQueue.length; 
-        fastScanQueue = [];
-        document.getElementById('queueCount').innerText = "0"; 
-        document.getElementById('fastScanTrailBox').style.display = 'none';
-        
-        renderFastScanTrail(); 
-        isFastScanMode = false;
-        
-        const btnToggle = document.getElementById('btnFastScanToggle'); 
-        const compareBtn = document.getElementById('btnCompare');
-        
-        btnToggle.innerHTML = `<svg viewBox="0 0 24 24" width="12" height="12" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: text-bottom; margin-right: 4px;"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg> Fast Scan: OFF`;
-        btnToggle.classList.remove('active'); 
-        compareBtn.style.display = 'none';
-        
-        await saveData(); 
-        renderTable();
-        
-        if (errorCount > 0) { 
-            playSound('error'); 
-            await customAlert(`Processed: ${totalProcessed} items.<br><br><span style="color:var(--accent-red);font-weight:bold;">${errorCount} items were NOT in system.</span>`, "Scan Results"); 
-        } else { 
-            playSound('success'); 
-            await customAlert(`Successfully processed ${totalProcessed} items.`, "Scan Results"); 
-        }
-        
-        setTimeout(updateStickyHeaders, 10); 
-        document.getElementById('scanInput').focus();
-    }
-
-    async function processScanLogic(skuRawInput) {
-        if (!systemDataEncoded && !hasWarnedNoSystemData) {
-            const proceed = await customConfirm("There is no encoded system quantity. Do you want to scan anyway?", "Warning"); 
-            if (!proceed) return;
-            hasWarnedNoSystemData = true;
-        }
-        
-        let skuRaw = skuRawInput.trim(); 
-        let sku = skuRaw.replace(/^0+/, '') || '0';
-        
-        if (sku !== "" && sku !== "0") {
-            let isVisible = true; 
-            let slocDropdownVal = document.getElementById('slocFilterUI').value;
-            let hasSloc = false; 
-            
-            for (let k in inventory) { 
-                if (inventory[k].sloc && inventory[k].sloc !== "" && inventory[k].sloc !== "Scanned" && inventory[k].sloc !== "Pending") { 
-                    hasSloc = true; 
-                    break; 
-                } 
-            }
-            
-            if (!hasSloc) {
-                slocDropdownVal = 'ALL';
-            }
-
-            if (currentFilter !== 'ALL' || currentSearchQuery !== '' || slocDropdownVal !== 'ALL') {
-                let item = inventory[sku];
-                
-                if (isLensesFilterActive && item && item.isLens) {
-                    isVisible = false;
-                } else {
-                    let currentScannedQty = item ? item.scannedQty : 0; 
-                    let currentPendingQty = item ? (item.pendingQty || 0) : 0; 
-                    let sysQty = item ? item.systemQty : 0;
-                    let currentDiff = (currentScannedQty + currentPendingQty) - sysQty; 
-                    let sloc = item ? item.sloc || "" : "Scanned"; 
-                    let desc = item ? (item.description || "").toLowerCase() : "manually scanned";
-                    
-                    if (slocDropdownVal !== 'ALL' && sloc !== "Scanned" && sloc !== "Pending" && !sloc.includes(slocDropdownVal)) isVisible = false;
-                    if (currentFilter === 'DISCREPANCIES' && currentDiff === 0) isVisible = false;
-                    if (currentFilter === 'MISSING' && currentDiff >= 0) isVisible = false;
-                    if (currentFilter === 'EXTRA' && currentDiff <= 0) isVisible = false;
-                    if (currentFilter === 'NOT_IN_SYSTEM' && sysQty > 0) isVisible = false;
-                    if (currentSearchQuery !== '' && !sku.toLowerCase().includes(currentSearchQuery) && !desc.includes(currentSearchQuery)) isVisible = false;
-                }
-            }
-
-            if (!isVisible) {
-                const proceed = await customConfirm(`Since the scanned item (<b>${sku}</b>) is hidden or filtered, should we search the whole list?`, "Search Whole System?");
-                if (proceed) { 
-                    resetFilterUI(); 
-                    document.getElementById('slocFilterUI').value = 'ALL'; 
-                } else {
-                    return; 
-                }
-            }
-
-            saveState(); 
-            let isError = false;
-            
-            if (!inventory[sku]) {
-                playSound('error'); 
-                showErrorToast(`⚠️ Alert: SKU ${sku} is NOT in the encoded list!`);
-                inventory[sku] = { 
-                    description: "Manually Scanned", 
-                    systemQty: 0, 
-                    sysQty1000: 0, 
-                    sysQty4000: 0, 
-                    sysQtyOther: 0, 
-                    scannedQty: 0, 
-                    pendingQty: 0, 
-                    sloc: 'Scanned', 
-                    isLens: false, 
-                    bins: [] 
-                };
-                isError = true;
-            } else { 
-                playSound('success'); 
-            }
-            
-            inventory[sku].scannedQty += 1; 
-            appendAuditLog(sku, isError, 1); 
-            await saveData(); 
-
-            let tempFiltered = []; 
-            let sVal = document.getElementById('slocFilterUI').value; 
-            if (!hasSloc) {
-                sVal = 'ALL';
-            }
-            
-            for (let k in inventory) {
-                let itm = inventory[k]; 
-                
-                if (isLensesFilterActive && itm.isLens) continue; 
-                
-                let df = (itm.scannedQty + (itm.pendingQty || 0)) - itm.systemQty;
-                
-                if (sVal !== 'ALL') { 
-                    let itemSloc = itm.sloc || ""; 
-                    if (itemSloc !== "Scanned" && itemSloc !== "Pending" && !itemSloc.includes(sVal)) continue; 
-                }
-                
-                if (currentFilter === 'DISCREPANCIES' && df === 0) continue;
-                if (currentFilter === 'MISSING' && df >= 0) continue;
-                if (currentFilter === 'EXTRA' && df <= 0) continue;
-                if (currentFilter === 'NOT_IN_SYSTEM' && itm.systemQty > 0) continue;
-                
-                if (currentSearchQuery !== '') {
-                    let skuStr = k.toLowerCase(); 
-                    let descStr = (itm.description || '').toLowerCase();
-                    if (!skuStr.includes(currentSearchQuery) && !descStr.includes(currentSearchQuery)) continue;
-                }
-                tempFiltered.push(k);
-            }
-            
-            let itemIndex = tempFiltered.indexOf(sku);
-            if (itemIndex !== -1 && itemsPerPage !== 'All') { 
-                let limit = parseInt(itemsPerPage); 
-                currentPage = Math.floor(itemIndex / limit) + 1; 
-            }
-            
-            renderTable();
-
-            requestAnimationFrame(() => {
-                let row = document.getElementById('row-' + sku);
-                if (row) {
-                    const stickyGroup = document.getElementById('stickyGroup'); 
-                    const offset = stickyGroup ? stickyGroup.getBoundingClientRect().height + 50 : 200;
-                    const rowPosition = row.getBoundingClientRect().top - document.body.getBoundingClientRect().top;
-                    
-                    window.scrollTo({ top: rowPosition - offset, behavior: "auto" }); 
-                    row.classList.add('highlight-flash');
-                    
-                    setTimeout(() => { 
-                        row.classList.remove('highlight-flash'); 
-                    }, 400); 
-                }
-            }); 
-        }
-    }
-
-    async function editQuantity(sku, type) {
-        let typeName = type === 'systemQty' ? 'System QTY' : 'Pending QTY';
-        let item = inventory[sku];
-
-        if (type === 'systemQty') {
-            if (item.sloc && item.sloc.includes('1000') && item.sloc.includes('4000')) {
-                const confirmed = await customConfirm(`This item is split between 1000 and 4000. Edit to keep breakdown accurate?`); 
-                if (!confirmed) return;
-                
-                let new1000 = await customPrompt(`Enter the new SLOC 1000 QTY for SKU ${sku}:`, item.sysQty1000, "Edit 1000 QTY"); 
-                if (new1000 === null) return;
-                
-                let new4000 = await customPrompt(`Enter the new SLOC 4000 QTY for SKU ${sku}:`, item.sysQty4000, "Edit 4000 QTY"); 
-                if (new4000 === null) return;
-
-                let q1 = Math.round(parseFloat(new1000.replace(/,/g, ''))) || 0; 
-                let q4 = Math.round(parseFloat(new4000.replace(/,/g, ''))) || 0;
-                
-                if (q1 >= 0 && q4 >= 0) {
-                    saveState(); 
-                    
-                    let existingItem = uploadedRawData.find(r => r.sku === sku);
-                    let preservedSto = existingItem && existingItem.sto ? existingItem.sto : "";
-                    
-                    uploadedRawData = uploadedRawData.filter(r => r.sku !== sku);
-                    let ext = extractBrandAndCategory(item.description);
-                    
-                    if (q1 > 0) {
-                        uploadedRawData.push({ sku, qty: q1, desc: item.description, sloc: '1000', sto: preservedSto, category: ext.category, brand: ext.brand, isLens: item.isLens });
-                    }
-                    if (q4 > 0) {
-                        uploadedRawData.push({ sku, qty: q4, desc: item.description, sloc: '4000', sto: preservedSto, category: ext.category, brand: ext.brand, isLens: item.isLens });
-                    }
-                    
-                    applyDynamicFilters();
-                } else { 
-                    await customAlert("Invalid quantity entered.", "Error"); 
-                }
-                return;
-            }
-        }
-        
-        let currentQty = item[type] || 0; 
-        const confirmed = await customConfirm(`Are you sure you want to manually edit the ${typeName} for SKU ${sku}?`);
-        
-        if (confirmed) {
-            let newQtyRaw = await customPrompt(`Enter the new ${typeName} for SKU ${sku}:`, currentQty, "Edit Quantity");
-            if (newQtyRaw !== null && newQtyRaw.trim() !== "") {
-                let qClean = newQtyRaw.replace(/,/g, ''); 
-                let newQty = Math.round(parseFloat(qClean));
-                
-                if (!isNaN(newQty) && newQty >= 0) {
-                    saveState(); 
-                    let ext = extractBrandAndCategory(item.description);
-                    
-                    if (type === 'systemQty') {
-                        let existingItem = uploadedRawData.find(r => r.sku === sku);
-                        let preservedSto = existingItem && existingItem.sto ? existingItem.sto : "";
-
-                        uploadedRawData = uploadedRawData.filter(r => r.sku !== sku);
-                        let singleSloc = item.sloc === '4000' ? '4000' : (item.sloc === '1000' ? '1000' : item.sloc);
-                        
-                        if (newQty > 0) {
-                            uploadedRawData.push({ sku, qty: newQty, desc: item.description, sloc: singleSloc, sto: preservedSto, category: ext.category, brand: ext.brand, isLens: item.isLens });
-                        }
-                    } else {
-                        pendingRawData = pendingRawData.filter(r => r.sku !== sku);
-                        if (newQty > 0) {
-                            pendingRawData.push({ sku, qty: newQty, desc: item.description, sloc: item.sloc, category: ext.category, brand: ext.brand, isLens: item.isLens });
-                        }
-                    }
-                    applyDynamicFilters();
-                } else { 
-                    await customAlert("Invalid quantity.", "Invalid Input"); 
-                }
-            }
-        }
-    }
-
-    async function deleteRow(sku) {
-        const confirmed = await customConfirm(`Are you sure you want to completely remove SKU ${sku} from the list?`);
-        
-        if (confirmed) {
-            saveState(); 
-            
-            if (inventory[sku] && inventory[sku].scannedQty > 0) { 
-                let logsToKeep = [];
-                for (let i = 0; i < auditLog.length; i++) {
-                    let log = auditLog[i];
-                    if (log.sku === sku) {
-                        if (binTotals[log.bin] !== undefined) { 
-                            binTotals[log.bin] -= log.qty; 
-                            if (binTotals[log.bin] < 0) {
-                                binTotals[log.bin] = 0; 
-                            }
-                        }
-                    } else {
-                        logsToKeep.push(log);
-                    }
-                }
-                auditLog = logsToKeep;
-            }
-            
-            uploadedRawData = uploadedRawData.filter(r => r.sku !== sku);
-            pendingRawData = pendingRawData.filter(r => r.sku !== sku);
-            delete inventory[sku]; 
-            
-            applyDynamicFilters(); 
-            renderAuditTrail();
-        }
-    }
-
-    async function resetSession() {
-        const confirmed = await customConfirm("Are you sure you want to completely reset the session? ALL scanned data and encoded lists will be permanently deleted.");
-        
-        if (confirmed) {
-            saveState(); 
-            
-            inventory = {}; 
-            systemDataEncoded = false; 
-            hasWarnedNoSystemData = false; 
-            auditLog = []; 
-            fastScanQueue = []; 
-            uploadedRawData = []; 
-            pendingRawData = []; 
-            currentFileType = null; 
-            isLensesFilterActive = true;
-            
-            document.getElementById('queueCount').innerText = "0"; 
-            document.getElementById('fastScanTrailBox').style.display = 'none'; 
-            document.getElementById('dynamicFilters').style.display = 'none';
-            
-            currentBin = 1; 
-            binTotals = { 1: 0 }; 
-            binCounters = { 1: 0 }; 
-            itemsPerPage = '100'; 
-            document.getElementById('pageSize').value = '100';
-            currentTotalPages = 1; 
-            currentPage = 1;
-            
-            document.getElementById('pasteArea').value = ''; 
-            document.getElementById('sysDataUpload').value = ''; 
-            document.getElementById('pendingDataUpload').value = '';
-            
-            resetFilterUI(); 
-            document.getElementById('slocFilterUI').value = '1000'; 
-            
-            const btn = document.getElementById('btnToggleLenses'); 
-            btn.innerText = "Unhide CL & OL"; 
-            btn.style.backgroundColor = "var(--surface-color)"; 
-            btn.style.color = "var(--text-primary)"; 
-            btn.style.borderColor = "var(--border-color)";
-            
-            document.getElementById('scanInput').classList.remove('needs-focus-blink');
-            
-            await clearData(); 
-            renderAuditTrail(); 
-            renderFastScanTrail(); 
-            renderTable(); 
-            document.getElementById('scanInput').focus();
-        }
-    }
-
     function exportPDF() {
         if (Object.keys(inventory).length === 0) { 
             customAlert("There is no data to print yet.", "Print Error"); 
@@ -3883,7 +3494,7 @@
             window.print(); 
             itemsPerPage = oldSize; 
             renderTable(); 
-        }, 300);
+        }, 800); // 800ms gives massive tables enough time to draw into the DOM before print dialogue locks thread
     }
 
     async function exportToCSV() {
@@ -3981,7 +3592,8 @@
                 row.push(`"${(item.description || '').replace(/"/g, '""')}"`);
             }
             if (hasSlocs) { 
-                row.push(item.sloc || "", item.systemQty, (item.sysQty1000 || 0), (item.sysQty4000 || 0)); 
+                // Wrap SLOC in quotes so that "1000, 4000" doesn't trigger a column break inside CSV interpreters
+                row.push(`"${item.sloc || ""}"`, item.systemQty, (item.sysQty1000 || 0), (item.sysQty4000 || 0)); 
             } else {
                 row.push(item.systemQty);
             }
@@ -4095,7 +3707,7 @@
                     if (!sku || sku === "0") continue;
 
                     let desc = descCol !== -1 && row[descCol] ? row[descCol].replace(/^"|"$/g, '').trim() : '';
-                    let sloc = slocCol !== -1 && row[slocCol] ? row[slocCol].trim() : '';
+                    let sloc = slocCol !== -1 && row[slocCol] ? row[slocCol].replace(/^"|"$/g, '').trim() : '';
                     let sysQty = sysQtyTotalCol !== -1 && row[sysQtyTotalCol] ? Math.round(parseFloat(row[sysQtyTotalCol].replace(/,/g, ''))) : 0;
                     let sys1000 = sys1000Col !== -1 && row[sys1000Col] ? Math.round(parseFloat(row[sys1000Col].replace(/,/g, ''))) : 0;
                     let sys4000 = sys4000Col !== -1 && row[sys4000Col] ? Math.round(parseFloat(row[sys4000Col].replace(/,/g, ''))) : 0;
@@ -4211,18 +3823,25 @@
         let hasSlocData = false; 
         let hasScannedData = false;
 
+        let isIntransitMode = (currentFileType === 'INTRANSIT');
+
         for (let sku in inventory) {
             if (isLensesFilterActive && inventory[sku].isLens) continue; 
+            
+            // Treat non-empty storage locations or active in-transit documents as structured location criteria
             if (inventory[sku].sloc && inventory[sku].sloc !== "" && inventory[sku].sloc !== "Scanned" && inventory[sku].sloc !== "Pending") { 
                 hasSlocData = true; 
                 showSlocColumn = true; 
+            } else if (isIntransitMode && inventory[sku].systemQty > 0) {
+                hasSlocData = true;
+                showSlocColumn = true;
             }
             if (inventory[sku].pendingQty && inventory[sku].pendingQty > 0) showPendingColumn = true;
             if (inventory[sku].scannedQty && inventory[sku].scannedQty > 0) hasScannedData = true;
         }
         
-        document.getElementById('slocFilterUI').style.display = hasSlocData ? 'inline-block' : 'none';
-        if (!hasSlocData) slocDropdownVal = 'ALL';
+        document.getElementById('slocFilterUI').style.display = (hasSlocData && !isIntransitMode) ? 'inline-block' : 'none';
+        if (!hasSlocData || isIntransitMode) slocDropdownVal = 'ALL';
 
         for (let sku in inventory) {
             let item = inventory[sku]; 
@@ -4308,6 +3927,7 @@
         document.getElementById('btnNextPage').disabled = currentPage === totalPages || totalPages === 0;
 
         let counter = itemsPerPage === 'All' ? 1 : ((currentPage - 1) * parseInt(itemsPerPage)) + 1;
+        const fragment = document.createDocumentFragment();
 
         paginatedItems.forEach(item => {
             let rowClass = ''; 
@@ -4348,7 +3968,12 @@
             if (parts.length === 0) sysQtyHtml = `<span style="color: var(--text-primary); font-weight: 600;">0</span>`;
             else sysQtyHtml = parts.join(' <span style="color:var(--text-secondary); font-size:10px; font-weight:600;">+</span> ');
 
-            let displaySloc = (item.sloc || '').split(', ').map(s => {
+            let finalSlocString = item.sloc || "";
+            if (finalSlocString === "" && isIntransitMode && item.systemQty > 0) {
+                finalSlocString = "In-Transit";
+            }
+
+            let displaySloc = finalSlocString.split(', ').map(s => {
                 if (s === '1000') return '<span style="color: var(--accent-green); font-weight: 600;">1000</span>';
                 if (s === '4000') return '<span style="color: var(--accent-red); font-weight: 600;">4000</span>';
                 return s;
@@ -4370,13 +3995,16 @@
                 <td><div class="qty-container"><span style="font-weight:600;">${item.scannedQty}</span></div></td>
                 ${hasScannedData ? `<td>${binHtml}</td>` : ''}
                 ${showPendingColumn ? `<td><div class="qty-container"><span style="font-weight:600; color:var(--accent-orange);">${penQtyValue}</span><button class="btn-edit" onclick="editQuantity('${item.sku}', 'pendingQty')"><svg viewBox="0 0 24 24" width="12" height="12" stroke="currentColor" stroke-width="2" fill="none"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg></button></div></td>` : ''}
-                <td><strong style="color: ${diffColor};">${item.diff}</strong></td>
+                <td><strong style="color: ${item.diff === 0 ? 'var(--accent-green)' : item.diff < 0 ? 'var(--accent-red)' : 'var(--accent-blue)'};">${item.diff}</strong></td>
                 <td><strong style="color: ${statusColor}; font-weight: 600;">${statusText}</strong></td>
                 <td style="text-align: center;"><button class="btn-delete" onclick="deleteRow('${item.sku}')"><svg viewBox="0 0 24 24" width="12" height="12" stroke="currentColor" stroke-width="2" fill="none"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg></button></td>
             `;
-            tbody.appendChild(tr); 
+            fragment.appendChild(tr); 
             counter++;
         });
+
+        tbody.appendChild(fragment);
+        setTimeout(updateStickyHeaders, 10);
     }
 </script>
 </body>
