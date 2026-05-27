@@ -2972,7 +2972,7 @@
             
             let systemLoadResultMessage = `Import complete: ${uploadedRawData.length} records parsed successfully.`;
             if (selfFilteredExclusionsCounter > 0) {
-                systemLoadResultMessage += `<br><br><span style="color:var(--accent-pink); font-weight:bold;">Filtered out ${selfFilteredExclusionsCounter} auxiliary/lens items from master ledger automatically.</span>`;
+                systemLoadResultMessage += `<br><br><span style="color:var(--accent-pink); font-weight:bold;">Hidden ${selfFilteredExclusionsCounter} OL and/or CL items from the list automatically.</span>`;
             }
             await customAlert(systemLoadResultMessage, "Confirmation message");
             if (structuralTriggerEvent && structuralTriggerEvent.target) structuralTriggerEvent.target.value = '';
