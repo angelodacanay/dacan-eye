@@ -1044,7 +1044,7 @@
             <button class="btn btn-encode" onclick="loadPastedData()" title="Load COPY / PASTED Data" style="margin: 0;">Process Text Block</button>
             <span style="font-weight: 600; color: var(--text-secondary); font-size: 11px; margin: 0 12px;">OR</span>
             <input type="file" id="sysDataUpload" accept=".csv, .xls, .xlsx, .xlsm, .xlsb, .txt, .tsv, .xml, .mhtml, .mht" style="display: none;" onchange="handleFileUpload(event)">
-            <button class="btn btn-encode" style="background-color: var(--accent-green); margin: 0;" onclick="document.getElementById('sysDataUpload').click()" title="Load ZSTK_IT or MB52 Excel File Instead">Select Workbook File</button>
+            <button class="btn btn-encode" style="background-color: var(--accent-green); margin: 0;" onclick="document.getElementById('sysDataUpload').click()" title="Load ZSTK_IT or MB52 Excel File">Select Workbook File</button>
             
             <button class="btn-secondary" id="btnToggleLenses" onclick="toggleLenses()" title="Click to put back the Contact Lenses, Ophthalmic Lenses, and Spare Parts that were removed by the auto-filter" style="margin-left: auto;">Unhide CL & OL</button>
         </div>
@@ -2138,7 +2138,7 @@
     }
 
     async function resetSession() {
-        const requestActionConfirmation = await customConfirm("Clear the active session completely? All counts, history, and uploaded buffers will be erased.", "Flush Workspace");
+        const requestActionConfirmation = await customConfirm("Clear the active session completely? All scans, history, and loaded data will be erased.", "Erase Everything?");
         if (!requestActionConfirmation) return;
         
         inventory = {};
