@@ -1279,6 +1279,7 @@
 
 <script>
     let inventory = {};
+    let backgroundMasterSkuMap = {}; // NEW: Holds the company master dictionary
     let pendingRawData = []; 
     let uploadedRawData = []; 
     let currentFileType = null;
@@ -1304,8 +1305,47 @@
     let redoStack = [];
     const MAX_HISTORY = 15;
 
+    async function initializeBackgroundSkuDictionary() {
+        try {
+            // Attempt to pull the file silently from the server environment
+            const serverResponseNode = await fetch('./Combined%20SKU.csv');
+            
+            if (!serverResponseNode.ok) {
+                console.warn("Background Master SKU file not found on server. Proceeding in standalone mode.");
+                return;
+            }
+            
+            const rawCsvTextBuffer = await serverResponseNode.text();
+            const systematicFileLines = rawCsvTextBuffer.split(/\r?\n/);
+            let structuralLoadedCount = 0;
+
+            // Start at index 1 to skip the header
+            for (let idx = 1; idx < systematicFileLines.length; idx++) {
+                if (!systematicFileLines[idx].trim()) continue;
+                
+                // Reuse your robust parseCSVLine function
+                let organizedCSVCellsList = parseCSVLine(systematicFileLines[idx], ',');
+                
+                if (organizedCSVCellsList.length >= 2) {
+                    let backgroundSkuNode = organizedCSVCellsList[0].trim().replace(/^0+/, '') || '0';
+                    let backgroundDescNode = organizedCSVCellsList[1].trim().replace(/^"|"$/g, '');
+                    
+                    if (backgroundSkuNode !== '0' && backgroundSkuNode !== '') {
+                        backgroundMasterSkuMap[backgroundSkuNode] = backgroundDescNode;
+                        structuralLoadedCount++;
+                    }
+                }
+            }
+            console.log(`Successfully mapped ${structuralLoadedCount} master SKUs into background memory.`);
+            
+        } catch (networkFetchError) {
+            console.warn("Fetch failed: You might be running this locally via file:// instead of a server.", networkFetchError);
+        }
+    }
+
     window.onload = async function() { 
         await loadData(); 
+        await initializeBackgroundSkuDictionary();
         
         const pasteArea = document.getElementById('pasteArea');
         const scanInput = document.getElementById('scanInput');
@@ -1714,13 +1754,14 @@
         let isSystemDiscrepancy = false;
         
         if (!inventory[skuString]) {
+            let resolvedBackgroundDescription = backgroundMasterSkuMap[skuString] ? backgroundMasterSkuMap[skuString] : "Manually Scanned (Unknown Item)";
             inventory[skuString] = {
-                description: "Manually Scanned", systemQty: 0, sysQty1000: 0, sysQty4000: 0,
+                description: resolvedBackgroundDescription, systemQty: 0, sysQty1000: 0, sysQty4000: 0,
                 sysQtyOther: 0, scannedQty: 0, pendingQty: 0, sloc: 'Scanned', isLens: false, bins: []
             };
             isSystemDiscrepancy = true;
             if (!isFastScanMode) {
-                showErrorToast(`⚠️ SKU ${skuString} is NOT in the encoded list!`);
+                showErrorToast(`⚠️ SKU ${skuString} is NOT in the active system list!`);
                 playSound('error');
             }
         } else {
@@ -1807,8 +1848,9 @@
             }
 
             if (!inventory[targetSkuNode]) {
+                let resolvedBackgroundDescription = backgroundMasterSkuMap[targetSkuNode] ? backgroundMasterSkuMap[targetSkuNode] : "Manually Encoded (Unknown Item)";
                 inventory[targetSkuNode] = { 
-                    description: "Manually Encoded", systemQty: 0, sysQty1000: 0, sysQty4000: 0, 
+                    description: resolvedBackgroundDescription, systemQty: 0, sysQty1000: 0, sysQty4000: 0, 
                     sysQtyOther: 0, scannedQty: 0, pendingQty: 0, sloc: 'Scanned', isLens: false, bins: []
                 };
                 baselineErrorCount++;
@@ -2033,7 +2075,7 @@
             try {
                 localStorage.setItem('posInventoryState', JSON.stringify(coreStructuralMap));
             } catch (quotaError) {
-                console.warn("Local cache storage limits hit. Session memory volatile.");
+                console.warn("Local cache storage limits hit. Session memory volatile.", quotaError);
             }
         }
     }
@@ -2067,23 +2109,36 @@
         } else {
             const rawSerializedStateString = localStorage.getItem('posInventoryState') || localStorage.getItem('legacyInventoryState');
             if (rawSerializedStateString) {
-                masterBackupStateNode = JSON.parse(rawSerializedStateString);
+                try {
+                    masterBackupStateNode = JSON.parse(rawSerializedStateString);
+                } catch(e) {
+                    console.error("Failed to parse saved state", e);
+                }
             } else {
                 const legacyDumpString = localStorage.getItem('legacyInventoryData');
                 if (legacyDumpString) {
-                    masterBackupStateNode = { inventory: JSON.parse(legacyDumpString), systemDataEncoded: true, hasWarnedNoSystemData: true, auditLog: [] };
+                    try {
+                        masterBackupStateNode = { inventory: JSON.parse(legacyDumpString), systemDataEncoded: true, hasWarnedNoSystemData: true, auditLog: [] };
+                    } catch(e) {
+                        console.error("Failed to parse legacy state", e);
+                    }
                 }
             }
         }
         
         if (masterBackupStateNode) {
-            applyState(masterBackupStateNode, true); 
+            try {
+                applyState(masterBackupStateNode, true); 
+            } catch (stateRestoreError) {
+                console.warn("Corrupted session map detected. Safe reset applied.", stateRestoreError);
+                localStorage.removeItem('posInventoryState');
+            }
         }
         updateUndoRedoButtons();
     }
 
     async function resetSession() {
-        const requestActionConfirmation = await customConfirm("Remove current works? Scanned counts and active filters will be cleared completely.", "Clear Everything");
+        const requestActionConfirmation = await customConfirm("Clear the active session completely? All counts, history, and uploaded buffers will be erased.", "Flush Workspace");
         if (!requestActionConfirmation) return;
         
         inventory = {};
@@ -2109,7 +2164,9 @@
                 localStorage.removeItem('legacyInventoryState');
                 localStorage.removeItem('legacyInventoryData');
             }
-        } catch(storageClearError) {}
+        } catch(storageClearError) {
+            console.warn(storageClearError);
+        }
 
         document.getElementById('dynamicFilters').style.display = 'none';
         resetFilterUI();
@@ -2120,12 +2177,17 @@
     }
 
     function saveState() {
-        undoStack.push(JSON.stringify(getCurrentState()));
-        if (undoStack.length > MAX_HISTORY) { 
-            undoStack.shift(); 
+        try {
+            undoStack.push(JSON.stringify(getCurrentState()));
+            if (undoStack.length > MAX_HISTORY) { 
+                undoStack.shift(); 
+            }
+            redoStack = []; 
+            updateUndoRedoButtons();
+        } catch (memError) {
+            console.warn("Save state stack limited due to size.", memError);
+            undoStack = [];
         }
-        redoStack = []; 
-        updateUndoRedoButtons();
     }
 
     function applyState(targetStateMap, isInitialSystemLoadCall = false) {
@@ -2237,15 +2299,23 @@
 
     function undoAction() {
         if (undoStack.length > 0) {
-            redoStack.push(JSON.stringify(getCurrentState()));
-            applyState(JSON.parse(undoStack.pop()));
+            try {
+                redoStack.push(JSON.stringify(getCurrentState()));
+                applyState(JSON.parse(undoStack.pop()));
+            } catch(e) {
+                console.warn(e);
+            }
         }
     }
 
     function redoAction() {
         if (redoStack.length > 0) {
-            undoStack.push(JSON.stringify(getCurrentState()));
-            applyState(JSON.parse(redoStack.pop()));
+            try {
+                undoStack.push(JSON.stringify(getCurrentState()));
+                applyState(JSON.parse(redoStack.pop()));
+            } catch(e) {
+                console.warn(e);
+            }
         }
     }
 
@@ -2366,8 +2436,10 @@
         
         let needsSystemWarningFlag = false;
         if (!inventory[structuralInputSku]) {
+            let resolvedBackgroundDescription = backgroundMasterSkuMap[structuralInputSku] ? backgroundMasterSkuMap[structuralInputSku] : "Manually Edited (Unknown Item)";
+
             inventory[structuralInputSku] = { 
-                description: "Manually Edited", systemQty: 0, sysQty1000: 0, sysQty4000: 0, 
+                description: resolvedBackgroundDescription, systemQty: 0, sysQty1000: 0, sysQty4000: 0, 
                 sysQtyOther: 0, scannedQty: 0, pendingQty: 0, sloc: 'Scanned', isLens: false, bins: [] 
             };
             needsSystemWarningFlag = true; 
@@ -2407,8 +2479,9 @@
         let operationalDelta = verifiedQuantityInt - matchingLogReference.qty;
         
         if (!inventory[matchingLogReference.sku]) {
+            let resolvedBackgroundDescription = backgroundMasterSkuMap[matchingLogReference.sku] ? backgroundMasterSkuMap[matchingLogReference.sku] : matchingLogReference.desc;
             inventory[matchingLogReference.sku] = { 
-                description: matchingLogReference.desc, systemQty: 0, sysQty1000: 0, sysQty4000: 0, 
+                description: resolvedBackgroundDescription, systemQty: 0, sysQty1000: 0, sysQty4000: 0, 
                 sysQtyOther: 0, scannedQty: 0, pendingQty: 0, sloc: 'Scanned', isLens: false, bins: [] 
             };
         }
@@ -2811,7 +2884,6 @@
                     
                     internalPotentialSkusList = internalPotentialSkusList.filter(item => item.val.length !== 4 && item.val !== SLOC_FieldRaw); 
                     internalPotentialSkusList.sort((lower, higher) => higher.val.length - lower.val.length);
-                    
                     if (internalPotentialSkusList.length > 0) {
                         SKU_FieldRaw = internalPotentialSkusList[0].val;
                     }
