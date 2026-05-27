@@ -2,14 +2,13 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Barcode Scanner & Inventory Reconciliation</title>
+    <title>Stock Count & Discrepancy Finder</title>
     
     <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     
     <style>
-        /* Shared Style Variables */
         :root {
             --bg-color: #f9fafb; 
             --surface-color: #ffffff; 
@@ -31,7 +30,6 @@
             --radius-lg: 6px;
         }
 
-        /* Layout Rules */
         body { 
             font-size: 11px; 
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; 
@@ -307,7 +305,6 @@
             font-weight: 500;
         }
         
-        /* Interactive Buttons styling paths */
         .btn, .btn-secondary, .custom-modal-btn { 
             padding: 4px 10px; 
             height: 26px; 
@@ -465,7 +462,6 @@
         
         .action-group { display: flex; gap: 6px; }
 
-        /* Dialog Modals Overlay Mapping */
         .modal-overlay { 
             position: fixed; 
             top: 0; 
@@ -572,7 +568,6 @@
             overflow: hidden; 
         }
 
-        /* Analytics Dashboard Grid & Structural Layout Tables */
         .minimalist-dashboard { 
             display: flex; 
             flex-direction: row; 
@@ -895,7 +890,6 @@
             display: none; 
         }
         
-        /* Media Processing Media Printing Styles */
         @media print {
             body { background-color: #fff; padding: 0; margin: 0; color: #000; font-family: sans-serif; font-size: 10px; }
             .navbar, .content-panel:first-child, .filter-bar, .action-buttons-wrapper, .pagination-nav, .footer, .btn-edit, .btn-delete, .audit-trail-wrapper, #dynamicFilters { display: none !important; }
@@ -918,13 +912,13 @@
 </head>
 <body>
 
-<div id="error-toast">Item not in system!</div>
+<div id="error-toast">SKU not found in file!</div>
 
 <div id="customModalOverlay" class="modal-overlay" style="display: none;">
     <div class="custom-modal-box">
         <div class="custom-modal-header">
-            <h3 id="customModalTitle">Confirmation message</h3>
-            <button class="custom-modal-close" id="customModalClose" title="Close this window">
+            <h3 id="customModalTitle">Confirm Action</h3>
+            <button class="custom-modal-close" id="customModalClose" title="Close window">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
             </button>
         </div>
@@ -933,8 +927,8 @@
             <input type="text" id="customModalInput" class="custom-modal-input" style="display:none;" />
         </div>
         <div class="custom-modal-footer">
-            <button class="custom-modal-btn" id="customModalBtnYes" style="background-color: var(--accent-blue); color: #fff;">Yes</button>
-            <button class="custom-modal-btn" id="customModalBtnNo" style="background-color: var(--surface-color); color: var(--text-primary); border: 1px solid var(--border-color);">No</button>
+            <button class="custom-modal-btn" id="customModalBtnYes" style="background-color: var(--accent-blue); color: #fff;">Confirm</button>
+            <button class="custom-modal-btn" id="customModalBtnNo" style="background-color: var(--surface-color); color: var(--text-primary); border: 1px solid var(--border-color);">Cancel</button>
         </div>
     </div>
 </div>
@@ -948,13 +942,13 @@
             </button>
         </div>
         <div class="custom-modal-body">
-            We detected items from Storage Locations <strong>1000</strong> and/or <strong>4000</strong> in your data. How would you like to load them?
+            We found items mapped to Storage Locations <strong>1000</strong> and <strong>4000</strong>. Choose how you want to handle them:
         </div>
         <div class="custom-modal-footer">
-            <button class="custom-modal-btn" style="background-color: var(--accent-blue); color: #fff;" onclick="finalizeEncoding('ALL')" title="Keep all items">Proceed with ALL (1000 & 4000)</button>
-            <button class="custom-modal-btn sloc-btn-filter" onclick="finalizeEncoding('REMOVE_4000')" title="Delete 4000 items from list">Remove 4000 items (Keep 1000)</button>
-            <button class="custom-modal-btn sloc-btn-filter" onclick="finalizeEncoding('REMOVE_1000')" title="Delete 1000 items from list">Remove 1000 items (Keep 4000)</button>
-            <button class="sloc-btn-cancel" onclick="closeSlocModal()" title="Cancel and go back">Cancel Load</button>
+            <button class="custom-modal-btn" style="background-color: var(--accent-blue); color: #fff;" onclick="finalizeEncoding('ALL')" title="Keep all items">Load Both Locations (1000 & 4000)</button>
+            <button class="custom-modal-btn sloc-btn-filter" onclick="finalizeEncoding('REMOVE_4000')" title="Filter out 4000">Filter Out Location 4000</button>
+            <button class="custom-modal-btn sloc-btn-filter" onclick="finalizeEncoding('REMOVE_1000')" title="Filter out 1000">Filter Out Location 1000</button>
+            <button class="sloc-btn-cancel" onclick="closeSlocModal()" title="Cancel">Cancel Load</button>
         </div>
     </div>
 </div>
@@ -962,7 +956,7 @@
 <div id="cameraModal" class="modal-overlay" style="display: none;">
     <div class="custom-modal-box" id="cameraModalBox">
         <div class="custom-modal-header">
-            <h3>Device Camera Scanner</h3>
+            <h3>Camera Scanner</h3>
             <button class="custom-modal-close" onclick="closeCamera()" title="Close Camera">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
             </button>
@@ -971,7 +965,7 @@
             <div id="reader"></div>
         </div>
         <div class="custom-modal-footer">
-            <button class="custom-modal-btn" style="background-color: var(--accent-red); color: #fff;" onclick="closeCamera()" title="Stop the camera feed">Stop Camera</button>
+            <button class="custom-modal-btn" style="background-color: var(--accent-red); color: #fff;" onclick="closeCamera()" title="Stop camera feed">Turn Off Camera</button>
         </div>
     </div>
 </div>
@@ -979,17 +973,17 @@
 <div id="manualEncodeModal" class="modal-overlay" style="display: none;">
     <div class="custom-modal-box" id="manualEncodeBox" style="width: 450px;">
         <div class="custom-modal-header">
-            <h3>Manual Encode Barcodes</h3>
-            <button class="custom-modal-close" onclick="closeManualEncode()" title="Close without saving">
+            <h3>Bulk Copy-Paste Input</h3>
+            <button class="custom-modal-close" onclick="closeManualEncode()" title="Close window">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
             </button>
         </div>
         <div class="custom-modal-body">
-            <p style="margin-top: 0; color: var(--text-secondary);">Paste barcodes here, one per line. You can optionally add a space or tab and a quantity (e.g. "982132222 4"). They will be immediately added to your <strong>Scanned QTY</strong>.</p>
-            <textarea id="manualEncodeInput" style="height: 180px;" placeholder="Example:&#10;982132222&#10;982132222  98&#10;938382122  3&#10;938382121      921"></textarea>
+            <p style="margin-top: 0; color: var(--text-secondary);">Paste list below (one item per line). Add space or tab before quantity to adjust batch sizes (e.g. "982132222 4"). Entries directly modify <strong>Scanned Count</strong>.</p>
+            <textarea id="manualEncodeInput" style="height: 180px;" placeholder="Example:&#10;982132222&#10;982132222 12&#10;938382122 3"></textarea>
         </div>
         <div class="custom-modal-footer">
-            <button class="custom-modal-btn" style="background-color: var(--accent-blue); color: #fff;" onclick="submitManualEncode()">Encode into Scanned QTY</button>
+            <button class="custom-modal-btn" style="background-color: var(--accent-blue); color: #fff;" onclick="submitManualEncode()">Add to Scanned List</button>
             <button class="sloc-btn-cancel" onclick="closeManualEncode()">Cancel</button>
         </div>
     </div>
@@ -1004,15 +998,15 @@
             <svg viewBox="0 0 24 24" width="16" height="16" stroke="var(--accent-blue)" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M4 7V4h3"></path><path d="M20 7V4h-3"></path><path d="M4 17v3h3"></path><path d="M20 17v3h-3"></path><line x1="7" y1="12" x2="17" y2="12"></line>
             </svg>
-            <span class="branding-title">Barcode Scanner</span>
-            <span class="branding-badge">Tool</span>
+            <span class="branding-title">Stock Audit Desk</span>
+            <span class="branding-badge">v2.1</span>
         </div>
     </div>
     
     <div class="user-info">
         <div class="theme-switch-wrapper">
-            <span style="font-weight: 600; color: var(--text-primary);">Tutorial Mode</span>
-            <label class="theme-switch" for="tutorialToggle" title="Enable to see helpful guides">
+            <span style="font-weight: 600; color: var(--text-primary);">Inline Help Prompts</span>
+            <label class="theme-switch" for="tutorialToggle" title="Toggle help tips visibility">
                 <input type="checkbox" id="tutorialToggle" onchange="toggleTutorial()">
                 <div class="slider"></div>
             </label>
@@ -1023,8 +1017,8 @@
 <div class="container clearfix">
     
     <div id="printHeader">
-        <h1>INVENTORY REPORT</h1>
-        <h2>System Reconciliation Output</h2>
+        <h1>STOCK VARIANCE REPORT</h1>
+        <h2>In-Transit STO / System Count Sheet</h2>
         <div class="print-meta">
             <div style="text-align: right;">
                 <strong>Date:</strong> <span id="printDate"></span><br>
@@ -1034,111 +1028,109 @@
     </div>
 
     <div class="content-panel">
-        <div class="step-title">1. Load System Data</div>
+        <div class="step-title">1. Import Ledger / Master Data</div>
         
         <div class="tutorial-tip">
             <svg class="tutorial-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
             <div>
-                <strong>How to start:</strong> Paste data directly from your MB52 / ZSTK_IT Excel spreadsheet into the text box below and click <strong>Load Data</strong>. Alternatively, you can click <strong>Load File</strong> to load the saved CSV, XLS, XLSX, or XML file directly. <em>Note: Contact Lenses and Spare Parts are automatically hidden for cleaner auditing.</em>
+                <strong>Getting Started:</strong> Paste your system columns directly into the data window or drop a system file (.xlsx / .csv) using the button below. Contact Lenses and auxiliary product codes are filtered automatically to isolate frame stock profiles.
             </div>
         </div>
 
-        <label style="font-size: 11px; color: var(--text-secondary); display: block; margin-bottom: 4px;">Copy your columns directly from your MB52 or ZSTK_IT spreadsheet and <b><u>paste them below</u></b>, OR <b><u>you can drag and drop or load</u></b> the unedited MB52 or ZSTK_IT exported spreadsheet file here:</label>
-        <textarea id="pasteArea" title="Paste your raw Excel data here or drag and drop your file" placeholder="Example format:&#10;&#10;000000000052787002	O;LINDBERG;BASIC145, 53, P10/ P10	EA	1.000&#10;000000000198657001	O;MONOSTROM;MONO206, 53, DBLUE	         EA	1.000&#10;&#10;OR&#10;&#10;94760001	O;RAY BAN;8724, 54, 1000	    1000	1&#10;97697006	O;RAY BAN JUNIOR;1536, 48, 3600	    1000	2"></textarea>
+        <label style="font-size: 11px; color: var(--text-secondary); display: block; margin-bottom: 4px;">Paste raw tab-separated system logs here or drop your master stock export file directly:</label>
+        <textarea id="pasteArea" title="Drop stock logs here" placeholder="Drop or paste file row lines here...&#10;Example:&#10;94760001   O;RAY BAN;8724   1000   1"></textarea>
         
         <div style="display: flex; align-items: center; margin-top: 8px; margin-bottom: 0; flex-wrap: wrap; gap: 6px;">
-            <button class="btn btn-encode" onclick="loadPastedData()" title="Load COPY / PASTED Data" style="margin: 0;">Load Data</button>
+            <button class="btn btn-encode" onclick="loadPastedData()" title="Process raw clipboard text">Process Text Block</button>
             <span style="font-weight: 600; color: var(--text-secondary); font-size: 11px; margin: 0 12px;">OR</span>
             <input type="file" id="sysDataUpload" accept=".csv, .xls, .xlsx, .xlsm, .xlsb, .txt, .tsv, .xml, .mhtml, .mht" style="display: none;" onchange="handleFileUpload(event)">
-            <button class="btn btn-encode" style="background-color: var(--accent-green); margin: 0;" onclick="document.getElementById('sysDataUpload').click()" title="Load ZSTK_IT or MB52 Excel File Instead">Load File</button>
+            <button class="btn btn-encode" style="background-color: var(--accent-green); margin: 0;" onclick="document.getElementById('sysDataUpload').click()" title="Upload spreadsheet document">Select Workbook File</button>
             
-            <button class="btn-secondary" id="btnToggleLenses" onclick="toggleLenses()" title="Click to put back the Contact Lenses, Ophthalmic Lenses, and Spare Parts that were removed by the auto-filter" style="margin-left: auto;">Unhide CL & OL</button>
+            <button class="btn-secondary" id="btnToggleLenses" onclick="toggleLenses()" title="Include or exclude specialty item rows" style="margin-left: auto;">Unhide CL & Parts</button>
         </div>
     </div>
 
     <div id="stickyGroup" class="sticky-group">
         <div class="sticky-padding">
-            <div class="step-title" style="margin-top: 0;">2. Physical Items Scanned</div>
+            <div class="step-title" style="margin-top: 0;">2. Scanning & Core Operations</div>
             
             <div class="tutorial-tip">
                 <svg class="tutorial-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
                 <div>
-                    <strong>Scanning time:</strong> Use your barcode scanner while clicked inside the text box below. Want to save time? Enable <strong>Fast Scan</strong> to queue up items rapidly without waiting for the table to reload after every beep, then click <strong>Compare</strong> when done.
+                    <strong>Audit Mode Tip:</strong> Set focus inside the search field to start scanning. Toggle <strong>Fast Scan</strong> if you need to run high-speed shelf counts without wait states between scanner input loops.
                 </div>
             </div>
 
             <div class="scan-input-wrapper">
-                <input type="text" id="scanInput" class="main-scan" placeholder="Click here to start scanning" autofocus title="Click here and use your scanner, or manually type a SKU and hit Enter">
+                <input type="text" id="scanInput" class="main-scan" placeholder="Scan input focus target..." autofocus title="Target field for active scanner scans">
                 
-                <button class="btn-secondary" onclick="openCamera()" title="Use your device's camera to scan barcodes">
+                <button class="btn-secondary" onclick="openCamera()" title="Open camera pipeline">
                     <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
                         <circle cx="12" cy="13" r="4"></circle>
                     </svg>
                 </button>
 
-                <button class="btn-secondary" id="btnToggleHistory" onclick="toggleAuditTrail()" title="Show or hide the list of recently scanned items">
+                <button class="btn-secondary" id="btnToggleHistory" onclick="toggleAuditTrail()" title="Toggle running logs panel">
                     <svg viewBox="0 0 24 24" width="12" height="12" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: text-bottom; margin-right: 4px;">
                         <line x1="8" y1="6" x2="21" y2="6"></line>
                         <line x1="8" y1="12" x2="21" y2="12"></line>
                         <line x1="8" y1="18" x2="21" y2="18"></line>
-                        <line x1="3" y1="6" x2="3.01" y2="6"></line>
-                        <line x1="3" y1="12" x2="3.01" y2="12"></line>
-                        <line x1="3" y1="18" x2="3.01" y2="18"></line>
+                        <path d="M3 6h.01M3 12h.01M3 18h.01"></path>
                     </svg>
-                    Show History
+                    Audit Stream
                 </button>
 
-                <button class="btn-secondary btn-fast-scan" id="btnFastScanToggle" onclick="toggleFastScan()" title="Toggle Fast Scan Mode: Queue multiple scans quickly without reloading the table instantly">
+                <button class="btn-secondary btn-fast-scan" id="btnFastScanToggle" onclick="toggleFastScan()" title="Toggle non-blocking buffer scanning mode">
                     <svg viewBox="0 0 24 24" width="12" height="12" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: text-bottom; margin-right: 4px;">
                         <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
                     </svg>
-                    Fast Scan: OFF
+                    Buffered Scan: OFF
                 </button>
 
-                <button class="btn-compare" id="btnCompare" onclick="processFastScanQueue()" title="Process all the queued items you just scanned">
-                    <span id="compareBtnLabel">Compare</span> (<span id="queueCount">0</span>)
+                <button class="btn-compare" id="btnCompare" onclick="processFastScanQueue()" title="Commit items matching running stream logs">
+                    <span id="compareBtnLabel">Match Buffer</span> (<span id="queueCount">0</span>)
                 </button>
 
                 <input type="file" id="pendingDataUpload" accept=".csv, .xls, .xlsx, .xlsm, .xlsb, .txt, .tsv, .xml, .mhtml, .mht" style="display: none;" onchange="handlePendingUpload(event)">
-                <button class="btn-secondary" onclick="promptPendingUpload()" title="Load a spreadsheet of items yet to be delivered. The quantities will be added to the Scanned calculation dynamically.">
+                <button class="btn-secondary" onclick="promptPendingUpload()" title="Load pending delivery advice documents">
                     <svg viewBox="0 0 24 24" width="12" height="12" stroke="var(--accent-orange)" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: text-bottom; margin-right: 4px;">
                         <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
                         <polyline points="17 8 12 3 7 8"></polyline>
                         <line x1="12" y1="3" x2="12" y2="15"></line>
-                    </svg> Pending Items
+                    </svg> Inbound STO
                 </button>
 
-                <button class="btn-secondary" onclick="openManualEncode()" title="Paste a raw list of barcodes to add them automatically to your Scanned items">
+                <button class="btn-secondary" onclick="openManualEncode()" title="Open manual input modal">
                     <svg viewBox="0 0 24 24" width="12" height="12" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: text-bottom; margin-right: 4px;">
                         <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
                         <polyline points="14 2 14 8 20 8"></polyline>
                         <line x1="16" y1="13" x2="8" y2="13"></line>
                         <line x1="16" y1="17" x2="8" y2="17"></line>
-                        <line x1="10" y1="9" x2="9" y2="9"></line>
-                    </svg> Manual Encode
+                        <path d="M10 9h.01"></path>
+                    </svg> Bulk Entry
                 </button>
             </div>
 
             <div class="audit-trail-wrapper fast-scan-trail" id="fastScanTrailBox" style="display: none;">
-                <div class="fast-scan-header">⚡ Fast Scan Queue</div>
+                <div class="fast-scan-header">⚡ Scan Buffer Queue</div>
                 <ul id="fastScanList">
-                    <li style="color:var(--text-secondary); font-style:italic;">Fast scan items will appear here... Click Compare after scanning</li>
+                    <li style="color:var(--text-secondary); font-style:italic;">Buffered entries display here. Trigger Match Buffer to reconcile.</li>
                 </ul>
             </div>
 
             <div class="audit-trail-wrapper" id="auditTrailBox" style="display: none; height: 130px; padding-bottom: 4px;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; padding-bottom: 4px; border-bottom: 1px solid var(--border-color);">
-                    <strong style="color: var(--text-primary); font-size: 11px;">Scan History <span style="color:var(--accent-blue); font-weight:600;">(Current: Bin <span id="currentBinLabel">A1</span>)</span></strong>
+                    <strong style="color: var(--text-primary); font-size: 11px;">Audit Log Track <span style="color:var(--accent-blue); font-weight:600;">(Current Location Segment: <span id="currentBinLabel">A1</span>)</span></strong>
                     <div style="display: flex; align-items: center; gap: 6px;">
-                        <input type="text" id="historySearchInput" placeholder="Search Scan History..." oninput="renderAuditTrail()" style="height: 22px; font-size: 10px; padding: 2px 6px; width: 130px; border-radius: 4px; border: 1px solid var(--border-color);">
-                        <button class="btn-secondary" onclick="endCurrentBin()" style="height: 22px; font-size: 10px; padding: 0 8px; color: var(--accent-red); border-color: #fecaca; background-color: #fef2f2;">End Scan (Next Bin)</button>
+                        <input type="text" id="historySearchInput" placeholder="Filter audit stream..." oninput="renderAuditTrail()" style="height: 22px; font-size: 10px; padding: 2px 6px; width: 130px; border-radius: 4px; border: 1px solid var(--border-color);">
+                        <button class="btn-secondary" onclick="endCurrentBin()" style="height: 22px; font-size: 10px; padding: 0 8px; color: var(--accent-red); border-color: #fecaca; background-color: #fef2f2;">Close Segment (Next Box)</button>
                     </div>
                 </div>
                 <div style="display: flex; gap: 10px; height: calc(100% - 28px);">
                     <div style="flex: 3; overflow-y: auto; padding-right: 6px; border-right: 1px solid var(--border-color);">
                         <ul id="auditList">
-                            <li style="color:var(--text-secondary); font-style:italic;">Scan history will appear here...</li>
+                            <li style="color:var(--text-secondary); font-style:italic;">Running transactions print here...</li>
                         </ul>
                     </div>
                     <div style="flex: 1; overflow-y: auto; padding-right: 4px;">
@@ -1147,42 +1139,37 @@
                 </div>
             </div>
 
-            <div class="tutorial-tip" style="margin-top: 8px; margin-bottom: 0;">
-                <svg class="tutorial-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
-                <div><strong>Dashboard:</strong> Keep an eye on these numbers. Your goal is to get "Missing" and "Extra" down to zero.</div>
-            </div>
-
             <div class="minimalist-dashboard">
                 <div class="dash-card">
-                    <h3>System Qty</h3>
-                    <p id="dashSystem" title="Total system quantity encoded">0</p>
+                    <h3>Ledger Balance</h3>
+                    <p id="dashSystem" title="Total book value">0</p>
                 </div>
                 <div class="dash-card">
-                    <h3>Scanned</h3>
-                    <p id="dashScanned" title="Total physical items scanned">0</p>
+                    <h3>Scanned Count</h3>
+                    <p id="dashScanned" title="Total physically registered items">0</p>
                 </div>
                 <div class="dash-card dash-pending-card" id="dashCardPending" style="display: none;">
-                    <h3>Pending</h3>
-                    <p id="dashPending" title="Items pending delivery loaded via file">0</p>
+                    <h3>Inbound Advice</h3>
+                    <p id="dashPending" title="Expected stock adjustments value">0</p>
                 </div>
                 <div class="dash-card dash-missing">
-                    <h3>Missing</h3>
-                    <p id="dashMissing" title="Items in the system but not physically found">0</p>
+                    <h3>Shortage</h3>
+                    <p id="dashMissing" title="Negative balance profile count">0</p>
                 </div>
                 <div class="dash-card dash-extra">
-                    <h3>Extra</h3>
-                    <p id="dashExtra" title="Items scanned that are not in the system">0</p>
+                    <h3>Overage</h3>
+                    <p id="dashExtra" title="Positive balance variance profile count">0</p>
                 </div>
             </div>
         </div>
 
         <div class="table-header-controls">
-            <div class="table-title">Inventory List</div>
+            <div class="table-title">Inventory Control Metrics</div>
             
             <div id="dynamicFilters" style="display: none;">
                 <div class="compact-icon">
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg>
-                    Smart Filter
+                    Scope
                 </div>
                 
                 <div class="df-layout" id="intransitFilters" style="display: none;">
@@ -1194,45 +1181,45 @@
                 <div class="df-layout" id="mb52Filters" style="display: none;">
                     <div class="df-group">
                         <select id="categoryDropdown" onchange="updateBrandDropdown(); applyDynamicFilters();">
-                            <option value="ALL">All</option>
-                            <option value="SUN">Sunglasses (S;)</option>
-                            <option value="SPX">Frames (O;)</option>
-                            <option value="OTHERS">Others (OA; etc.)</option>
+                            <option value="ALL">All Categories</option>
+                            <option value="SUN">Sunglasses Only (S;)</option>
+                            <option value="SPX">Frames Only (O;)</option>
+                            <option value="OTHERS">Sundries/Accessories</option>
                         </select>
                     </div>
                     <div class="df-group">
                         <select id="brandDropdown" onchange="applyDynamicFilters()" style="min-width: 120px;">
-                            <option value="ALL">ALL BRANDS</option>
+                            <option value="ALL">All Brands Listed</option>
                         </select>
                     </div>
                 </div>
             </div>
 
             <div class="pagination-select">
-                <label for="pageSize">Rows per page:</label>
-                <select id="pageSize" onchange="changePageSize()" title="Change how many items are shown on the screen">
-                    <option value="100" selected>100</option>
-                    <option value="50">50</option>
-                    <option value="10">10</option>
-                    <option value="All">All</option>
+                <label for="pageSize">Display Density:</label>
+                <select id="pageSize" onchange="changePageSize()" title="Adjust pagination step values">
+                    <option value="100" selected>100 records</option>
+                    <option value="50">50 records</option>
+                    <option value="10">10 records</option>
+                    <option value="All">Unrestricted</option>
                 </select>
             </div>
         </div>
         
         <div class="filter-bar">
-            <button class="filter-btn active" onclick="setFilter('ALL', this)" title="Show all items">All Items</button>
-            <button class="filter-btn" onclick="setFilter('DISCREPANCIES', this)" title="Show only items with Missing or Extra stock">Discrepancies</button>
-            <button class="filter-btn" onclick="setFilter('MISSING', this)" title="Show only missing items">Missing</button>
-            <button class="filter-btn" onclick="setFilter('EXTRA', this)" title="Show only extra items">Extra</button>
-            <button class="filter-btn" onclick="setFilter('NOT_IN_SYSTEM', this)" title="Show only items manually scanned that have no system data">Not in System</button>
+            <button class="filter-btn active" onclick="setFilter('ALL', this)">View Full Ledger</button>
+            <button class="filter-btn" onclick="setFilter('DISCREPANCIES', this)">Isolate Discrepancies</button>
+            <button class="filter-btn" onclick="setFilter('MISSING', this)">Shortage List</button>
+            <button class="filter-btn" onclick="setFilter('EXTRA', this)">Overage List</button>
+            <button class="filter-btn" onclick="setFilter('NOT_IN_SYSTEM', this)">Unlisted Skus Only</button>
             
             <div class="search-container">
-                <select id="slocFilterUI" class="sloc-dropdown" onchange="applySearch()" title="Filter the table by Storage Location">
-                    <option value="ALL">All SLOCs</option>
-                    <option value="1000" selected>SLOC 1000</option>
-                    <option value="4000">SLOC 4000</option>
+                <select id="slocFilterUI" class="sloc-dropdown" onchange="applySearch()" title="Filter view scope dynamically by location context">
+                    <option value="ALL">All Sub-locations</option>
+                    <option value="1000" selected>Sub-Location 1000</option>
+                    <option value="4000">Sub-Location 4000</option>
                 </select>
-                <input type="text" id="tableSearchInput" class="search-box" placeholder="Search..." oninput="applySearch()" title="Type a SKU or Description to filter the table">
+                <input type="text" id="tableSearchInput" class="search-box" placeholder="Quick find entry..." oninput="applySearch()" title="Live sheet row matching interface">
             </div>
         </div>
     </div>
@@ -1244,66 +1231,61 @@
         </table>
 
         <div class="pagination-nav" id="paginationNav">
-            <button class="btn" id="btnPrevPage" onclick="prevPage()" title="Go to previous page">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: text-bottom; margin-right: 4px;"><polyline points="15 18 9 12 15 6"></polyline></svg>Prev
+            <button class="btn" id="btnPrevPage" onclick="prevPage()">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: text-bottom; margin-right: 4px;"><polyline points="15 18 9 12 15 6"></polyline></svg>Back
             </button>
-            <span id="pageInfoText">Page 1 of 1 (0 items)</span>
-            <button class="btn" id="btnNextPage" onclick="nextPage()" title="Go to next page">
+            <span id="pageInfoText">Loading pagination context...</span>
+            <button class="btn" id="btnNextPage" onclick="nextPage()">
                 Next<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: text-bottom; margin-left: 4px;"><polyline points="9 18 15 12 9 6"></polyline></svg>
             </button>
         </div>
     </div>
 
-    <div class="tutorial-tip" style="margin-top:-6px; margin-bottom: 16px;">
-        <svg class="tutorial-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
-        <div><strong>Wrapping up:</strong> Use the action bar at the very bottom of the screen to safely save your progress as a CSV file so you can resume later, or export a formatted PDF report for management. Made a mistake? Use Undo/Redo!</div>
-    </div>
-
     <div id="signatureBlock">
-        <div class="sig-line">Audited By (Sign)</div>
-        <div class="sig-line">Manager Approval (Sign)</div>
+        <div class="sig-line">Auditor Signature</div>
+        <div class="sig-line">Counter-Sign Verification</div>
     </div>
 
 </div>
 
 <div class="footer">
-    <p style="margin: 2px 0;">For any comments and suggestions <a href="mailto:gelotools@gmail.com" target="_blank">contact me</a>.</p>
+    <p style="margin: 2px 0;">For tool adjustment notes or bugs, reach out via the developer path hyperlink node.</p>
 </div>
 
 <div class="action-buttons-wrapper">
     <div class="action-group">
-        <button class="btn btn-reset" onclick="resetSession()" title="Delete all current data and start a brand new session">Reset Session</button>
-        <button class="btn btn-history" id="btnUndo" onclick="undoAction()" disabled title="Undo your last scan or edit">
+        <button class="btn btn-reset" onclick="resetSession()">Clear State</button>
+        <button class="btn btn-history" id="btnUndo" onclick="undoAction()" disabled>
             <svg viewBox="0 0 24 24" width="12" height="12" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round">
                 <polyline points="9 14 4 9 9 4"></polyline>
                 <path d="M20 20v-7a4 4 0 0 0-4-4H4"></path>
-            </svg> Undo
+            </svg> Step Back
         </button>
-        <button class="btn btn-history" id="btnRedo" onclick="redoAction()" disabled title="Redo your last undone action">
+        <button class="btn btn-history" id="btnRedo" onclick="redoAction()" disabled>
             <svg viewBox="0 0 24 24" width="12" height="12" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round">
                 <polyline points="15 14 20 9 15 4"></polyline>
                 <path d="M4 20v-7a4 4 0 0 1 4-4h12"></path>
-            </svg> Redo
+            </svg> Step Forward
         </button>
     </div>
     
     <div class="action-group">
-        <button class="btn btn-pdf" onclick="exportPDF()" title="Generate and print a formatted PDF report of your inventory">Export PDF</button>
+        <button class="btn btn-pdf" onclick="exportPDF()">Print/PDF Sheet</button>
         <input type="file" id="loadFileInput" accept=".csv" style="display: none;" onchange="loadFromFile(event)">
-        <button class="btn btn-load" onclick="document.getElementById('loadFileInput').click()" title="Load a previously saved CSV session file">Load Saved Data</button>
-        <button class="btn" onclick="exportToCSV()" title="Download your current progress as a CSV file">Save Data</button>
+        <button class="btn btn-load" onclick="document.getElementById('loadFileInput').click()">Resume Session</button>
+        <button class="btn" onclick="exportToCSV()">Save Checkpoint CSV</button>
     </div>
 </div>
 
 <script>
-    // State Tracking Data Nodes
+    // System Configurations and Global Storage Variables
     let inventory = {};
     let pendingRawData = []; 
     let uploadedRawData = []; 
     let currentFileType = null;
     let isLensesFilterActive = true; 
 
-    // Layout Pagination and Filter Management Variables
+    // UI Pagination and View State Trackers
     let currentPage = 1;
     let currentTotalPages = 1;
     let itemsPerPage = '100'; 
@@ -1312,191 +1294,22 @@
     let systemDataEncoded = false;
     let hasWarnedNoSystemData = false;
     
-    // Physical Location Mapping Tracking Nodes
+    // Physical Stock-Take Segments (Bins) Configuration Tracking Nodes
     let auditLog = [];
     let currentBin = 1;
     let binTotals = { 1: 0 };
     let binCounters = { 1: 0 }; 
 
-    // Fast Scan Processing Variables
+    // Operational Buffer & High-Speed Input Storage Flags
     let isFastScanMode = false;
     let fastScanQueue = [];
 
-    // History Processing Undo / Redo Memory Rings
+    // History Pipeline Undo / Redo Variable Arrays
     let undoStack = [];
     let redoStack = [];
     const MAX_HISTORY = 15;
 
-    // Helper mapping tracking alphanumerical labels based on absolute indices
-    function getBinName(binIndex) {
-        let numericIndex = parseInt(binIndex);
-        if (isNaN(numericIndex)) return binIndex;
-        
-        let alphaLetterCode = (numericIndex - 1) % 26;
-        let positionalDepth = Math.floor((numericIndex - 1) / 26) + 1;
-        let calculatedLetter = String.fromCharCode(65 + alphaLetterCode);
-        
-        return calculatedLetter + positionalDepth;
-    }
-
-    // Standard product data column separator splits
-    function extractBrandAndCategory(descriptionText) {
-        let category = "OTHERS";
-        let brand = "UNKNOWN";
-        
-        if (!descriptionText) return { category, brand };
-        let cleanDescription = descriptionText.replace(/^['"\s\t]+/, '').toUpperCase();
-
-        if (cleanDescription.startsWith('S;')) category = 'SUN';
-        else if (cleanDescription.startsWith('O;')) category = 'SPX';
-        else if (cleanDescription.startsWith('OA;')) category = 'OTHERS';
-
-        let descriptionTokens = descriptionText.split(';');
-        if (descriptionTokens.length >= 2) {
-            let isolatedPrefix = descriptionTokens[0].replace(/^['"\s\t]+/, '').toUpperCase();
-            if (isolatedPrefix === 'S' || isolatedPrefix === 'O' || isolatedPrefix === 'OA') {
-                brand = descriptionTokens[1].trim().toUpperCase();
-            }
-        }
-        return { category, brand };
-    }
-
-    // Resolves manufacturer branding updates to combine similar paths
-    function normalizeDescription(descriptionText) {
-        if (!descriptionText) return descriptionText;
-        let cleanDescription = descriptionText.replace(/^['"\s\t]+/, '');
-        let structuralTokens = cleanDescription.split(';');
-        
-        if (structuralTokens.length >= 2) {
-            let segmentPrefix = structuralTokens[0].trim().toUpperCase();
-            if (segmentPrefix === 'S' || segmentPrefix === 'O' || segmentPrefix === 'OA') {
-                let originalBrandName = structuralTokens[1].trim();
-                let comparativeLabel = originalBrandName.toUpperCase().replace(/\s+/g, ' ').trim();
-                let standardizedBrand = originalBrandName;
-
-                // Match variations of manufacturer syntax entries
-                if (comparativeLabel.includes('RAYBAN') || comparativeLabel.includes('RAY BAN') || comparativeLabel.includes('RAY-BAN')) standardizedBrand = 'RAY-BAN';
-                else if (comparativeLabel.includes('MIRAFLEX') || comparativeLabel.includes('MIRA FLEX')) standardizedBrand = 'MIRAFLEX';
-                else if (comparativeLabel.startsWith('TRICE')) standardizedBrand = 'TRICE';
-                else if (comparativeLabel.includes('DAVIDBECKHAM') || comparativeLabel.includes('DAVID BECKHAM')) standardizedBrand = 'DAVID BECKHAM';
-                else if (comparativeLabel.includes('ARMANIEXCHANGE') || comparativeLabel.includes('ARMANI EXCHANGE')) standardizedBrand = 'ARMANI EXCHANGE';
-                else if (comparativeLabel.startsWith('DIOR')) standardizedBrand = 'DIOR';
-                else if (comparativeLabel.startsWith("EYE'M") || comparativeLabel.startsWith("EYEM")) standardizedBrand = "EYE'M";
-                else if (comparativeLabel === 'MAU JIM' || comparativeLabel === 'MAUIJIM' || comparativeLabel.includes('MAUI JIM') || comparativeLabel.startsWith('MAUI')) standardizedBrand = 'MAUI JIM';
-                else if (comparativeLabel.includes('OLIVER PEOPL')) standardizedBrand = 'OLIVER PEOPLES';
-                else if (comparativeLabel.includes('SAINT LAUREN') || comparativeLabel.includes('SA.LAURENT') || comparativeLabel.includes('S.LAURENT') || comparativeLabel.includes('SAI.LAURENT') || comparativeLabel.includes('SAI. LAURENT') || comparativeLabel.includes('SAINT LRNT')) standardizedBrand = 'SAINT LAURENT';
-                else if (comparativeLabel.includes('BURBERRY')) standardizedBrand = 'BURBERRY';
-                else if (comparativeLabel.startsWith('ALEXANDER MCQUE')) standardizedBrand = 'ALEXANDER MCQUEEN';
-                else if (comparativeLabel.startsWith('BOTTEGA')) standardizedBrand = 'BOTTEGA VENETA';
-                else if (comparativeLabel.startsWith('CAROLINE')) standardizedBrand = 'CAROLINE';
-                else if (comparativeLabel.startsWith('CARRERA')) standardizedBrand = 'CARRERA';
-                else if (comparativeLabel.startsWith('CENTRO')) standardizedBrand = 'CENTRO STYLE';
-                else if (comparativeLabel.startsWith('CHROME H')) standardizedBrand = 'CHROME HEARTS';
-                else if (comparativeLabel.startsWith('CUTLER')) standardizedBrand = 'CUTLER AND GROSS';
-                else if (comparativeLabel.startsWith('DIFFUSER')) standardizedBrand = 'DIFFUSER TOKYO';
-                else if (comparativeLabel.startsWith('DITA')) standardizedBrand = 'DITA';
-                else if (comparativeLabel.startsWith('DOLCE')) standardizedBrand = 'DOLCE & GABBANA';
-                else if (comparativeLabel.startsWith('ELEGANCE')) standardizedBrand = 'ELEGANCE';
-                else if (comparativeLabel.startsWith('EMPORIO')) standardizedBrand = 'EMPORIO ARMANI';
-                else if (comparativeLabel.startsWith('ERMENEGILDO')) standardizedBrand = 'ERMENEGILDO ZEGNA';
-                else if (comparativeLabel.startsWith('HAFFMANS')) standardizedBrand = 'HAFFMANS & NEUMEISTER';
-                else if (comparativeLabel.startsWith('JACQUES')) standardizedBrand = 'JACQUES MARIE';
-                else if (comparativeLabel.startsWith('KAREN WAZEN')) standardizedBrand = 'KAREN WAZEN';
-                else if (comparativeLabel.startsWith('LEISURE')) standardizedBrand = 'LEISURE SOCIETY';
-                else if (comparativeLabel.startsWith('MOSLEY TR')) standardizedBrand = 'MOSLEY TRIBES';
-                else if (comparativeLabel.startsWith('MYKITA')) standardizedBrand = 'MYKITA';
-                else if (comparativeLabel.startsWith('OAKLEY')) standardizedBrand = 'OAKLEY';
-                else if (comparativeLabel.startsWith('OPAL')) standardizedBrand = 'OPAL';
-                else if (comparativeLabel.startsWith('PAIR')) standardizedBrand = 'PAIR EYEWEAR';
-                else if (comparativeLabel.startsWith('POLAR') && !comparativeLabel.startsWith('POLAROID')) standardizedBrand = 'POLAR';
-                else if (comparativeLabel.startsWith('POLAROID')) standardizedBrand = 'POLAROID';
-                else if (comparativeLabel.startsWith('POLO')) standardizedBrand = 'POLO RALPH LAUREN';
-                else if (comparativeLabel.startsWith('PORSCHE')) standardizedBrand = 'PORSCHE DESIGN';
-                else if (comparativeLabel.startsWith('PRADA')) standardizedBrand = 'PRADA';
-                else if (comparativeLabel.startsWith('PUMA')) standardizedBrand = 'PUMA';
-                else if (comparativeLabel.startsWith('RALPH')) standardizedBrand = 'RALPH LAUREN';
-                else if (comparativeLabel.startsWith('SPIN ON8')) standardizedBrand = 'SPIN ON8';
-                else if (comparativeLabel.startsWith('TEMPO')) standardizedBrand = 'TEMPO';
-                else if (comparativeLabel.startsWith('THOM BROW')) standardizedBrand = 'THOM BROWNE';
-                else if (comparativeLabel.startsWith('TOM FORD')) standardizedBrand = 'TOM FORD';
-
-                structuralTokens[1] = standardizedBrand;
-                return structuralTokens.join(';');
-            }
-        }
-        return descriptionText;
-    }
-
-    // Evaluates strings to exclude contact lenses, ophthalmic items, and clinical parts
-    function isExcludedItem(fullRowText, rawDescription, rawMerchandise) {
-        let cleanDescription = (rawDescription || "").replace(/^['"\s\t]+/, '').trim();
-        let upperDescription = cleanDescription.toUpperCase();
-        let upperMerchandise = (rawMerchandise || "").replace(/['"]/g, '').toUpperCase().trim();
-        let lowerTextContent = fullRowText.toLowerCase();
-
-        if (upperDescription.startsWith('S;') || upperDescription.startsWith('O;') || upperDescription.startsWith('OA;')) {
-            return false;
-        }
-        if (upperMerchandise.startsWith('LL') || upperMerchandise.startsWith('CL') || upperMerchandise.includes('CONTACT') || upperMerchandise.includes('LENS')) {
-            return true;
-        }
-        
-        let shortPrefix = cleanDescription.toLowerCase();
-        if (shortPrefix.startsWith('cl;') || shortPrefix.startsWith('cl ') || 
-            shortPrefix.startsWith('clcp') || shortPrefix.startsWith('clsp') ||
-            shortPrefix.startsWith('sp;') || shortPrefix.startsWith('cs;') ||
-            shortPrefix.startsWith('fsv;')) { 
-            return true;
-        }
-
-        let excludedKeywords = [
-            'zwei', 'acuvue', 'trueye', 'oasys', 'dailies', 'ophthalmic',
-            'contact lens', 'contact lenses', 'trivex', 'sv 1.', 'pal 1.', 
-            'air optix', 'airoptix', 'freshlook', 'alcon', 'bausch', 'soflens', 
-            'opti-free', 'optifree', 'biotrue', 'clariti', 'myday', 'biofinity', 
-            'cleaning cloth', 'warranty card', 'empty box', 'bella', 'i-clinic', 
-            'iclinic', 'johnson', 'multifocal', 'astigmatism', 'toric', 'fsv ', 'fwd w',
-            'cl;', 'clcp', 'clsp', 'cs;', 'sp;', 'fsv;', 'acu1d', 'night glare', 'tinting', 
-            'blue light protection'
-        ];
-
-        for (let keyword of excludedKeywords) {
-            if (lowerTextContent.includes(keyword)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    // Manual character-by-character CSV scanner supporting nested structural quotes
-    function parseCSVLine(textContent, characterDelimiter) {
-        let columnTokens = [];
-        let insideQuoteRing = false;
-        let dynamicValueAccumulator = "";
-        
-        for (let idx = 0; idx < textContent.length; idx++) {
-            let activeChar = textContent[idx];
-            
-            if (activeChar === '"' && textContent[idx+1] === '"') { 
-                dynamicValueAccumulator += '"'; 
-                idx++; 
-            } else if (activeChar === '"') { 
-                insideQuoteRing = !insideQuoteRing; 
-            } else if (activeChar === characterDelimiter && !insideQuoteRing) { 
-                columnTokens.push(dynamicValueAccumulator); 
-                dynamicValueAccumulator = ""; 
-            } else { 
-                dynamicValueAccumulator += activeChar; 
-            }
-        }
-        columnTokens.push(dynamicValueAccumulator);
-        return columnTokens;
-    }
-
-    // Ensure dummy fallback interface for haptic system calls inside desktop variations
-    window.navigator.vibrate = window.navigator.vibrate || function() {};
-
-    // Initial Event Wire-up on Page Initialization
+    // Core Init and Event Triggers Execution
     window.onload = async function() { 
         await loadData(); 
         
@@ -1551,7 +1364,6 @@
         });
     };
 
-    // Tracking structural shifts on scanning interface panels to match column dimensions
     const interfaceResizeObserver = new ResizeObserver(() => { 
         updateStickyHeaders(); 
     });
@@ -1565,12 +1377,201 @@
 
     window.addEventListener('resize', updateStickyHeaders);
 
+    // Audio Engine Configuration Context
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    window.navigator.vibrate = window.navigator.vibrate || function() {};
+
+    function playSound(soundTypeKey) {
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        
+        let customAudioOscillator = audioCtx.createOscillator(); 
+        let internalGainNode = audioCtx.createGain();
+        customAudioOscillator.connect(internalGainNode); 
+        internalGainNode.connect(audioCtx.destination);
+        
+        if (soundTypeKey === 'success') {
+            customAudioOscillator.type = 'sine'; 
+            customAudioOscillator.frequency.setValueAtTime(1000, audioCtx.currentTime); 
+            internalGainNode.gain.setValueAtTime(0.1, audioCtx.currentTime); 
+            customAudioOscillator.start(); 
+            customAudioOscillator.stop(audioCtx.currentTime + 0.1); 
+        } else if (soundTypeKey === 'error') {
+            customAudioOscillator.type = 'sawtooth'; 
+            customAudioOscillator.frequency.setValueAtTime(150, audioCtx.currentTime); 
+            internalGainNode.gain.setValueAtTime(0.1, audioCtx.currentTime); 
+            customAudioOscillator.start(); 
+            customAudioOscillator.stop(audioCtx.currentTime + 0.4); 
+        }
+    }
+
+    // Processing Mechanics, Text Handling, Calculations & Utility Blocks
+    function getBinName(binIndex) {
+        let numericIndex = parseInt(binIndex);
+        if (isNaN(numericIndex)) return binIndex;
+        
+        let alphaLetterCode = (numericIndex - 1) % 26;
+        let positionalDepth = Math.floor((numericIndex - 1) / 26) + 1;
+        let calculatedLetter = String.fromCharCode(65 + alphaLetterCode);
+        
+        return calculatedLetter + positionalDepth;
+    }
+
+    function extractBrandAndCategory(descriptionText) {
+        let category = "OTHERS";
+        let brand = "UNKNOWN";
+        
+        if (!descriptionText) return { category, brand };
+        let cleanDescription = descriptionText.replace(/^['"\s\t]+/, '').toUpperCase();
+
+        if (cleanDescription.startsWith('S;')) category = 'SUN';
+        else if (cleanDescription.startsWith('O;')) category = 'SPX';
+        else if (cleanDescription.startsWith('OA;')) category = 'OTHERS';
+
+        let descriptionTokens = descriptionText.split(';');
+        if (descriptionTokens.length >= 2) {
+            let isolatedPrefix = descriptionTokens[0].replace(/^['"\s\t]+/, '').toUpperCase();
+            if (isolatedPrefix === 'S' || isolatedPrefix === 'O' || isolatedPrefix === 'OA') {
+                brand = descriptionTokens[1].trim().toUpperCase();
+            }
+        }
+        return { category, brand };
+    }
+
+    function normalizeDescription(descriptionText) {
+        if (!descriptionText) return descriptionText;
+        let cleanDescription = descriptionText.replace(/^['"\s\t]+/, '');
+        let structuralTokens = cleanDescription.split(';');
+        
+        if (structuralTokens.length >= 2) {
+            let segmentPrefix = structuralTokens[0].trim().toUpperCase();
+            if (segmentPrefix === 'S' || segmentPrefix === 'O' || segmentPrefix === 'OA') {
+                let originalBrandName = structuralTokens[1].trim();
+                let comparativeLabel = originalBrandName.toUpperCase().replace(/\s+/g, ' ').trim();
+                let standardizedBrand = originalBrandName;
+
+                if (comparativeLabel.includes('RAYBAN') || comparativeLabel.includes('RAY BAN') || comparativeLabel.includes('RAY-BAN')) standardizedBrand = 'RAY-BAN';
+                else if (comparativeLabel.includes('MIRAFLEX') || comparativeLabel.includes('MIRA FLEX')) standardizedBrand = 'MIRAFLEX';
+                else if (comparativeLabel.startsWith('TRICE')) standardizedBrand = 'TRICE';
+                else if (comparativeLabel.includes('DAVIDBECKHAM') || comparativeLabel.includes('DAVID BECKHAM')) standardizedBrand = 'DAVID BECKHAM';
+                else if (comparativeLabel.includes('ARMANIEXCHANGE') || comparativeLabel.includes('ARMANI EXCHANGE')) standardizedBrand = 'ARMANI EXCHANGE';
+                else if (comparativeLabel.startsWith('DIOR')) standardizedBrand = 'DIOR';
+                else if (comparativeLabel.startsWith("EYE'M") || comparativeLabel.startsWith("EYEM")) standardizedBrand = "EYE'M";
+                else if (comparativeLabel === 'MAU JIM' || comparativeLabel === 'MAUIJIM' || comparativeLabel.includes('MAUI JIM') || comparativeLabel.startsWith('MAUI')) standardizedBrand = 'MAUI JIM';
+                else if (comparativeLabel.includes('OLIVER PEOPL')) standardizedBrand = 'OLIVER PEOPLES';
+                else if (comparativeLabel.includes('SAINT LAUREN') || comparativeLabel.includes('SA.LAURENT') || comparativeLabel.includes('S.LAURENT') || comparativeLabel.includes('SAI.LAURENT') || comparativeLabel.includes('SAI. LAURENT') || comparativeLabel.includes('SAINT LRNT')) standardizedBrand = 'SAINT LAURENT';
+                else if (comparativeLabel.includes('BURBERRY')) standardizedBrand = 'BURBERRY';
+                else if (comparativeLabel.startsWith('ALEXANDER MCQUE')) standardizedBrand = 'ALEXANDER MCQUEEN';
+                else if (comparativeLabel.startsWith('BOTTEGA')) standardizedBrand = 'BOTTEGA VENETA';
+                else if (comparativeLabel.startsWith('CAROLINE')) standardizedBrand = 'CAROLINE';
+                else if (comparativeLabel.startsWith('CARRERA')) standardizedBrand = 'CARRERA';
+                else if (comparativeLabel.startsWith('CENTRO')) standardizedBrand = 'CENTRO STYLE';
+                else if (comparativeLabel.startsWith('CHROME H')) standardizedBrand = 'CHROME HEARTS';
+                else if (comparativeLabel.startsWith('CUTLER')) standardizedBrand = 'CUTLER AND GROSS';
+                else if (comparativeLabel.startsWith('DIFFUSER')) standardizedBrand = 'DIFFUSER TOKYO';
+                else if (comparativeLabel.startsWith('DITA')) standardizedBrand = 'DITA';
+                else if (comparativeLabel.startsWith('DOLCE')) standardizedBrand = 'DOLCE & GABBANA';
+                else if (comparativeLabel.startsWith('ELEGANCE')) standardizedBrand = 'ELEGANCE';
+                else if (comparativeLabel.startsWith('EMPORIO')) standardizedBrand = 'EMPORIO ARMANI';
+                else if (comparativeLabel.startsWith('ERMENEGILDO')) standardizedBrand = 'ERMENEGILDO ZEGNA';
+                else if (comparativeLabel.startsWith('HAFFMANS')) standardizedBrand = 'HAFFMANS & NEUMEISTER';
+                else if (comparativeLabel.startsWith('JACQUES')) standardizedBrand = 'JACQUES MARIE';
+                else if (comparativeLabel.startsWith('KAREN WAZEN')) standardizedBrand = 'KAREN WAZEN';
+                else if (comparativeLabel.startsWith('LEISURE')) standardizedBrand = 'LEISURE SOCIETY';
+                else if (comparativeLabel.startsWith('MOSLEY TR')) standardizedBrand = 'MOSLEY TRIBES';
+                else if (comparativeLabel.startsWith('MYKITA')) standardizedBrand = 'MYKITA';
+                else if (comparativeLabel.startsWith('OAKLEY')) standardizedBrand = 'OAKLEY';
+                else if (comparativeLabel.startsWith('OPAL')) standardizedBrand = 'OPAL';
+                else if (comparativeLabel.startsWith('PAIR')) standardizedBrand = 'PAIR EYEWEAR';
+                else if (comparativeLabel.startsWith('POLAR') && !comparativeLabel.startsWith('POLAROID')) standardizedBrand = 'POLAR';
+                else if (comparativeLabel.startsWith('POLAROID')) standardizedBrand = 'POLAROID';
+                else if (comparativeLabel.startsWith('POLO')) standardizedBrand = 'POLO RALPH LAUREN';
+                else if (comparativeLabel.startsWith('PORSCHE')) standardizedBrand = 'PORSCHE DESIGN';
+                else if (comparativeLabel.startsWith('PRADA')) standardizedBrand = 'PRADA';
+                else if (comparativeLabel.startsWith('PUMA')) standardizedBrand = 'PUMA';
+                else if (comparativeLabel.startsWith('RALPH')) standardizedBrand = 'RALPH LAUREN';
+                else if (comparativeLabel.startsWith('SPIN ON8')) standardizedBrand = 'SPIN ON8';
+                else if (comparativeLabel.startsWith('TEMPO')) standardizedBrand = 'TEMPO';
+                else if (comparativeLabel.startsWith('THOM BROW')) standardizedBrand = 'THOM BROWNE';
+                else if (comparativeLabel.startsWith('TOM FORD')) standardizedBrand = 'TOM FORD';
+
+                structuralTokens[1] = standardizedBrand;
+                return structuralTokens.join(';');
+            }
+        }
+        return descriptionText;
+    }
+
+    function isExcludedItem(fullRowText, rawDescription, rawMerchandise) {
+        let cleanDescription = (rawDescription || "").replace(/^['"\s\t]+/, '').trim();
+        let upperDescription = cleanDescription.toUpperCase();
+        let upperMerchandise = (rawMerchandise || "").replace(/['"]/g, '').toUpperCase().trim();
+        let lowerTextContent = fullRowText.toLowerCase();
+
+        if (upperDescription.startsWith('S;') || upperDescription.startsWith('O;') || upperDescription.startsWith('OA;')) {
+            return false;
+        }
+        if (upperMerchandise.startsWith('LL') || upperMerchandise.startsWith('CL') || upperMerchandise.includes('CONTACT') || upperMerchandise.includes('LENS')) {
+            return true;
+        }
+        
+        let shortPrefix = cleanDescription.toLowerCase();
+        if (shortPrefix.startsWith('cl;') || shortPrefix.startsWith('cl ') || 
+            shortPrefix.startsWith('clcp') || shortPrefix.startsWith('clsp') ||
+            shortPrefix.startsWith('sp;') || shortPrefix.startsWith('cs;') ||
+            shortPrefix.startsWith('fsv;')) { 
+            return true;
+        }
+
+        let excludedKeywords = [
+            'zwei', 'acuvue', 'trueye', 'oasys', 'dailies', 'ophthalmic',
+            'contact lens', 'contact lenses', 'trivex', 'sv 1.', 'pal 1.', 
+            'air optix', 'airoptix', 'freshlook', 'alcon', 'bausch', 'soflens', 
+            'opti-free', 'optifree', 'biotrue', 'clariti', 'myday', 'biofinity', 
+            'cleaning cloth', 'warranty card', 'empty box', 'bella', 'i-clinic', 
+            'iclinic', 'johnson', 'multifocal', 'astigmatism', 'toric', 'fsv ', 'fwd w',
+            'cl;', 'clcp', 'clsp', 'cs;', 'sp;', 'fsv;', 'acu1d', 'night glare', 'tinting', 
+            'blue light protection'
+        ];
+
+        for (let keyword of excludedKeywords) {
+            if (lowerTextContent.includes(keyword)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    function parseCSVLine(textContent, characterDelimiter) {
+        let columnTokens = [];
+        let insideQuoteRing = false;
+        let dynamicValueAccumulator = "";
+        
+        for (let idx = 0; idx < textContent.length; idx++) {
+            let activeChar = textContent[idx];
+            
+            if (activeChar === '"' && textContent[idx+1] === '"') { 
+                dynamicValueAccumulator += '"'; 
+                idx++; 
+            } else if (activeChar === '"') { 
+                insideQuoteRing = !insideQuoteRing; 
+            } else if (activeChar === characterDelimiter && !insideQuoteRing) { 
+                columnTokens.push(dynamicValueAccumulator); 
+                dynamicValueAccumulator = ""; 
+            } else { 
+                dynamicValueAccumulator += activeChar; 
+            }
+        }
+        columnTokens.push(dynamicValueAccumulator);
+        return columnTokens;
+    }
+
+    // UX Context Prompts and Interface Interactivity Triggers
     async function toggleTutorial() {
         const toggleBtnElement = document.getElementById('tutorialToggle');
         const isTutorialChecked = toggleBtnElement.checked;
         
         if (isTutorialChecked) {
-            const acceptVideoRedirect = await customConfirm("Would you like to view a tutorial video?", "Tutorial Video");
+            const acceptVideoRedirect = await customConfirm("Do you want to open the layout reference documentation link?", "Reference Help");
             if (acceptVideoRedirect) {
                 window.open("https://youtu.be/HJrrWY5lXak?si=ly1MJcBGWA5w7Z9s", "_blank");
             }
@@ -1587,12 +1588,12 @@
         const btnElement = document.getElementById('btnToggleLenses');
         
         if (isLensesFilterActive) {
-            btnElement.innerText = "Unhide CL & OL";
+            btnElement.innerText = "Unhide CL & Parts";
             btnElement.style.backgroundColor = "var(--surface-color)";
             btnElement.style.color = "var(--text-primary)";
             btnElement.style.borderColor = "var(--border-color)";
         } else {
-            btnElement.innerText = "Hide CL & OL";
+            btnElement.innerText = "Isolate Frames (Hide Lenses)";
             btnElement.style.backgroundColor = "#fef2f2";
             btnElement.style.color = "var(--accent-red)";
             btnElement.style.borderColor = "#fecaca";
@@ -1605,14 +1606,14 @@
     function toggleAuditTrail() {
         const logBoxElement = document.getElementById('auditTrailBox');
         const historyBtnElement = document.getElementById('btnToggleHistory');
-        const internalIconSvg = `<svg viewBox="0 0 24 24" width="12" height="12" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: text-bottom; margin-right: 4px;"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>`;
+        const internalIconSvg = `<svg viewBox="0 0 24 24" width="12" height="12" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: text-bottom; margin-right: 4px;"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><path d="M3 6h.01M3 12h.01M3 18h.01"></path></svg>`;
 
         if (logBoxElement.style.display === 'none') {
             logBoxElement.style.display = 'block';
-            historyBtnElement.innerHTML = `${internalIconSvg} Hide History`;
+            historyBtnElement.innerHTML = `${internalIconSvg} Close Stream`;
         } else {
             logBoxElement.style.display = 'none';
-            historyBtnElement.innerHTML = `${internalIconSvg} Show History`;
+            historyBtnElement.innerHTML = `${internalIconSvg} Audit Stream`;
         }
         setTimeout(updateStickyHeaders, 10);
     }
@@ -1625,13 +1626,13 @@
         const standardToggleIcon = `<svg viewBox="0 0 24 24" width="12" height="12" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: text-bottom; margin-right: 4px;"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>`;
         
         if (isFastScanMode) {
-            toggleBtnElement.innerHTML = `${standardToggleIcon} Fast Scan: ON`;
+            toggleBtnElement.innerHTML = `${standardToggleIcon} Buffered Scan: ON`;
             toggleBtnElement.classList.add('active');
             structuralCompareBtn.style.display = 'inline-flex';
             fastScanTrailBoxElement.style.display = 'block'; 
             renderFastScanTrail();
         } else {
-            toggleBtnElement.innerHTML = `${standardToggleIcon} Fast Scan: OFF`;
+            toggleBtnElement.innerHTML = `${standardToggleIcon} Buffered Scan: OFF`;
             toggleBtnElement.classList.remove('active');
             structuralCompareBtn.style.display = 'none';
             fastScanTrailBoxElement.style.display = 'none'; 
@@ -1657,7 +1658,7 @@
     function renderFastScanTrail() {
         const visualQueueList = document.getElementById('fastScanList');
         if (fastScanQueue.length === 0) {
-            visualQueueList.innerHTML = '<li style="color:var(--text-secondary); font-style:italic;">Fast scan items will appear here... Click Compare after scanning</li>';
+            visualQueueList.innerHTML = '<li style="color:var(--text-secondary); font-style:italic;">Queue is currently empty...</li>';
             return;
         }
 
@@ -1669,13 +1670,13 @@
         slicedTargetQueue.forEach((sku, idx) => {
             let logLineElement = document.createElement('li');
             let chronologicalScanId = fastScanQueue.length - idx;
-            logLineElement.innerHTML = `<strong>#${chronologicalScanId}</strong> - Scanned SKU: <strong style="color:var(--text-primary);">${sku}</strong> <span style="color: #b45309; font-size: 11px; float: right; font-weight: 600;">Pending Compare...</span>`;
+            logLineElement.innerHTML = `<strong>#${chronologicalScanId}</strong> - SKU: <strong style="color:var(--text-primary);">${sku}</strong> <span style="color: #b45309; font-size: 11px; float: right; font-weight: 600;">Buffered</span>`;
             visualQueueList.appendChild(logLineElement);
         });
 
         if (fastScanQueue.length > queueViewLimit) {
             let logLineElement = document.createElement('li');
-            logLineElement.innerHTML = `<li style="color: var(--text-secondary); italic">...and ${fastScanQueue.length - queueViewLimit} more older scans hidden</li>`;
+            logLineElement.innerHTML = `<li style="color: var(--text-secondary); italic">...and ${fastScanQueue.length - queueViewLimit} trailing records truncated</li>`;
             visualQueueList.appendChild(logLineElement);
         }
     }
@@ -1685,16 +1686,15 @@
         saveState();
         
         let labelElement = document.getElementById('compareBtnLabel');
-        labelElement.innerText = "Processing...";
+        labelElement.innerText = "Writing...";
         
-        // Timeout separates call execution to let processing labels update graphically
         setTimeout(() => {
             fastScanQueue.forEach(sku => {
                 processScanLogicCore(sku);
             });
             fastScanQueue = [];
             document.getElementById('queueCount').innerText = "0";
-            labelElement.innerText = "Compare";
+            labelElement.innerText = "Match Buffer";
             renderFastScanTrail();
             saveData();
             renderTable();
@@ -1724,12 +1724,12 @@
         
         if (!inventory[skuString]) {
             inventory[skuString] = {
-                description: "Manually Scanned", systemQty: 0, sysQty1000: 0, sysQty4000: 0,
+                description: "Manual Add", systemQty: 0, sysQty1000: 0, sysQty4000: 0,
                 sysQtyOther: 0, scannedQty: 0, pendingQty: 0, sloc: 'Scanned', isLens: false, bins: []
             };
             isSystemDiscrepancy = true;
             if (!isFastScanMode) {
-                showErrorToast(`⚠️ SKU ${skuString} is NOT in the encoded list!`);
+                showErrorToast(`⚠️ Sku ${skuString} not matched in ledger!`);
                 playSound('error');
             }
         } else {
@@ -1755,14 +1755,13 @@
 
     function closeCamera() {
         if (html5QrcodeScanner) {
-            html5QrcodeScanner.clear().catch(err => console.warn("Camera cleanup sequence handled."));
+            html5QrcodeScanner.clear().catch(err => console.warn("Camera hardware resource released safely."));
         }
         document.getElementById('cameraModal').style.display = 'none';
     }
 
     function onScanSuccess(decodedText) {
         let systemTimeSnapshot = Date.now();
-        // Prevent duplicate reads on rapid scanning loops
         if (decodedText === lastScannedSku && (systemTimeSnapshot - lastScanTime) < 1500) return; 
         
         lastScannedSku = decodedText;
@@ -1818,7 +1817,7 @@
 
             if (!inventory[targetSkuNode]) {
                 inventory[targetSkuNode] = { 
-                    description: "Manually Encoded", systemQty: 0, sysQty1000: 0, sysQty4000: 0, 
+                    description: "Manual Batch", systemQty: 0, sysQty1000: 0, sysQty4000: 0, 
                     sysQtyOther: 0, scannedQty: 0, pendingQty: 0, sloc: 'Scanned', isLens: false, bins: []
                 };
                 baselineErrorCount++;
@@ -1838,16 +1837,16 @@
         if (absoluteAddedItemsTotal > 0) {
             if (baselineErrorCount > 0) {
                 playSound('error');
-                await customAlert(`Added ${absoluteAddedItemsTotal} total quantity.<br><br><span style="color:var(--accent-red);font-weight:bold;">${baselineErrorCount} SKUs were NOT in the system list.</span>`, "Manual Encode Results");
+                await customAlert(`Registered ${absoluteAddedItemsTotal} units.<br><br><span style="color:var(--accent-red);font-weight:bold;">${baselineErrorCount} lines created custom profiles (Skus unlisted in master file).</span>`, "Batch Upload Details");
             } else {
                 playSound('success');
-                await customAlert(`Successfully added ${absoluteAddedItemsTotal} total quantity.`, "Manual Encode Results");
+                await customAlert(`Committed ${absoluteAddedItemsTotal} units to scanned entries.`, "Batch Processing Clean");
             }
         }
     }
 
     async function promptPendingUpload() {
-        const modalOptionSelected = await customConfirm("Do you want to add <b>Items to be Delivered</b> spreadsheet data as pending?", "Pending Items");
+        const modalOptionSelected = await customConfirm("Do you want to apply inbound STO shipment metrics to expected counts?", "Inbound Delivery File");
         if (modalOptionSelected) {
             document.getElementById('pendingDataUpload').click();
         }
@@ -1863,7 +1862,7 @@
             const secondaryActionBtn = document.getElementById('customModalBtnNo');
             const topCloseButtonRing = document.getElementById('customModalClose');
 
-            structuralTitle.innerText = dialogOptions.title || 'Message';
+            structuralTitle.innerText = dialogOptions.title || 'Notification';
             messageBodyText.innerHTML = dialogOptions.message || '';
 
             interactionInput.style.display = 'none';
@@ -1879,8 +1878,8 @@
                 secondaryActionBtn.style.display = 'inline-block';
             }
 
-            primaryActionBtn.innerText = dialogOptions.yesText || 'Yes';
-            secondaryActionBtn.innerText = dialogOptions.noText || 'No';
+            primaryActionBtn.innerText = dialogOptions.yesText || 'OK';
+            secondaryActionBtn.innerText = dialogOptions.noText || 'Cancel';
             overlayContainer.style.display = 'flex';
             
             if (dialogOptions.type === 'prompt') {
@@ -1915,16 +1914,16 @@
         });
     }
 
-    function customAlert(alertMessage, titleHeader = "Message") { 
-        return openCustomModal({ type: 'alert', title: titleHeader, message: alertMessage, yesText: 'OK' }); 
+    function customAlert(alertMessage, titleHeader = "Notification") { 
+        return openCustomModal({ type: 'alert', title: titleHeader, message: alertMessage, yesText: 'Acknowledge' }); 
     }
     
-    function customConfirm(confirmMessage, titleHeader = "Confirmation message") { 
-        return openCustomModal({ type: 'confirm', title: titleHeader, message: confirmMessage, yesText: 'Yes', noText: 'No' }); 
+    function customConfirm(confirmMessage, titleHeader = "Action Required") { 
+        return openCustomModal({ type: 'confirm', title: titleHeader, message: confirmMessage, yesText: 'Proceed', noText: 'Abort' }); 
     }
     
-    function customPrompt(promptMessage, baselineDefaultText = "", titleHeader = "Input required") { 
-        return openCustomModal({ type: 'prompt', title: titleHeader, message: promptMessage, defaultValue: baselineDefaultText, yesText: 'Submit', noText: 'Cancel' }); 
+    function customPrompt(promptMessage, baselineDefaultText = "", titleHeader = "Input Parameters") { 
+        return openCustomModal({ type: 'prompt', title: titleHeader, message: promptMessage, defaultValue: baselineDefaultText, yesText: 'Update', noText: 'Cancel' }); 
     }
 
     function askSlocAction() {
@@ -2039,7 +2038,7 @@
             try {
                 localStorage.setItem('posInventoryState', JSON.stringify(coreStructuralMap));
             } catch (quotaError) {
-                console.warn("Storage quota exceeded. Progress running in-memory only.");
+                console.warn("Local cache storage limits hit. Session memory volatile.");
             }
         }
     }
@@ -2089,7 +2088,7 @@
     }
 
     async function resetSession() {
-        const requestActionConfirmation = await customConfirm("Are you completely sure you want to reset this session? All currently scanned data will be cleared.", "Reset Session");
+        const requestActionConfirmation = await customConfirm("Flush current workspace state? Scanned counts and active buffers will be cleared completely.", "Flush Workspace");
         if (!requestActionConfirmation) return;
         
         inventory = {};
@@ -2173,7 +2172,7 @@
 
         document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
         let targetFilterToggleBtn = document.querySelector(`.filter-btn[onclick*="'${currentFilter}'"]`);
-        if (targetFilterToggleBtn) targetFilterToggleBtn.add('active');
+        if (targetFilterToggleBtn) targetFilterToggleBtn.classList.add('active');
 
         if (systemDataEncoded && uploadedRawData.length === 0 && Object.keys(inventory).length > 0) {
             for (let skuKey in inventory) {
@@ -2204,7 +2203,7 @@
                 uploadedRawData.forEach(dataRow => { if (dataRow.sto) setOfUniqueStos.add(dataRow.sto); });
                 
                 let stoSelectorElement = document.getElementById('stoDropdown');
-                stoSelectorElement.innerHTML = '<option value="ALL">ALL S.T.O.</option>';
+                stoSelectorElement.innerHTML = '<option value="ALL">All STO Logs</option>';
                 Array.from(setOfUniqueStos).sort().forEach(stoNumber => {
                     stoSelectorElement.innerHTML += `<option value="${stoNumber}">${stoNumber}</option>`;
                 });
@@ -2224,9 +2223,9 @@
 
         const lensToggleBtnElement = document.getElementById('btnToggleLenses');
         if (isLensesFilterActive) {
-            lensToggleBtnElement.innerText = "Unhide CL & OL";
+            lensToggleBtnElement.innerText = "Unhide CL & Parts";
         } else {
-            lensToggleBtnElement.innerText = "Hide CL & OL";
+            lensToggleBtnElement.innerText = "Isolate Frames (Hide Lenses)";
         }
 
         if (systemDataEncoded && document.activeElement !== document.getElementById('scanInput')) {
@@ -2259,34 +2258,7 @@
         document.getElementById('btnUndo').disabled = undoStack.length === 0;
         document.getElementById('btnRedo').disabled = redoStack.length === 0;
     }
-
-    // Modern Web Audio Api Engine Configuration
-    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     
-    function playSound(soundTypeKey) {
-        // Required policy fallback handling for user interactions inside Chrome audio threads
-        if (audioCtx.state === 'suspended') audioCtx.resume();
-        
-        let customAudioOscillator = audioCtx.createOscillator(); 
-        let internalGainNode = audioCtx.createGain();
-        customAudioOscillator.connect(internalGainNode); 
-        internalGainNode.connect(audioCtx.destination);
-        
-        if (soundTypeKey === 'success') {
-            customAudioOscillator.type = 'sine'; 
-            customAudioOscillator.frequency.setValueAtTime(1000, audioCtx.currentTime); 
-            internalGainNode.gain.setValueAtTime(0.1, audioCtx.currentTime); 
-            customAudioOscillator.start(); 
-            customAudioOscillator.stop(audioCtx.currentTime + 0.1); 
-        } else if (soundTypeKey === 'error') {
-            customAudioOscillator.type = 'sawtooth'; 
-            customAudioOscillator.frequency.setValueAtTime(150, audioCtx.currentTime); 
-            internalGainNode.gain.setValueAtTime(0.1, audioCtx.currentTime); 
-            customAudioOscillator.start(); 
-            customAudioOscillator.stop(audioCtx.currentTime + 0.4); 
-        }
-    }
-
     function showErrorToast(toastMessageString) {
         const structuralToastDiv = document.getElementById("error-toast"); 
         structuralToastDiv.textContent = toastMessageString; 
@@ -2304,7 +2276,7 @@
     }
 
     async function deleteBin(binIdNumber) {
-        const userActionConfirmed = await customConfirm(`Are you sure you want to completely delete Bin ${getBinName(binIdNumber)}? This will subtract its scanned quantities from the items.`, "Delete Bin");
+        const userActionConfirmed = await customConfirm(`Clear location data segment ${getBinName(binIdNumber)} entirely? Scanned entries from this location context will be removed.`, "Clear Segment");
         if (!userActionConfirmed) return;
         
         saveState();
@@ -2340,7 +2312,7 @@
     }
 
     async function deleteHistoryItem(logUuidString) {
-        const validationChoice = await customConfirm("Are you sure you want to delete this specific scan? It will subtract the quantity from your Scanned items.", "Delete Scan");
+        const validationChoice = await customConfirm("Remove this scan transaction from current tally adjustments?", "Delete Entry");
         if (!validationChoice) return;
         
         saveState();
@@ -2377,7 +2349,7 @@
         if (logItemIndex === -1) return;
         
         let matchingLogReference = auditLog[logItemIndex];
-        let structuralInputSku = await customPrompt(`Edit SKU for this scan:`, matchingLogReference.sku, "Edit SKU"); 
+        let structuralInputSku = await customPrompt(`Change targeted barcode description:`, matchingLogReference.sku, "Modify Barcode Reference"); 
         if (structuralInputSku === null) return; 
         
         structuralInputSku = structuralInputSku.trim().replace(/^0+/, '') || '0';
@@ -2400,11 +2372,11 @@
         let needsSystemWarningFlag = false;
         if (!inventory[structuralInputSku]) {
             inventory[structuralInputSku] = { 
-                description: "Manually Edited", systemQty: 0, sysQty1000: 0, sysQty4000: 0, 
+                description: "Manual Reference Mod", systemQty: 0, sysQty1000: 0, sysQty4000: 0, 
                 sysQtyOther: 0, scannedQty: 0, pendingQty: 0, sloc: 'Scanned', isLens: false, bins: [] 
             };
             needsSystemWarningFlag = true; 
-            showErrorToast(`⚠️ SKU ${structuralInputSku} is NOT in the encoded list!`); 
+            showErrorToast(`⚠️ Barcode ${structuralInputSku} unlisted in master ledger!`); 
             playSound('error');
         } else { 
             playSound('success'); 
@@ -2426,12 +2398,12 @@
         if (logItemIndex === -1) return;
         
         let matchingLogReference = auditLog[logItemIndex];
-        let userEnteredQuantityText = await customPrompt(`Edit Quantity for this scan (${matchingLogReference.sku}):`, matchingLogReference.qty, "Edit Quantity"); 
+        let userEnteredQuantityText = await customPrompt(`Modify count parameters for item (${matchingLogReference.sku}):`, matchingLogReference.qty, "Adjust Step Size"); 
         if (userEnteredQuantityText === null) return;
         
         let verifiedQuantityInt = parseInt(userEnteredQuantityText.replace(/,/g, ''));
         if (isNaN(verifiedQuantityInt) || verifiedQuantityInt < 0) { 
-            await customAlert("Invalid quantity. Must be 0 or greater.", "Error"); 
+            await customAlert("Quantity must be a positive integer value.", "Format Warning"); 
             return; 
         }
         if (verifiedQuantityInt === matchingLogReference.qty) return;
@@ -2472,21 +2444,20 @@
     async function editQuantity(targetSkuString, updateTargetFieldType) {
         if (!inventory[targetSkuString]) return;
         let originalValueSnapshot = updateTargetFieldType === 'systemQty' ? inventory[targetSkuString].systemQty : (inventory[targetSkuString].pendingQty || 0);
-        let humanReadableLabel = updateTargetFieldType === 'systemQty' ? 'System Quantity' : 'Pending Quantity';
+        let humanReadableLabel = updateTargetFieldType === 'systemQty' ? 'Book Balance Qty' : 'Expected Inbound Qty';
         
-        let structuralQuantityInputText = await customPrompt(`Edit ${humanReadableLabel} for SKU ${targetSkuString}:`, originalValueSnapshot, "Edit Quantity");
+        let structuralQuantityInputText = await customPrompt(`Manually change ${humanReadableLabel} for item ${targetSkuString}:`, originalValueSnapshot, "Override Quantities");
         if (structuralQuantityInputText === null) return;
         
         let verifiedCountValue = parseInt(structuralQuantityInputText.replace(/,/g, ''));
         if (isNaN(verifiedCountValue) || verifiedCountValue < 0) {
-            await customAlert("Invalid value entered. Must be 0 or greater.", "Error");
+            await customAlert("Value field inputs must be integers equal or greater than 0.", "Warning");
             return;
         }
 
         saveState();
         if (updateTargetFieldType === 'systemQty') {
             inventory[targetSkuString].systemQty = verifiedCountValue;
-            // Humanizing Note: Reset location buckets cleanly to match manual override targets
             inventory[targetSkuString].sysQty1000 = 0;
             inventory[targetSkuString].sysQty4000 = 0;
             inventory[targetSkuString].sysQtyOther = verifiedCountValue;
@@ -2500,17 +2471,15 @@
 
     async function deleteRow(targetSkuKeyString) {
         if (!inventory[targetSkuKeyString]) return;
-        const promptValidationResult = await customConfirm(`Are you sure you want to remove SKU ${targetSkuKeyString} completely from the active table screen view?`, "Remove Row");
+        const promptValidationResult = await customConfirm(`Drop line reference item ${targetSkuKeyString} entirely from current workspace view panels?`, "Drop Line Item");
         if (!promptValidationResult) return;
 
         saveState();
         delete inventory[targetSkuKeyString];
         
-        // Remove connected entries inside action tables
         auditLog = auditLog.filter(item => item.sku !== targetSkuKeyString);
         rebuildSkuBins();
         
-        // Dynamic balance sweeps across physical storage units
         let dynamicTemporaryBinTotalsMap = {};
         auditLog.forEach(item => {
             if (!dynamicTemporaryBinTotalsMap[item.bin]) dynamicTemporaryBinTotalsMap[item.bin] = 0;
@@ -2527,7 +2496,7 @@
 
     function appendAuditLog(skuString, needsDiscrepancyFlag, defaultItemQuantity = 1) {
         let clockTimeSnapshotString = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second:'2-digit'});
-        let extractedItemLabel = inventory[skuString] && inventory[skuString].description ? inventory[skuString].description : "Unknown Item";
+        let extractedItemLabel = inventory[skuString] && inventory[skuString].description ? inventory[skuString].description : "Unverified Item Profile";
         let trackingUuid = Date.now().toString() + Math.floor(Math.random() * 1000000).toString();
         
         if (!binCounters[currentBin]) {
@@ -2609,7 +2578,7 @@
         let truncatedLogsToRender = (!rawSearchFilterString && intermediateFilteredLogsList.length > operationalRenderLimit) ? intermediateFilteredLogsList.slice(0, operationalRenderLimit) : intermediateFilteredLogsList;
 
         if (truncatedLogsToRender.length === 0) {
-            historicLogContainer.innerHTML = `<li style="color:var(--text-secondary); font-style:italic;">${rawSearchFilterString ? 'No results found...' : 'Scan history will appear here...'}</li>`;
+            historicLogContainer.innerHTML = `<li style="color:var(--text-secondary); font-style:italic;">${rawSearchFilterString ? 'No transactions match filter rules.' : 'Audit list currently empty.'}</li>`;
         } else {
             historicLogContainer.innerHTML = '';
             truncatedLogsToRender.forEach(item => {
@@ -2619,28 +2588,28 @@
                 structuralRowListItem.style.justifyContent = "space-between"; 
                 structuralRowListItem.style.padding = "4px 0";
                 
-                let classificationSpan = item.isError ? `<span class="audit-error">Not in System</span>` : `<span class="audit-success">Matched/Found</span>`;
+                let classificationSpan = item.isError ? `<span class="audit-error">Unlisted</span>` : `<span class="audit-success">Matched</span>`;
                 let functionalActionGroupHtml = `
                     <div style="display:inline-flex; gap: 4px; margin-left: 6px; flex-shrink: 0;">
-                        <button onclick="editHistorySku('${item.id}')" style="background:transparent; border:none; cursor:pointer; color:var(--accent-blue);" title="Edit SKU">
+                        <button onclick="editHistorySku('${item.id}')" style="background:transparent; border:none; cursor:pointer; color:var(--accent-blue);" title="Modify SKU">
                             <svg viewBox="0 0 24 24" width="12" height="12" stroke="currentColor" stroke-width="2" fill="none"><path d="M4 7V4h3"></path><path d="M20 7V4h-3"></path><path d="M4 17v3h3"></path><path d="M20 17v3h-3"></path><line x1="7" y1="12" x2="17" y2="12"></line></svg>
                         </button>
-                        <button onclick="editHistoryQty('${item.id}')" style="background:transparent; border:none; cursor:pointer; color:var(--accent-orange);" title="Edit QTY">
+                        <button onclick="editHistoryQty('${item.id}')" style="background:transparent; border:none; cursor:pointer; color:var(--accent-orange);" title="Change Count">
                             <svg viewBox="0 0 24 24" width="12" height="12" stroke="currentColor" stroke-width="2" fill="none"><line x1="4" y1="9" x2="20" y2="9"></line><line x1="4" y1="15" x2="20" y2="15"></line><line x1="10" y1="3" x2="8" y2="21"></line><line x1="16" y1="3" x2="14" y2="21"></line></svg>
                         </button>
-                        <button onclick="deleteHistoryItem('${item.id}')" style="background:transparent; border:none; cursor:pointer; color:var(--accent-red);" title="Delete Scan">
+                        <button onclick="deleteHistoryItem('${item.id}')" style="background:transparent; border:none; cursor:pointer; color:var(--accent-red);" title="Remove Scan">
                             <svg viewBox="0 0 24 24" width="12" height="12" stroke="currentColor" stroke-width="2" fill="none"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
                         </button>
                     </div>
                 `;
                 
-                structuralRowListItem.innerHTML = `<div style="flex: 1; word-break: break-all;"><span style="display:inline-block; width:75px; font-weight:bold; color:var(--accent-blue);">Bin ${getBinName(item.bin)} L${item.binLine || 1}</span> <span class="audit-time">[${item.time}]</span> Scanned <strong style="color:var(--text-primary);">${item.sku}</strong> <strong style="color:var(--accent-orange); margin-left: 4px;">[${item.qty} QTY]</strong> - ${item.desc} - ${classificationSpan}</div> ${functionalActionGroupHtml}`;
+                structuralRowListItem.innerHTML = `<div style="flex: 1; word-break: break-all;"><span style="display:inline-block; width:75px; font-weight:bold; color:var(--accent-blue);">Seg ${getBinName(item.bin)} L${item.binLine || 1}</span> <span class="audit-time">[${item.time}]</span> SKU: <strong style="color:var(--text-primary);">${item.sku}</strong> <strong style="color:var(--accent-orange); margin-left: 4px;">[x${item.qty}]</strong> - ${item.desc} - ${classificationSpan}</div> ${functionalActionGroupHtml}`;
                 historicLogContainer.appendChild(structuralRowListItem);
             });
             
             if (!rawSearchFilterString && intermediateFilteredLogsList.length > operationalRenderLimit) {
                 let structuralRowListItem = document.createElement('li'); 
-                structuralRowListItem.innerHTML = `<i style="color: var(--text-secondary); font-size: 10px;">...and ${intermediateFilteredLogsList.length - operationalRenderLimit} older scans layout hidden</i>`; 
+                structuralRowListItem.innerHTML = `<i style="color: var(--text-secondary); font-size: 10px;">...and ${intermediateFilteredLogsList.length - operationalRenderLimit} trailing entries suppressed</i>`; 
                 historicLogContainer.appendChild(structuralRowListItem);
             }
         }
@@ -2649,7 +2618,7 @@
         let internalSortedBinKeys = Object.keys(binTotals).map(Number).sort((lower, higher) => lower - higher);
         
         if (internalSortedBinKeys.length === 0) { 
-            structuralBinSummaryList.innerHTML = `<li>Bin ${getBinName(currentBin)} = 0 QTY</li>`; 
+            structuralBinSummaryList.innerHTML = `<li>Location ${getBinName(currentBin)} = 0 items</li>`; 
         } else {
             internalSortedBinKeys.forEach(binKey => {
                 let structuralRowListItem = document.createElement('li'); 
@@ -2661,7 +2630,7 @@
                 structuralRowListItem.style.fontWeight = binKey === currentBin ? "bold" : "normal"; 
                 structuralRowListItem.style.color = binKey === currentBin ? "var(--accent-blue)" : "var(--text-secondary)";
                 
-                structuralRowListItem.innerHTML = `<span style="cursor:pointer;" onclick="filterHistoryByBin(${binKey})"><strong>Bin ${getBinName(binKey)}</strong> = ${binTotals[binKey]} QTY</span>
+                structuralRowListItem.innerHTML = `<span style="cursor:pointer;" onclick="filterHistoryByBin(${binKey})"><strong>Loc ${getBinName(binKey)}</strong>: ${binTotals[binKey]} units</span>
                                 <button onclick="deleteBin(${binKey})" style="background:transparent; border:none; cursor:pointer; color:var(--accent-red); padding:0 4px; border-radius:4px;">
                                     <svg viewBox="0 0 24 24" width="10" height="10" stroke="currentColor" stroke-width="2" fill="none"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
                                 </button>`;
@@ -2700,10 +2669,11 @@
         } 
     }
 
+    // Ledger File Parsers and Internal Data Ingestion Pipes
     function loadPastedData() {
         let pastedRawText = document.getElementById('pasteArea').value;
         if (!pastedRawText.trim()) {
-            customAlert("Please copy-paste data columns from your spreadsheet first.", "Input Empty");
+            customAlert("Data workspace clipboard is empty.", "Input Missing");
             return;
         }
         let doubleDimensionRowsArray = [];
@@ -2725,7 +2695,6 @@
             let isRivoliVendorFormat = false;
             let rivBarcodeCol = -1, rivBrandCol = -1, rivSubBrandCol = -1, rivItemNoCol = -1, rivDescCol = -1;
 
-            // Header structural mapping sequence loop
             for (let idx = 0; idx < Math.min(parsedRows.length, 25); idx++) {
                 let columnCells = parsedRows[idx]; 
                 if (!columnCells || !columnCells.length) continue;
@@ -2781,7 +2750,7 @@
             }
 
             if (detectedSapmB52Signatures || isRivoliVendorFormat) {
-                requestBrandCombiningNormalization = await customConfirm("Do you want to combine similar brand names and fix misspellings?", "Combine Similar Brands");
+                requestBrandCombiningNormalization = await customConfirm("Standardize naming formats and clear data spelling mistakes?", "Ledger Normalization");
             }
             await new Promise(resolveCallback => setTimeout(resolveCallback, 50));
 
@@ -2789,7 +2758,6 @@
             let dynamicSetOfUniqueBrands = new Set(); 
             let selfFilteredExclusionsCounter = 0;
 
-            // Row-by-row structural scanning path loop
             for (let idx = absoluteDataStartIdx; idx < parsedRows.length; idx++) {
                 let columnsCollection = parsedRows[idx]; 
                 if (!columnsCollection || columnsCollection.length < 2) continue;
@@ -2925,19 +2893,19 @@
 
                 let fallbackRowTextContentSnapshot = columnsCollection.join(' '); 
                 let processedItemSkuKey = SKU_FieldRaw.replace(/^0+/, '') || '0';
-                let structuredQuantityValueInt = 0;
+                let structuralQuantityValueInt = 0;
                 
                 try {
                     if (QTY_FieldRaw.trim() !== "") {
-                        structuredQuantityValueInt = Math.round(parseFloat(QTY_FieldRaw.replace(/,/g, ''))); 
+                        structuralQuantityValueInt = Math.round(parseFloat(QTY_FieldRaw.replace(/,/g, ''))); 
                     }
                 } catch (quantityParseError) {}
                 
-                if (structuredQuantityValueInt < 0) {
-                    structuredQuantityValueInt = Math.abs(structuredQuantityValueInt); 
+                if (structuralQuantityValueInt < 0) {
+                    structuralQuantityValueInt = Math.abs(structuralQuantityValueInt); 
                 }
                 
-                if (processedItemSkuKey === "" || processedItemSkuKey === "0" || isNaN(structuredQuantityValueInt) || structuredQuantityValueInt === 0) continue;
+                if (processedItemSkuKey === "" || processedItemSkuKey === "0" || isNaN(structuralQuantityValueInt) || structuralQuantityValueInt === 0) continue;
 
                 let classificationAsLensFlag = isExcludedItem(fallbackRowTextContentSnapshot, DESC_FieldRaw, MERCH_FieldRaw); 
                 if (classificationAsLensFlag) selfFilteredExclusionsCounter++;
@@ -2954,13 +2922,13 @@
                 if (selectedBrandKey !== "UNKNOWN") dynamicSetOfUniqueBrands.add(selectedBrandKey);
 
                 uploadedRawData.push({ 
-                    sku: processedItemSkuKey, qty: structuredQuantityValueInt, desc: DESC_FieldRaw, sloc: SLOC_FieldRaw, 
+                    sku: processedItemSkuKey, qty: structuralQuantityValueInt, desc: DESC_FieldRaw, sloc: SLOC_FieldRaw, 
                     sto: STO_FieldRaw, category: selectedCategoryKey, brand: selectedBrandKey, isLens: classificationAsLensFlag 
                 });
             }
 
             if (uploadedRawData.length === 0) {
-                await customAlert(`No valid rows found to encode.`, "Load Result");
+                await customAlert("No usable tabular records matched extraction routines.", "Import Failed");
                 undoStack.pop(); 
                 updateUndoRedoButtons();
                 if (structuralTriggerEvent && structuralTriggerEvent.target) structuralTriggerEvent.target.value = ''; 
@@ -2996,7 +2964,7 @@
                 document.getElementById('mb52Filters').style.display = 'none';
                 
                 let stoSelectorElement = document.getElementById('stoDropdown'); 
-                stoSelectorElement.innerHTML = '<option value="ALL">ALL S.T.O.</option>';
+                stoSelectorElement.innerHTML = '<option value="ALL">All STO Inbound Documents</option>';
                 Array.from(dynamicSetOfUniqueStos).sort().forEach(stoNumber => {
                     stoSelectorElement.innerHTML += `<option value="${stoNumber}">${stoNumber}</option>`;
                 });
@@ -3008,18 +2976,18 @@
             
             applyDynamicFilters();
             
-            let systemLoadResultMessage = `Successfully loaded and parsed ${uploadedRawData.length} items.`;
+            let systemLoadResultMessage = `Import complete: ${uploadedRawData.length} records parsed successfully.`;
             if (selfFilteredExclusionsCounter > 0) {
-                systemLoadResultMessage += `<br><br><span style="color:var(--accent-pink); font-weight:bold;">Automatically hid ${selfFilteredExclusionsCounter} Ophthalmic, Contact Lens, and Spare Part items!</span>`;
+                systemLoadResultMessage += `<br><br><span style="color:var(--accent-pink); font-weight:bold;">Filtered out ${selfFilteredExclusionsCounter} auxiliary/lens items from master ledger automatically.</span>`;
             }
-            await customAlert(systemLoadResultMessage, "Load Success");
+            await customAlert(systemLoadResultMessage, "File Ingest Status");
             if (structuralTriggerEvent && structuralTriggerEvent.target) structuralTriggerEvent.target.value = '';
             
         } catch (parsingError) {
             console.error(parsingError); 
             undoStack.pop(); 
             updateUndoRedoButtons();
-            await customAlert("A critical error occurred while parsing the data: " + parsingError.message, "Parsing Error");
+            await customAlert("System failed to execute parsing engine rules over selection: " + parsingError.message, "Internal Error");
             if (structuralTriggerEvent && structuralTriggerEvent.target) structuralTriggerEvent.target.value = '';
         }
     }
@@ -3045,7 +3013,7 @@
                     await processArrayOfArrays(lineSplitsCollection, structuralTriggerEvent);
                 } catch(fileReadError) {
                     console.error(fileReadError); 
-                    await customAlert("There was an error reading the CSV text.", "File Error");
+                    await customAlert("Document stream read failure.", "I/O Error");
                     if (structuralTriggerEvent && structuralTriggerEvent.target) structuralTriggerEvent.target.value = '';
                 }
             };
@@ -3054,7 +3022,7 @@
         }
 
         if (typeof XLSX === 'undefined') {
-            await customAlert("The Excel parser library couldn't load. Please save it as a .CSV and try loading.", "Library Blocked");
+            await customAlert("XLSX framework initialization failure. Revert extension type to .CSV format structure.", "Library Block");
             if (structuralTriggerEvent && structuralTriggerEvent.target) structuralTriggerEvent.target.value = '';
             return;
         }
@@ -3078,7 +3046,7 @@
                 } catch(nestedFallbackError) { 
                     console.error(nestedFallbackError); 
                 }
-                await customAlert("There was an error parsing the spreadsheet. Ensure the file is not corrupted.", "File Error");
+                await customAlert("Structured binary parsing failed. Check workbook properties.", "File Access Warn");
                 if (structuralTriggerEvent && structuralTriggerEvent.target) structuralTriggerEvent.target.value = '';
             }
         };
@@ -3264,11 +3232,11 @@
 
                 let fallbackRowTextContentSnapshot = columnsCollection.join(' '); 
                 let processedItemSkuKey = SKU_FieldRaw.replace(/^0+/, '') || '0';
-                let structuredPendingValueInt = 0;
+                let structuralPendingValueInt = 0;
                 
                 try {
                     if (QTY_FieldRaw.trim() !== "") {
-                        structuredPendingValueInt = Math.round(parseFloat(QTY_FieldRaw.replace(/,/g, ''))); 
+                        structuralPendingValueInt = Math.round(parseFloat(QTY_FieldRaw.replace(/,/g, ''))); 
                     }
                 } catch (quantityParseError) {}
                 
@@ -3297,7 +3265,7 @@
             }
 
             if (absoluteAddedItemsTotal === 0) {
-                await customAlert(`No valid rows found to load as Pending Items.`, "Load Result");
+                await customAlert("No matching data cells found to populate inbound adjustments.", "Inbound Apply Clear");
                 undoStack.pop(); 
                 updateUndoRedoButtons();
                 if (structuralTriggerEvent && structuralTriggerEvent.target) structuralTriggerEvent.target.value = ''; 
@@ -3311,13 +3279,13 @@
             }
             
             applyDynamicFilters();
-            await customAlert(`Successfully added pending quantities for ${absoluteAddedItemsTotal} items.`, "Pending Load Success");
+            await customAlert(`Inbound delivery metrics set for ${absoluteAddedItemsTotal} tracking matches.`, "Advice Ingest Succeeded");
             if (structuralTriggerEvent && structuralTriggerEvent.target) structuralTriggerEvent.target.value = '';
         } catch (parsingError) {
             console.error(parsingError); 
             undoStack.pop(); 
             updateUndoRedoButtons();
-            await customAlert("An error occurred while parsing the pending data: " + parsingError.message, "Parsing Error");
+            await customAlert("System advice stream reading encountered data configuration error: " + parsingError.message, "Ingest Halt");
             if (structuralTriggerEvent && structuralTriggerEvent.target) structuralTriggerEvent.target.value = '';
         }
     }
@@ -3343,7 +3311,7 @@
                     await processPendingArrayOfArrays(lineSplitsCollection, structuralTriggerEvent);
                 } catch(fileReadError) {
                     console.error(fileReadError); 
-                    await customAlert("There was an error reading the CSV text.", "File Error");
+                    await customAlert("Read pipeline failed on input parameters.", "I/O Fail");
                     if (structuralTriggerEvent && structuralTriggerEvent.target) structuralTriggerEvent.target.value = '';
                 }
             };
@@ -3352,7 +3320,7 @@
         }
 
         if (typeof XLSX === 'undefined') {
-            await customAlert("The Excel parser library couldn't load. Please save it as a .CSV and try loading.", "Library Blocked");
+            await customAlert("XLSX parsing dependency missing.", "Execution Halt");
             if (structuralTriggerEvent && structuralTriggerEvent.target) structuralTriggerEvent.target.value = '';
             return;
         }
@@ -3376,7 +3344,7 @@
                 } catch(nestedFallbackError) { 
                     console.error(nestedFallbackError); 
                 }
-                await customAlert("There was an error parsing the spreadsheet. Ensure the file is not corrupted.", "File Error");
+                await customAlert("Workbook interface interpretation mapping failed.", "File Error");
                 if (structuralTriggerEvent && structuralTriggerEvent.target) structuralTriggerEvent.target.value = '';
             }
         };
@@ -3401,7 +3369,7 @@
         uploadedRawData.forEach(evaluateRowBrandSignatures);
         pendingRawData.forEach(evaluateRowBrandSignatures);
 
-        brandSelectElement.innerHTML = '<option value="ALL">ALL BRANDS</option>';
+        brandSelectElement.innerHTML = '<option value="ALL">All Brands Listed</option>';
         Array.from(setOfValidBrands).sort().forEach(brandName => {
             brandSelectElement.innerHTML += `<option value="${brandName}">${brandName}</option>`;
         });
@@ -3523,9 +3491,10 @@
         renderTable();
     }
 
+    // Export Outputs Framework & Sheet Builders
     function exportPDF() {
         if (Object.keys(inventory).length === 0) { 
-            customAlert("There is no data to print yet.", "Print Error"); 
+            customAlert("Data sheet view is empty.", "Print Aborted"); 
             return; 
         }
         
@@ -3545,12 +3514,12 @@
 
     async function exportToCSV() {
         if (Object.keys(inventory).length === 0) { 
-            await customAlert("No data to save!", "Export Error"); 
+            await customAlert("Workspace data parameters are empty.", "Export Error"); 
             return; 
         }
         
-        let chronologicalDefaultName = `SavedSession_${new Date().toISOString().split('T')[0]}`;
-        let finalizedSaveFileName = await customPrompt("Enter a name for your save file:", chronologicalDefaultName, "Save File");
+        let chronologicalDefaultName = `StockAudit_Session_${new Date().toISOString().split('T')[0]}`;
+        let finalizedSaveFileName = await customPrompt("Save log file designation label:", chronologicalDefaultName, "Save Checkpoint");
         
         if (!finalizedSaveFileName) return; 
         if (!finalizedSaveFileName.toLowerCase().endsWith('.csv')) {
@@ -3610,25 +3579,25 @@
         });
 
         let csvStringOutputBuffer = ""; 
-        let localizedHeaderTokens = ["Item # (SKU)"];
+        let localizedHeaderTokens = ["Item Barcode (SKU)"];
         
-        if (tableContainsValidDescriptions) localizedHeaderTokens.push("Description"); 
+        if (tableContainsValidDescriptions) localizedHeaderTokens.push("Item Description"); 
         if (tableContainsValidSlocs) {
-            localizedHeaderTokens.push("SLOC", "System QTY (Total)", "Sys QTY 1000", "Sys QTY 4000"); 
+            localizedHeaderTokens.push("Sub-Location", "Ledger Count (Total)", "Sloc 1000 Book", "Sloc 4000 Book"); 
         } else {
-            localizedHeaderTokens.push("System QTY");
+            localizedHeaderTokens.push("Ledger Balance");
         }
         
-        localizedHeaderTokens.push("Scanned QTY", "Bins"); 
-        if (tableContainsValidPendingValues) localizedHeaderTokens.push("Pending QTY");
-        localizedHeaderTokens.push("Variance", "Status");
+        localizedHeaderTokens.push("Scanned Qty", "Mapped Bins"); 
+        if (tableContainsValidPendingValues) localizedHeaderTokens.push("Inbound Advice Qty");
+        localizedHeaderTokens.push("Variance", "Reconciliation Status");
         
         csvStringOutputBuffer += localizedHeaderTokens.join(",") + "\n";
 
         for (let idx = 0; idx < operationalExportList.length; idx++) {
             let activeItemNode = operationalExportList[idx]; 
             let operationalVarianceValue = (activeItemNode.scannedQty + (activeItemNode.pendingQty || 0)) - activeItemNode.systemQty;
-            let localizedStatusLabelText = operationalVarianceValue === 0 ? 'Matched' : (operationalVarianceValue < 0 ? 'Missing Stock' : (activeItemNode.systemQty === 0 ? 'Not in system' : 'Extra Stock'));
+            let localizedStatusLabelText = operationalVarianceValue === 0 ? 'Matched' : (operationalVarianceValue < 0 ? 'Shortage' : (activeItemNode.systemQty === 0 ? 'Unlisted Reference' : 'Overage'));
             let organizedCSVCellsList = [activeItemNode.sku];
             
             if (tableContainsValidDescriptions) {
@@ -3703,22 +3672,23 @@
                 if (individualInputLines.length === 0) return;
                 
                 let columnHeadersList = parseCSVLine(individualInputLines[0], targetedDelimiter).map(item => item ? item.trim() : '');
-                let skuCol = columnHeadersList.indexOf("Item # (SKU)"); 
-                let descCol = columnHeadersList.indexOf("Description"); 
-                let slocCol = columnHeadersList.indexOf("SLOC");
-                let sysQtyTotalCol = columnHeadersList.indexOf("System QTY (Total)") !== -1 ? columnHeadersList.indexOf("System QTY (Total)") : columnHeadersList.indexOf("System QTY");
-                let sys1000Col = columnHeadersList.indexOf("Sys QTY 1000"); 
-                let sys4000Col = columnHeadersList.indexOf("Sys QTY 4000");
-                let scanQtyCol = columnHeadersList.indexOf("Scanned QTY"); 
-                let pendingQtyCol = columnHeadersList.indexOf("Pending QTY");
+                
+                let skuCol = columnHeadersList.findIndex(h => h.toLowerCase() === "item barcode (sku)" || h.toLowerCase() === "item # (sku)");
+                let descCol = columnHeadersList.findIndex(h => h.toLowerCase() === "item description" || h.toLowerCase() === "description");
+                let slocCol = columnHeadersList.findIndex(h => h.toLowerCase() === "sub-location" || h.toLowerCase() === "sloc");
+                let sysQtyTotalCol = columnHeadersList.findIndex(h => h.toLowerCase() === "ledger count (total)" || h.toLowerCase() === "ledger balance" || h.toLowerCase() === "system qty" || h.toLowerCase() === "system qty (total)");
+                let sys1000Col = columnHeadersList.findIndex(h => h.toLowerCase() === "sloc 1000 book" || h.toLowerCase() === "sys qty 1000");
+                let sys4000Col = columnHeadersList.findIndex(h => h.toLowerCase() === "sloc 4000 book" || h.toLowerCase() === "sys qty 4000");
+                let scanQtyCol = columnHeadersList.findIndex(h => h.toLowerCase() === "scanned qty" || h.toLowerCase() === "scanned quantity");
+                let pendingQtyCol = columnHeadersList.findIndex(h => h.toLowerCase() === "inbound advice qty" || h.toLowerCase() === "pending qty");
 
                 if (skuCol === -1 || scanQtyCol === -1) { 
-                    await customAlert("Invalid saved file format.", "Load Error"); 
+                    await customAlert("CSV layout parameters not identified.", "Import Aborted"); 
                     structuralTriggerEvent.target.value = ''; 
                     return; 
                 }
                 
-                const processOverwritesConfirmed = await customConfirm("Loading this session will replace current screen data. Proceed?", "Load Saved Data");
+                const processOverwritesConfirmed = await customConfirm("Overwrite active grid data with targeted session logs file?", "Restore Checkpoint");
                 if (!processOverwritesConfirmed) { 
                     structuralTriggerEvent.target.value = ''; 
                     return; 
@@ -3794,7 +3764,7 @@
                 if (uploadedRawData.length > 0 || pendingRawData.length > 0) {
                     document.getElementById('dynamicFilters').style.display = 'flex';
                     document.getElementById('intransitFilters').style.display = currentFileType === 'INTRANSIT' ? 'flex' : 'none';
-                    document.getElementById('mb52Filters').style.display = 'none' ? 'none' : 'flex';
+                    document.getElementById('mb52Filters').style.display = currentFileType === 'INTRANSIT' ? 'none' : 'flex';
                     updateBrandDropdown();
                 }
                 
@@ -3804,17 +3774,18 @@
                 renderTable(); 
                 renderAuditTrail();
                 
-                await customAlert(`Successfully loaded ${Object.keys(inventory).length} items.`, "Load Success"); 
+                await customAlert(`Session log recovery completed: ${Object.keys(inventory).length} data rows mapped.`, "Recovery Success"); 
                 structuralTriggerEvent.target.value = '';
             } catch (fileImportError) { 
                 console.error(fileImportError); 
-                await customAlert("Error parsing file.", "Load Error"); 
+                await customAlert("Session recovery engine execution failure.", "Import Interrupted"); 
                 structuralTriggerEvent.target.value = ''; 
             }
         };
         textBufferReader.readAsText(targetingUploadFileNode);
     }
 
+    // Sheet Composition and DOM Node Generator Rules
     function renderTable() {
         const structuralTableHead = document.querySelector('#resultsTable thead'); 
         const structuralTableBody = document.querySelector('#resultsTable tbody');
@@ -3887,7 +3858,7 @@
         if (systemDataEncoded) { 
             document.getElementById('dashSystem').innerText = localAccumulatedSystemTotal; 
         } else { 
-            document.getElementById('dashSystem').innerHTML = '<span style="font-size: 11px; color: var(--accent-red); font-weight: 600; line-height: 24px; display: inline-block;">No system data</span>'; 
+            document.getElementById('dashSystem').innerHTML = '<span style="font-size: 11px; color: var(--accent-red); font-weight: 600; line-height: 24px; display: inline-block;">Ledger Offline</span>'; 
         }
         
         document.getElementById('dashScanned').innerText = localAccumulatedScannedTotal; 
@@ -3903,17 +3874,17 @@
 
         let structuralHeaderRowElement = document.createElement('tr');
         structuralHeaderRowElement.innerHTML = `
-            <th style="border-radius: var(--radius-lg) 0 0 0;">NO.</th>
-            <th>Item # (SKU)</th>
-            ${visualToggleDescriptionColumn ? '<th>Description</th>' : ''}
-            ${visualToggleSlocColumn ? '<th>SLOC</th>' : ''}
-            <th>System QTY</th>
-            <th>Scanned QTY</th>
-            ${systemHasScannedItemsData ? '<th>Bins</th>' : ''}
-            ${visualTogglePendingColumn ? '<th>Pending QTY</th>' : ''}
+            <th style="border-radius: var(--radius-lg) 0 0 0;">INDEX</th>
+            <th>Item SKU</th>
+            ${visualToggleDescriptionColumn ? '<th>Item Description</th>' : ''}
+            ${visualToggleSlocColumn ? '<th>Sloc Location</th>' : ''}
+            <th>Book Qty</th>
+            <th>Scanned Qty</th>
+            ${systemHasScannedItemsData ? '<th>Box Segments</th>' : ''}
+            ${visualTogglePendingColumn ? '<th>Inbound Advice</th>' : ''}
             <th>Variance</th>
-            <th>Status</th>
-            <th style="text-align: center; border-radius: 0 var(--radius-lg) 0 0;">Action</th>
+            <th>Status State</th>
+            <th style="text-align: center; border-radius: 0 var(--radius-lg) 0 0;">Actions</th>
         `;
         structuralTableHead.appendChild(structuralHeaderRowElement);
 
@@ -3930,7 +3901,7 @@
         }
 
         currentTotalPages = calculatedTotalPagesCount;
-        document.getElementById('pageInfoText').innerText = `Page ${currentPage} of ${calculatedTotalPagesCount} (${filteredCollectionItemsTotal} items)`;
+        document.getElementById('pageInfoText').innerText = `Page ${currentPage} / ${calculatedTotalPagesCount} (${filteredCollectionItemsTotal} records matched)`;
         document.getElementById('btnPrevPage').disabled = currentPage === 1;
         document.getElementById('btnNextPage').disabled = currentPage === calculatedTotalPagesCount || calculatedTotalPagesCount === 0;
 
@@ -3948,11 +3919,11 @@
                 targetStatusHexColor = 'var(--accent-green)'; 
             } else if (item.diff < 0) { 
                 targetedVisualRowClass = 'short'; 
-                localizedStatusLabelText = 'Missing Stock'; 
+                localizedStatusLabelText = 'Shortage'; 
                 targetStatusHexColor = 'var(--accent-red)'; 
             } else if (item.diff > 0) { 
                 targetedVisualRowClass = 'over'; 
-                localizedStatusLabelText = item.systemQty === 0 ? 'Not in system' : 'Extra Stock'; 
+                localizedStatusLabelText = item.systemQty === 0 ? 'Unlisted' : 'Overage'; 
                 targetStatusHexColor = 'var(--accent-blue)'; 
             }
 
@@ -3975,7 +3946,7 @@
 
             let structuralLocationLabelString = item.sloc || "";
             if (structuralLocationLabelString === "" && isIntransitFileFormatActive && item.systemQty > 0) {
-                structuralLocationLabelString = "In-Transit";
+                structuralLocationLabelString = "In-Transit STO";
             }
 
             let localizedFormattedSlocStrings = structuralLocationLabelString.split(', ').map(locToken => {
