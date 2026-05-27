@@ -1562,7 +1562,7 @@
         const isTutorialChecked = toggleBtnElement.checked;
         
         if (isTutorialChecked) {
-            const acceptVideoRedirect = await customConfirm("Do you want to open the layout reference documentation link?", "Confirmation message");
+            const acceptVideoRedirect = await customConfirm("Do you want to open a video tutorial (Youtube Link)?", "Confirmation message");
             if (acceptVideoRedirect) {
                 window.open("https://youtu.be/HJrrWY5lXak?si=ly1MJcBGWA5w7Z9s", "_blank");
             }
@@ -2083,7 +2083,7 @@
     }
 
     async function resetSession() {
-        const requestActionConfirmation = await customConfirm("Flush current workspace state? Scanned counts and active buffers will be cleared completely.", "Flush Workspace");
+        const requestActionConfirmation = await customConfirm("Remove current works? Scanned counts and active filters will be cleared completely.", "Clear Everything");
         if (!requestActionConfirmation) return;
         
         inventory = {};
