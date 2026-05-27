@@ -1101,7 +1101,7 @@
                     </svg> Pending Items
                 </button>
 
-                <button class="btn-secondary" onclick="onclick=openManualEncode()" title="Paste a raw list of barcodes to add them automatically to your Scanned items">
+                <button class="btn-secondary" onclick="openManualEncode()" title="Paste a raw list of barcodes to add them automatically to your Scanned items">
                     <svg viewBox="0 0 24 24" width="12" height="12" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: text-bottom; margin-right: 4px;">
                         <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
                         <polyline points="14 2 14 8 20 8"></polyline>
@@ -1278,8 +1278,64 @@
 </div>
 
 <script>
+    // Database Core - Added IndexedDB to handle unlimited session persistence 
+    // This circumvents the 5MB browser localStorage crash with large files.
+    const DB_NAME = 'StockCheckDB';
+    const STORE_NAME = 'sessions';
+    let dbInstance = null;
+
+    function initDB() {
+        return new Promise((resolve, reject) => {
+            if (dbInstance) return resolve(dbInstance);
+            const request = indexedDB.open(DB_NAME, 1);
+            request.onerror = e => reject(e.target.error);
+            request.onsuccess = e => {
+                dbInstance = e.target.result;
+                resolve(dbInstance);
+            };
+            request.onupgradeneeded = e => {
+                const db = e.target.result;
+                if (!db.objectStoreNames.contains(STORE_NAME)) {
+                    db.createObjectStore(STORE_NAME);
+                }
+            };
+        });
+    }
+
+    async function saveToDB(key, data) {
+        const db = await initDB();
+        return new Promise((resolve, reject) => {
+            const tx = db.transaction(STORE_NAME, 'readwrite');
+            const store = tx.objectStore(STORE_NAME);
+            store.put(data, key);
+            tx.oncomplete = () => resolve(true);
+            tx.onerror = e => reject(e.target.error);
+        });
+    }
+
+    async function loadFromDB(key) {
+        const db = await initDB();
+        return new Promise((resolve, reject) => {
+            const tx = db.transaction(STORE_NAME, 'readonly');
+            const store = tx.objectStore(STORE_NAME);
+            const request = store.get(key);
+            request.onsuccess = e => resolve(e.target.result);
+            request.onerror = e => reject(e.target.error);
+        });
+    }
+
+    async function clearDB() {
+        const db = await initDB();
+        return new Promise((resolve, reject) => {
+            const tx = db.transaction(STORE_NAME, 'readwrite');
+            tx.objectStore(STORE_NAME).clear();
+            tx.oncomplete = () => resolve(true);
+            tx.onerror = e => reject(e.target.error);
+        });
+    }
+
     let inventory = {};
-    let backgroundMasterSkuMap = {}; // NEW: Holds the company master dictionary
+    let backgroundMasterSkuMap = {}; 
     let pendingRawData = []; 
     let uploadedRawData = []; 
     let currentFileType = null;
@@ -1307,7 +1363,6 @@
 
     async function initializeBackgroundSkuDictionary() {
         try {
-            // Attempt to pull the file silently from the server environment
             const serverResponseNode = await fetch('./Combined%20SKU.csv');
             
             if (!serverResponseNode.ok) {
@@ -1319,11 +1374,9 @@
             const systematicFileLines = rawCsvTextBuffer.split(/\r?\n/);
             let structuralLoadedCount = 0;
 
-            // Start at index 1 to skip the header
             for (let idx = 1; idx < systematicFileLines.length; idx++) {
                 if (!systematicFileLines[idx].trim()) continue;
                 
-                // Reuse your robust parseCSVLine function
                 let organizedCSVCellsList = parseCSVLine(systematicFileLines[idx], ',');
                 
                 if (organizedCSVCellsList.length >= 2) {
@@ -1776,6 +1829,9 @@
     let lastScanTime = 0;
 
     function openCamera() {
+        // Plug memory leak: check if active instance already exists before tearing down UI
+        if (html5QrcodeScanner) return;
+        
         document.getElementById('cameraModal').style.display = 'flex';
         html5QrcodeScanner = new Html5QrcodeScanner(
             "reader", 
@@ -1785,9 +1841,14 @@
         html5QrcodeScanner.render(onScanSuccess);
     }
 
-    function closeCamera() {
+    async function closeCamera() {
         if (html5QrcodeScanner) {
-            html5QrcodeScanner.clear().catch(err => console.warn("Camera hard resource released safely."));
+            try {
+                await html5QrcodeScanner.clear();
+            } catch(err) {
+                console.warn("Camera hard resource released with minor warning.", err);
+            }
+            html5QrcodeScanner = null;
         }
         document.getElementById('cameraModal').style.display = 'none';
     }
@@ -2051,32 +2112,11 @@
 
     async function saveData() {
         let operationalStateDump = getCurrentState();
-        if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
-            await chrome.storage.local.set({ 'posInventoryState': operationalStateDump });
-        } else {
-            let coreStructuralMap = {
-                inventory: operationalStateDump.inventory,
-                systemDataEncoded: operationalStateDump.systemDataEncoded,
-                hasWarnedNoSystemData: operationalStateDump.hasWarnedNoSystemData,
-                auditLog: operationalStateDump.auditLog.slice(0, 5000), 
-                uploadedRawData: operationalStateDump.uploadedRawData,
-                pendingRawData: operationalStateDump.pendingRawData,
-                currentFileType: operationalStateDump.currentFileType,
-                isLensesFilterActive: operationalStateDump.isLensesFilterActive,
-                currentBin: operationalStateDump.currentBin,
-                binTotals: operationalStateDump.binTotals,
-                binCounters: operationalStateDump.binCounters,
-                currentPage: operationalStateDump.currentPage,
-                itemsPerPage: operationalStateDump.itemsPerPage,
-                currentFilter: operationalStateDump.currentFilter,
-                currentSearchQuery: operationalStateDump.currentSearchQuery
-            };
-            
-            try {
-                localStorage.setItem('posInventoryState', JSON.stringify(coreStructuralMap));
-            } catch (quotaError) {
-                console.warn("Local cache storage limits hit. Session memory volatile.", quotaError);
-            }
+        try {
+            // Replaces legacy localstorage calls with high-capacity indexedDB wrapper
+            await saveToDB('posInventoryState', operationalStateDump);
+        } catch (e) {
+            console.warn("Failed to stream state tree into persistent volume.", e);
         }
     }
 
@@ -2096,29 +2136,32 @@
 
     async function loadData() {
         let masterBackupStateNode = null;
-        if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
-            const queryStorageResults = await chrome.storage.local.get(['posInventoryState', 'legacyInventoryState', 'legacyInventoryData']);
-            if (queryStorageResults.posInventoryState) {
-                masterBackupStateNode = queryStorageResults.posInventoryState;
-            } else if (queryStorageResults.legacyInventoryState) {
-                masterBackupStateNode = queryStorageResults.legacyInventoryState;
-                await chrome.storage.local.set({ 'posInventoryState': masterBackupStateNode }); 
-            } else if (queryStorageResults.legacyInventoryData) {
-                masterBackupStateNode = { inventory: queryStorageResults.legacyInventoryData, systemDataEncoded: true, hasWarnedNoSystemData: true, auditLog: [] };
-            }
-        } else {
+        
+        try {
+            masterBackupStateNode = await loadFromDB('posInventoryState');
+        } catch(e) {
+            console.warn("IndexedDB load pipeline exception handled.", e);
+        }
+
+        // Automatic fallback and migration from old storage schema limits
+        if (!masterBackupStateNode) {
             const rawSerializedStateString = localStorage.getItem('posInventoryState') || localStorage.getItem('legacyInventoryState');
             if (rawSerializedStateString) {
                 try {
                     masterBackupStateNode = JSON.parse(rawSerializedStateString);
+                    await saveToDB('posInventoryState', masterBackupStateNode);
+                    localStorage.removeItem('posInventoryState');
+                    localStorage.removeItem('legacyInventoryState');
                 } catch(e) {
-                    console.error("Failed to parse saved state", e);
+                    console.error("Failed to parse saved local storage state", e);
                 }
             } else {
                 const legacyDumpString = localStorage.getItem('legacyInventoryData');
                 if (legacyDumpString) {
                     try {
                         masterBackupStateNode = { inventory: JSON.parse(legacyDumpString), systemDataEncoded: true, hasWarnedNoSystemData: true, auditLog: [] };
+                        await saveToDB('posInventoryState', masterBackupStateNode);
+                        localStorage.removeItem('legacyInventoryData');
                     } catch(e) {
                         console.error("Failed to parse legacy state", e);
                     }
@@ -2131,7 +2174,7 @@
                 applyState(masterBackupStateNode, true); 
             } catch (stateRestoreError) {
                 console.warn("Corrupted session map detected. Safe reset applied.", stateRestoreError);
-                localStorage.removeItem('posInventoryState');
+                await clearDB();
             }
         }
         updateUndoRedoButtons();
@@ -2157,13 +2200,10 @@
         redoStack = [];
         
         try {
-            if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
-                await chrome.storage.local.remove(['posInventoryState', 'legacyInventoryState', 'legacyInventoryData']);
-            } else {
-                localStorage.removeItem('posInventoryState');
-                localStorage.removeItem('legacyInventoryState');
-                localStorage.removeItem('legacyInventoryData');
-            }
+            await clearDB();
+            localStorage.removeItem('posInventoryState');
+            localStorage.removeItem('legacyInventoryState');
+            localStorage.removeItem('legacyInventoryData');
         } catch(storageClearError) {
             console.warn(storageClearError);
         }
@@ -3690,7 +3730,22 @@
         };
         
         try {
-            let obfuscatedMetadataBase64 = btoa(unescape(encodeURIComponent(JSON.stringify(rawInternalMetaDump))));
+            // Replaces the deprecated and memory-limited btoa(unescape(encodeURIComponent)) workflow
+            const encodeBase64Large = async (obj) => {
+                const jsonStr = JSON.stringify(obj);
+                const blob = new Blob([jsonStr], { type: 'application/json' });
+                return new Promise((resolve) => {
+                    const reader = new FileReader();
+                    reader.onloadend = () => {
+                        const b64 = reader.result.split(',')[1];
+                        resolve(b64);
+                    };
+                    reader.readAsDataURL(blob);
+                });
+            };
+            
+            let obfuscatedMetadataBase64 = await encodeBase64Large(rawInternalMetaDump);
+            
             csvStringOutputBuffer += "\n".repeat(10) + ",".repeat(localizedHeaderTokens.length + 9) + "#---SYSTEM_METADATA_START---#\n";
             for (let idx = 0; idx < obfuscatedMetadataBase64.length; idx += 30000) {
                 csvStringOutputBuffer += ",".repeat(localizedHeaderTokens.length + 9) + obfuscatedMetadataBase64.slice(idx, idx + 30000) + "\n";
@@ -3725,9 +3780,12 @@
                 
                 if (regexMetadataExtractionMatch && regexMetadataExtractionMatch[1]) {
                     try { 
-                        systematicallyExtractedMetaMap = JSON.parse(decodeURIComponent(escape(atob(regexMetadataExtractionMatch[1].replace(/[\r\n"',\s]/g, "").trim())))); 
+                        // Safely decode the base64 metadata payload using native Fetch API 
+                        const b64Str = regexMetadataExtractionMatch[1].replace(/[\r\n"',\s]/g, "").trim();
+                        const fetchRes = await fetch(`data:application/json;base64,${b64Str}`);
+                        systematicallyExtractedMetaMap = await fetchRes.json();
                     } catch(metadataFormatError) { 
-                        console.error(metadataFormatError); 
+                        console.error("Failed parsing CSV metadata payload", metadataFormatError); 
                     }
                 }
                 
